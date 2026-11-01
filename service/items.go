@@ -16,7 +16,6 @@ import (
 	"slices"
 	"strconv"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"codeberg.org/readeck/go-readability/v2"
@@ -158,17 +157,18 @@ func (s *ItemService) AddItems(ctx context.Context, items models.Items) (int, er
 }
 
 type ItemChanges struct {
-	New     models.Items
-	Updated models.Items
+	New       models.Items
+	Updated   models.Items
+	Unchanged models.Items
 }
 
-// FilterUpdatedOrNewItems takes a [models.Items] slice and checks for significant changes for the existing items in the
-// slice. It returns an [ItemChanges] which contains slices of the new and/or updated items.
-func (s ItemService) FilterUpdatedOrNewItems(ctx context.Context, items models.Items) ItemChanges {
+// SortItemsByState takes a [models.Items] slice and checks for significant changes for the existing items in the
+// slice. It returns an [ItemChanges] which contains slices of the new, updated, and unchanged items.
+func (s ItemService) SortItemsByState(ctx context.Context, items models.Items) ItemChanges {
 	oldItems, err := s.GetItems(ctx, items.GetIDs()...)
 	if err != nil {
 		// If we can't fetch existing items, assume all items are new so enrichment takes place.
-		slogctx.Warn(ctx, "Could not fetch existing items for filtering.",
+		slogctx.Warn(ctx, "Could not fetch existing items for filtering. Treating all items as new.",
 			slog.Any("error", err))
 		return ItemChanges{
 			New: items,
@@ -177,24 +177,28 @@ func (s ItemService) FilterUpdatedOrNewItems(ctx context.Context, items models.I
 	oldItemsMap := oldItems.AsMap()
 	newItems := make(models.Items, 0)
 	updatedItems := make(models.Items, 0)
+	unchangedItems := make(models.Items, 0)
 	for item := range slices.Values(items) {
 		oldItem, found := oldItemsMap[item.GetID()]
 		if !found {
 			// Item is new.
 			newItems = append(newItems, item)
 		} else {
-			// If the title, description or content has changed, consider the item changed.
+			// If the title, description, or content has changed, consider the item changed.
 			if oldItem.GetTitle() != item.GetTitle() || oldItem.GetDescription() != item.GetDescription() ||
 				oldItem.GetContent() != item.GetContent() {
-
+				updatedItems = append(updatedItems, item)
 			}
-			updatedItems = append(updatedItems, item)
+			// Items that are not new and don't have significant content changes are discarded.
+			unchangedItems = append(unchangedItems, item)
 		}
 	}
-	return ItemChanges{New: newItems, Updated: updatedItems}
+	return ItemChanges{New: newItems, Updated: updatedItems, Unchanged: unchangedItems}
 }
 
-// EnrichItemBatch performs item enrichment on the given slice of items for the given feed.
+// EnrichItemBatch performs item enrichment on the given slice of items for the given feed. Individual item enrichments
+// failures are non-fatal, logged and do not halt processing any remaining items. EnrichItemBatch passes all processed
+// items to AddItems and returns the result values of that method.
 func (s *ItemService) EnrichItemBatch(
 	ctx context.Context,
 	feed *models.Feed,
@@ -203,30 +207,35 @@ func (s *ItemService) EnrichItemBatch(
 	// Determine bounded concurrency
 	maxWorkers := min(runtime.GOMAXPROCS(0)*4, 100)
 
-	g, enrichCtx := errgroup.WithContext(ctx)
+	var (
+		g  errgroup.Group
+		mu sync.Mutex
+	)
 	g.SetLimit(maxWorkers)
-
+	errs := make([]error, 0)
 	results := make(chan *models.Item, len(items))
-	var failed atomic.Int32
 
 	// Fan-out: send items to workers
 	for item := range slices.Values(items) {
 		g.Go(func() error {
-			err := s.EnrichItem(enrichCtx, feed, item)
-			if err != nil {
-				failed.Add(1)
-				return err
+			if err := s.EnrichItem(ctx, feed, item); err != nil {
+				mu.Lock()
+				errs = append(errs, err)
+				mu.Unlock()
 			}
 			results <- item
 			return nil
 		})
 	}
 
-	if err := g.Wait(); err != nil {
-		return 0, err
-	}
-	if failed.Load() > 0 {
-		slogctx.Warn(ctx, "Some items failed to be enriched.", slog.Int("count", int(failed.Load())))
+	_ = g.Wait()
+	if len(errs) > 0 {
+		slogctx.Warn(
+			ctx,
+			"Some items failed to be enriched.",
+			slog.Int("count", int(len(errs))),
+			slog.Any("errors", errors.Join(errs...)),
+		)
 	}
 
 	close(results)
@@ -249,7 +258,7 @@ func (s *ItemService) EnrichItem(
 	item *models.Item,
 ) error {
 	if err := ctx.Err(); err != nil {
-		slogctx.Warn(ctx, "context done",
+		slogctx.Warn(ctx, "Cannot enrich item: context done",
 			slog.Any("cause", context.Cause(ctx)),
 			slog.Any("error", err),
 		)
@@ -270,14 +279,6 @@ func (s *ItemService) EnrichItem(
 			}
 		}
 	}()
-
-	if err := ctx.Err(); err != nil {
-		slogctx.Warn(ctx, "context done",
-			slog.Any("cause", context.Cause(ctx)),
-			slog.Any("error", err),
-		)
-		return fmt.Errorf("cannot enrich item: %w", err)
-	}
 
 	itemCtx, cancel := context.WithTimeoutCause(ctx, 5*time.Minute, errors.New("enrich item timeout"))
 	defer cancel()

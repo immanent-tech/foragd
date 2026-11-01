@@ -40,6 +40,7 @@ import (
 	"github.com/immanent-tech/go-syndication/rss"
 	"github.com/immanent-tech/go-syndication/types"
 
+	"github.com/immanent-tech/go-base/pkg/comparisons"
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-base/pkg/textx"
 
@@ -331,9 +332,7 @@ func (s *FeedService) UpdateFeedItems(
 
 	// If there are not items, just return.
 	if len(newData.GetItems()) == 0 {
-		logMsg := newFeedStatusMsg(oldData.GetID())
-		logMsg.StatusCode = http.StatusNoContent
-		if err := logMsg.log(ctx); err != nil {
+		if err := newFeedStatusMsg(oldData.GetID(), logWithStatusCode(http.StatusNoContent)).log(ctx); err != nil {
 			slogctx.Error(ctx, "Unable to write feed status.",
 				slog.Any("error", err))
 		}
@@ -342,12 +341,12 @@ func (s *FeedService) UpdateFeedItems(
 	// Add any new items since the last feed update.
 	if newItems := newData.GetItems().FilterSince(oldData.LastFetched); len(newItems) > 0 {
 		// Filter to only items that are new or had significant changes.
-		itemStates := itemSvc.FilterUpdatedOrNewItems(ctx, newItems)
-		allItems := slices.Concat(itemStates.New, itemStates.Updated)
+		itemStates := itemSvc.SortItemsByState(ctx, newItems)
+		updates := slices.Concat(itemStates.New, itemStates.Updated)
 		// Enrich items.
-		if len(allItems) > 0 {
+		if len(updates) > 0 {
 			if _, err := itemSvc.EnrichItemBatch(ctx, newData, itemStates.New); err != nil {
-				return oldData.LastFetched, fmt.Errorf("add new items: %w", err)
+				return oldData.LastFetched, fmt.Errorf("enrich items: %w", err)
 			}
 		}
 		// Log item states.
@@ -355,20 +354,20 @@ func (s *FeedService) UpdateFeedItems(
 			slog.Time("since", oldData.LastFetched),
 			slog.Int("new", len(itemStates.New)),
 			slog.Int("updated", len(itemStates.Updated)),
+			slog.Int("unchanged", len(itemStates.Unchanged)),
 		)
-		logMsg := newFeedStatusMsg(oldData.GetID())
-		logMsg.StatusCode = http.StatusOK
-		logMsg.Items = newItems.GetIDs()
-		if err := logMsg.log(ctx); err != nil {
+		if err := newFeedStatusMsg(
+			oldData.GetID(),
+			logWithStatusCode(http.StatusOK),
+			logWithItemIDs(updates.GetIDs()...),
+		).log(ctx); err != nil {
 			slogctx.Error(ctx, "Unable to write feed status.",
 				slog.Any("error", err))
 		}
 		// Return timestamp of most recent item.
-		return allItems.SortByTimestamp()[0].GetTimestamp(), nil
+		return updates.SortByTimestamp()[0].GetTimestamp(), nil
 	}
-	logMsg := newFeedStatusMsg(oldData.GetID())
-	logMsg.StatusCode = http.StatusNoContent
-	if err := logMsg.log(ctx); err != nil {
+	if err := newFeedStatusMsg(oldData.GetID(), logWithStatusCode(http.StatusNoContent)).log(ctx); err != nil {
 		slogctx.Error(ctx, "Unable to write feed status.",
 			slog.Any("error", err))
 	}
@@ -381,7 +380,7 @@ func (s *FeedService) UpdateFeedItems(
 func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 	oldData, newData *models.Feed) error {
 	if err := ctx.Err(); err != nil {
-		slogctx.Warn(ctx, "context done",
+		slogctx.Warn(ctx, "Cannot apply feed updates: context done",
 			slog.Any("cause", context.Cause(ctx)),
 			slog.Any("error", err),
 		)
@@ -448,12 +447,12 @@ func (s *FeedService) updateFeedData(ctx context.Context, oldData, newData *mode
 	if oldData.SourceType != newData.SourceType {
 		changes["source_type"] = Change{Old: oldData.SourceType, New: newData.SourceType}
 	}
-	// Accept any copyright change.
-	if oldData.GetRights() != newData.GetRights() {
+	// Accept any copyright change (case-insensitive match).
+	if !strings.EqualFold(oldData.GetRights(), newData.GetRights()) {
 		changes["copyright"] = Change{Old: oldData.GetRights(), New: newData.GetRights()}
 	}
-	// Accept any language change.
-	if oldData.GetLanguage() != newData.GetLanguage() {
+	// Accept any language change (case-insensitive match).
+	if !strings.EqualFold(oldData.GetLanguage(), newData.GetLanguage()) {
 		changes["language"] = Change{Old: oldData.GetLanguage(), New: newData.GetLanguage()}
 	}
 	// Accept any image change.
@@ -463,8 +462,9 @@ func (s *FeedService) updateFeedData(ctx context.Context, oldData, newData *mode
 	case newData.Image != nil && oldData.Image != nil && newData.Image.GetURL() != oldData.Image.GetURL():
 		changes["image"] = Change{Old: oldData.Image, New: newData.Image}
 	}
-	// Always append then compact any source URL changes.
-	if !slices.Equal(oldData.GetSourceURLs(), newData.GetSourceURLs()) {
+	// SourceURLs comparison, ignore query parameters and case differences except path.
+	if same, err := comparisons.SameURLs(oldData.GetSourceURLs(), newData.GetSourceURLs()); err == nil && !same {
+		// Always append, sort, then compact any source URL changes.
 		newData.SourceURLs = append(newData.SourceURLs, oldData.SourceURLs...)
 		slices.Sort(newData.SourceURLs)
 		newData.SourceURLs = slices.Compact(newData.SourceURLs)
@@ -1861,8 +1861,8 @@ type feedStatusLogMsg struct {
 	Labels map[string]string `json:"labels"`
 }
 
-func newFeedStatusMsg(id models.FeedID) *feedStatusLogMsg {
-	return &feedStatusLogMsg{
+func newFeedStatusMsg(id models.FeedID, options ...func(*feedStatusLogMsg)) *feedStatusLogMsg {
+	msg := &feedStatusLogMsg{
 		FeedStatus: &models.FeedStatus{
 			Timestamp: time.Now().UTC(),
 			FeedID:    id,
@@ -1871,6 +1871,10 @@ func newFeedStatusMsg(id models.FeedID) *feedStatusLogMsg {
 			"type": "feed-status",
 		},
 	}
+	for option := range slices.Values(options) {
+		option(msg)
+	}
+	return msg
 }
 
 func (l *feedStatusLogMsg) log(ctx context.Context) error {
@@ -1884,6 +1888,18 @@ func (l *feedStatusLogMsg) log(ctx context.Context) error {
 		return fmt.Errorf("add bulk action: %w", err)
 	}
 	return nil
+}
+
+func logWithItemIDs(itemIDs ...models.ItemID) func(*feedStatusLogMsg) {
+	return func(fslm *feedStatusLogMsg) {
+		fslm.Items = itemIDs
+	}
+}
+
+func logWithStatusCode(code int) func(*feedStatusLogMsg) {
+	return func(fslm *feedStatusLogMsg) {
+		fslm.StatusCode = code
+	}
 }
 
 func logZyteError(ctx context.Context, err error, feedURL string, feedID models.FeedID) {
