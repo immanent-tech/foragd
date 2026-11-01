@@ -95,6 +95,8 @@ func (j *SerializedJob) Execute(ctx context.Context) error {
 		return safeExecute(ctx, j, ExecuteUserEmail)
 	case JobTypeRunImports:
 		return safeExecute(ctx, j, ExecuteRunImportsJob)
+	case JobTypeRestartFeedUpdates:
+		return safeExecute(ctx, j, ExecuteRestartFeedUpdates)
 	}
 
 	// Fail if we can't find an execution method (i.e., not implemented).
