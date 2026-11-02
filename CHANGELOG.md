@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.254.4](https://github.com/immanent-tech/foragd/compare/v0.254.3...v0.254.4) (2026-11-01)
+
+
+### Bug Fixes
+
+* **scheduler/jobs:** 🔧 fix execution of restart feed updates job ([a67386b](https://github.com/immanent-tech/foragd/commit/a67386b9dac9f0ec6d8d53e93083ba3bf5f5573f))
+
 ## [0.254.3](https://github.com/immanent-tech/foragd/compare/v0.254.2...v0.254.3) (2026-11-01)
 
 
