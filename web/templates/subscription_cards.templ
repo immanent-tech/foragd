@@ -84,7 +84,11 @@ templ subscriptionCardTitle(sub *models.Subscription) {
 			// Description (if any).
 			if  feed := sub.Feed; feed != nil && feed.GetDescription() != "" {
 				<div class="tooltip tooltip-bottom tooltip-end" data-tip={ feed.GetDescription() }>
-					<p class="mt-2 line-clamp-2 font-serif text-sm/6 break-all w-full">{ feed.GetDescription() }</p>
+					<p
+						class="mt-2 line-clamp-2 font-serif text-sm/6 break-all w-full"
+						data-disable-scripting
+						hx-ignore
+					>{ feed.GetDescription() }</p>
 				</div>
 			}
 		</div>

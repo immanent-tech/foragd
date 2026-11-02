@@ -133,7 +133,11 @@ templ articleCardBody(article *models.Article) {
 	}
 	// Article Summary (if any).
 	if content := article.GetContent(); content != "" {
-		<div class={ "prose-summary mb-3", templ.KV("line-clamp-3",article.GetImage() != nil),templ.KV("line-clamp-6",article.GetImage() == nil) }>
+		<div
+			class={ "prose-summary mb-3", templ.KV("line-clamp-3",article.GetImage() != nil),templ.KV("line-clamp-6",article.GetImage() == nil) }
+			data-disable-scripting
+			hx-ignore
+		>
 			@templ.Raw(content)
 		</div>
 	}
