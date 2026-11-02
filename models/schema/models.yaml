@@ -879,9 +879,10 @@ components:
               x-go-name: CommentsURL
               x-oapi-codegen-extra-tags:
                 validate: "omitempty,url"
-            comments_endpoint:
-              description: is an endpoint that accepts a POST request for commenting on an item.
+            comments_rss:
+              description: is a URL to an RSS feed of comments submitted against an item.
               type: string
+              x-go-name: CommentsRSS
               x-oapi-codegen-extra-tags:
                 validate: "omitempty,url"
     ItemGeo:

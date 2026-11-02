@@ -1,5 +1,7 @@
-// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package models
 
@@ -20,10 +22,10 @@ import (
 	"github.com/zeebo/xxh3"
 )
 
-// Items is a slice of items.
+// Items is a slice of [Item].
 type Items []*Item
 
-// FindByID will return the Item with the given ID.
+// FindByID will return the [Item] with the given [ItemID].
 func (i Items) FindByID(id ItemID) *Item {
 	idx := slices.IndexFunc(i, func(v *Item) bool { return v.GetID() == id })
 	if idx == -1 {
@@ -32,7 +34,7 @@ func (i Items) FindByID(id ItemID) *Item {
 	return i[idx]
 }
 
-// ExcludeIDs returns a new slice containing the Items which DO NOT have an id matching the given IDs.
+// ExcludeIDs returns a new slice containing the [Items] which DO NOT have an id matching the given [ItemID]s.
 func (i Items) ExcludeIDs(ids ...ItemID) Items {
 	if len(ids) == 0 {
 		return i
@@ -44,7 +46,7 @@ func (i Items) ExcludeIDs(ids ...ItemID) Items {
 	)
 }
 
-// FilterByIDs returns a new slice containing the items which have a ItemID matching the given ids.
+// FilterByIDs returns a new slice containing the [Items] which have an id matching the given [ItemID]s.
 func (i Items) FilterByIDs(ids ...ItemID) Items {
 	if len(ids) == 0 {
 		return i
@@ -54,21 +56,21 @@ func (i Items) FilterByIDs(ids ...ItemID) Items {
 	}))
 }
 
-// FilterSince filters items to ones which are newer than the given timestamp.
+// FilterSince filters [Items] to ones which are newer than the given timestamp.
 func (i Items) FilterSince(since time.Time) Items {
 	return slices.Collect(FilterSlice(i, func(item *Item) bool {
 		return item.IsNewer(since)
 	}))
 }
 
-// FilterByFeed filters items to ones which match the given feed ID.
+// FilterByFeed filters [Items] to ones which match the given feed ID.
 func (i Items) FilterByFeed(feedID FeedID) Items {
 	return slices.Collect(FilterSlice(i, func(v *Item) bool {
 		return v.GetFeedID() == feedID
 	}))
 }
 
-// GetFeedIDs retrieves a list of all FeedIDs from all items.
+// GetFeedIDs retrieves a list of all [FeedID]s from all items.
 func (i Items) GetFeedIDs() []FeedID {
 	feedIDs := make([]FeedID, 0, len(i))
 	for item := range slices.Values(i) {
@@ -77,7 +79,7 @@ func (i Items) GetFeedIDs() []FeedID {
 	return slices.Compact(feedIDs)
 }
 
-// GetIDs retrieves a list of all ItemIDs from all items.
+// GetIDs retrieves a list of all [ItemID]s from all items.
 func (i Items) GetIDs() []ItemID {
 	itemIDs := make([]ItemID, 0, len(i))
 	for item := range slices.Values(i) {
@@ -86,7 +88,7 @@ func (i Items) GetIDs() []ItemID {
 	return slices.Compact(itemIDs)
 }
 
-// GetCategoryCounts returns a count of the occurrence of a Category across all
+// GetCategoryCounts returns a count of the occurrence of a [Category] across all
 // the Items.
 func (i Items) GetCategoryCounts() CategoryCounts {
 	countsMap := make(map[Category]int)
@@ -103,7 +105,7 @@ func (i Items) GetCategoryCounts() CategoryCounts {
 	return counts
 }
 
-// SortByTimestamp sorts the items by their timestamps, in descending order.
+// SortByTimestamp sorts [Items] by their timestamps, in descending order (newest->oldest).
 func (i Items) SortByTimestamp() Items {
 	slices.SortFunc(i, func(itemA, itemB *Item) int {
 		return itemA.GetTimestamp().Compare(itemB.GetTimestamp())
@@ -121,7 +123,7 @@ func (i Items) AsMap() map[ItemID]*Item {
 	return itemsMap
 }
 
-// NewFeedItem generates an Item from the underlying feed data.
+// NewFeedItem generates an [Item] from the given [Feed] data.
 func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
 	var itemID ItemID
@@ -145,15 +147,32 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 		Categories:   source.GetCategories(),
 		FeedTitle:    feed.GetTitle(),
 	}
-	if commentsURL := source.GetCommentRSS(); commentsURL != "" {
+
+	// Add additional optional fields if present
+
+	// Comments RSS feed.
+	if commentsRSS := source.GetCommentRSS(); commentsRSS != "" {
+		item.CommentsRSS = &commentsRSS
+	}
+	// Comments URL.
+	if commentsURL := source.GetCommentURL(); commentsURL != "" {
 		item.CommentsURL = &commentsURL
 	}
+	// Geo information.
 	if geo := source.GetGeoInfo(); geo != nil && !geo.IsZero() {
 		item.Geo = geo
 	}
+	// Full content.
 	if content := source.GetContent(); content != nil {
 		item.Content = content
 	}
+	// Set the image.
+	if sourceImg := source.GetImage(); sourceImg != nil {
+		item.Image = NewRemoteImage(sourceImg.GetURL(), sourceImg.GetTitle())
+	}
+
+	// Add timestamps.
+
 	if pubDate := source.GetPublishedDate(); pubDate != nil {
 		item.Published = pubDate.UTC()
 	} else {
@@ -163,14 +182,8 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 		item.Updated = new(updDate.UTC())
 	}
 
-	// Add youtube extension data if found.
+	// Add YouTube extension data if found.
 	addYoutubeExtension(source, item)
-
-	// Set the image.
-	if sourceImg := source.GetImage(); sourceImg != nil {
-		// Source has an image, use that.
-		item.Image = NewRemoteImage(sourceImg.GetURL(), sourceImg.GetTitle())
-	}
 
 	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.
 	if valid, _ := ValidateDatetime(item.Published); !valid {
@@ -180,7 +193,7 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 	return item
 }
 
-// NewEmailItem generates a new Item from an email.
+// NewEmailItem generates a new [Item] from the given [Email] associated with the given [Subscription].
 func NewEmailItem(email Email, subscription *Subscription) *Item {
 	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
 	itemID := "item_" + strconv.FormatUint(xxh3.Hash([]byte(email.GetID())), 10)
@@ -231,17 +244,17 @@ func extractYoutubeData(source *feeds.Item, item *Item) {
 	})
 }
 
-// GetID returns the item ID.
+// GetID returns the [ItemID].
 func (i Item) GetID() ItemID {
 	return i.ItemID
 }
 
-// GetFeedID returns the ID of the feed the item belongs to.
+// GetFeedID returns the [FeedID] of the feed the item belongs to.
 func (i Item) GetFeedID() FeedID {
 	return i.FeedID
 }
 
-// GetLink returns the URL that should point to a page containing the full item content.
+// GetLink returns the [URL] that should point to a page containing the full item content.
 func (i Item) GetLink() URL {
 	return i.URL
 }
@@ -275,7 +288,7 @@ func (i Item) GetDescription() string {
 	return ""
 }
 
-// GetAuthors returns a slice of the item's authors, if any.
+// GetAuthors returns a slice of the item's [Author]s, if any.
 func (i Item) GetAuthors() []Author {
 	return generateAuthors(i.Authors)
 }
@@ -291,7 +304,7 @@ func (i Item) GetCategories() []string {
 	return slices.Compact(i.Categories)
 }
 
-// GetImage returns an image that can represent the item, if any.
+// GetImage returns a [RemoteImage] that can represent the item, if any.
 func (i Item) GetImage() *RemoteImage {
 	return i.Image
 }
@@ -364,13 +377,23 @@ func (i Item) IsNewer(since time.Time) bool {
 	return i.GetTimestamp().After(since) && i.GetTimestamp().Before(time.Now().UTC())
 }
 
-func (i Item) GetCommentsURL() string {
+// GetCommentsURL returns a URL that points to a HTML page for the item's comments, if any.
+func (i Item) GetCommentsURL() URL {
 	if i.CommentsURL != nil {
 		return *i.CommentsURL
 	}
 	return ""
 }
 
+// GetCommentsRSS returns a URL that points to an RSS feed for the item's comments, if any.
+func (i Item) GetCommentsRSS() URL {
+	if i.CommentsRSS != nil {
+		return *i.CommentsRSS
+	}
+	return ""
+}
+
+// Validate ensures an item is valid.
 func (i Item) Validate() error {
 	if err := validation.Validate.Struct(i); err != nil {
 		return fmt.Errorf("item is invalid: %w", err)

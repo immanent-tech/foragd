@@ -149,7 +149,7 @@ var (
 							templates.WithGeoPointMapping("point"),
 						),
 						templates.WithKeywordMapping("comments_url"),
-						templates.WithKeywordMapping("comments_endpoint"),
+						templates.WithKeywordMapping("comments_rss"),
 					),
 				),
 				templates.WithTemplateSettings(
