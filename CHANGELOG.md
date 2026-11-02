@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.255.0](https://github.com/immanent-tech/foragd/compare/v0.254.5...v0.255.0) (2026-11-02)
+
+
+### Features
+
+* ➕ support storing and retrieving URLs to any comments feed or page for items ([9f74f51](https://github.com/immanent-tech/foragd/commit/9f74f51e1416660c31cf3eb84bb7e53d85e846c0))
+* **templates:** 🎨 add subtle pulse animation while mark/favorite toggles are processing ([738f183](https://github.com/immanent-tech/foragd/commit/738f18324f464aad1aa38163089ea838862f74e2))
+
 ## [0.254.5](https://github.com/immanent-tech/foragd/compare/v0.254.4...v0.254.5) (2026-11-02)
 
 
