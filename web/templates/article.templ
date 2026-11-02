@@ -41,7 +41,7 @@ templ ArticleFavoriteToggle(article *models.Article, options ...element.Properti
 	>
 		<button
 			aria-label={ label }
-			class="btn btn-square btn-ghost btn-sm"
+			class="group btn btn-square btn-ghost btn-sm"
 			hx-post={ "/articles/" + article.GetID() + "/favorite" }
 			hx-swap="none"
 			hx-trigger="click consume"
@@ -49,9 +49,9 @@ templ ArticleFavoriteToggle(article *models.Article, options ...element.Properti
 		>
 			switch article.IsFavorite() {
 				case true:
-					@tablerfilled.Heart(templ.Attributes{"class": "size-5 fill-primary"})
+					@tablerfilled.Heart(templ.Attributes{"class": "size-5 fill-primary group-[.htmx-request]:animate-pulse"})
 				case false:
-					@tableroutline.Heart(templ.Attributes{"class": "size-5 stroke-primary"})
+					@tableroutline.Heart(templ.Attributes{"class": "size-5 stroke-primary group-[.htmx-request]:animate-pulse"})
 			}
 		</button>
 	</div>
@@ -92,7 +92,7 @@ templ articleMarkToggle(article *models.Article) {
 	>
 		<label
 			id={ article.GetID() + "-mark-toggle" }
-			class="btn swap btn-square btn-ghost btn-sm"
+			class="group btn swap btn-square btn-ghost btn-sm"
 			_="
 			  on htmx:after:request
 			  	if event.detail.successful
@@ -139,8 +139,8 @@ templ articleMarkToggle(article *models.Article) {
 					aria-label="Mark unread"
 				}
 			/>
-			@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 stroke-primary"})
-			@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
+			@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 stroke-primary group-[.htmx-request]:animate-pulse"})
+			@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary group-[.htmx-request]:animate-pulse"})
 		</label>
 	</div>
 }

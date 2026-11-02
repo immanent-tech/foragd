@@ -122,7 +122,7 @@ func ArticleFavoriteToggle(article *models.Article, options ...element.Propertie
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"btn btn-square btn-ghost btn-sm\" hx-post=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"group btn btn-square btn-ghost btn-sm\" hx-post=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -154,12 +154,12 @@ func ArticleFavoriteToggle(article *models.Article, options ...element.Propertie
 		}
 		switch article.IsFavorite() {
 		case true:
-			templ_7745c5c3_Err = tablerfilled.Heart(templ.Attributes{"class": "size-5 fill-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = tablerfilled.Heart(templ.Attributes{"class": "size-5 fill-primary group-[.htmx-request]:animate-pulse"}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		case false:
-			templ_7745c5c3_Err = tableroutline.Heart(templ.Attributes{"class": "size-5 stroke-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = tableroutline.Heart(templ.Attributes{"class": "size-5 stroke-primary group-[.htmx-request]:animate-pulse"}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -247,7 +247,7 @@ func articleMarkToggle(article *models.Article) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" class=\"btn swap btn-square btn-ghost btn-sm\" _=\"\n\t\t\t  on htmx:after:request\n\t\t\t  \tif event.detail.successful\n\t\t\t\t\thalt the event's bubbling\n\t\t\t\t\tif closest .card exists\n\t\t\t  \t\t\ttoggle .brightness-90 on closest .card\n\t\t\t\t\tend\n\t\t\t\t\tset :mark to the first <input/> in me\n\t\t\t\t\tif :mark.value is 'read'\n\t\t\t\t\t\tset :mark.value to 'unread'\n\t\t\t\t\telse if :mark.value is 'unread'\n\t\t\t\t\t\tset :mark.value to 'read'\n\t\t\t\t\tend\n\t\t\t\telse\n    \t\t\t  toggle @checked on next <input[type='checkbox']/> in me\n\t\t\t\tend\n\t\t\t\t\" hx-nonce=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" class=\"group btn swap btn-square btn-ghost btn-sm\" _=\"\n\t\t\t  on htmx:after:request\n\t\t\t  \tif event.detail.successful\n\t\t\t\t\thalt the event's bubbling\n\t\t\t\t\tif closest .card exists\n\t\t\t  \t\t\ttoggle .brightness-90 on closest .card\n\t\t\t\t\tend\n\t\t\t\t\tset :mark to the first <input/> in me\n\t\t\t\t\tif :mark.value is 'read'\n\t\t\t\t\t\tset :mark.value to 'unread'\n\t\t\t\t\telse if :mark.value is 'unread'\n\t\t\t\t\t\tset :mark.value to 'read'\n\t\t\t\t\tend\n\t\t\t\telse\n    \t\t\t  toggle @checked on next <input[type='checkbox']/> in me\n\t\t\t\tend\n\t\t\t\t\" hx-nonce=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -323,11 +323,11 @@ func articleMarkToggle(article *models.Article) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 stroke-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 stroke-primary group-[.htmx-request]:animate-pulse"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary group-[.htmx-request]:animate-pulse"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

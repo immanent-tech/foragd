@@ -67,6 +67,7 @@
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
     --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --animate-spin: spin 1s linear infinite;
+    --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     --animate-bounce: bounce 1s infinite;
     --blur-sm: 8px;
     --blur-3xl: 64px;
@@ -9555,6 +9556,9 @@
   .group-\[\.htmx-request\]\:inline-flex:is(:where(.group):is(.htmx-request) *) {
     display: inline-flex;
   }
+  .group-\[\.htmx-request\]\:animate-pulse:is(:where(.group):is(.htmx-request) *) {
+    animation: var(--animate-pulse);
+  }
   .marker\:text-accent ::marker {
     color: var(--color-accent);
   }
@@ -11752,6 +11756,11 @@
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
   }
 }
 @keyframes bounce {

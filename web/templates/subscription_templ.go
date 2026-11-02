@@ -122,7 +122,7 @@ func SubscriptionFavoriteToggle(subscription *models.Subscription, options ...el
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"btn btn-square btn-ghost btn-md\" hx-post=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"btn btn-square btn-ghost btn-md htmx-request:animate-bounce\" hx-post=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -261,7 +261,7 @@ func SubscriptionMarkToggle(subscription *models.Subscription, options ...elemen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" class=\"btn btn-square btn-ghost btn-md\" hx-post=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" class=\"group btn btn-square btn-ghost btn-md\" hx-post=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -293,12 +293,12 @@ func SubscriptionMarkToggle(subscription *models.Subscription, options ...elemen
 		}
 		switch mark {
 		case models.MarkRead:
-			templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-primary group-[.htmx-request]:animate-pulse"}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		case models.MarkUnread:
-			templ_7745c5c3_Err = tableroutline.Mail(templ.Attributes{"class": "size-5 stroke-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = tableroutline.Mail(templ.Attributes{"class": "size-5 stroke-primary group-[.htmx-request]:animate-pulse"}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
