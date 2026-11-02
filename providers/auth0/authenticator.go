@@ -44,7 +44,7 @@ const (
 	expiryLeeway = 30 * time.Second
 	// defaultTokenLifetime is used only if the token response carries no expiry at all.
 	defaultTokenLifetime = 10 * time.Minute
-	discoveryTimeout     = 15 * time.Second
+	discoveryTimeout     = 30 * time.Second
 	refreshTimeout       = 15 * time.Second
 	randomBytes          = 32
 	loginPath            = "/login"

@@ -74,7 +74,7 @@ func newHTTPClient() *http.Client {
 			MaxIdleConns:          100,
 			MaxIdleConnsPerHost:   20,
 		}).
-		SetTimeout(15 * time.Second).
+		SetTimeout(30 * time.Second).
 		SetDebug(false).
 		GetClient()
 }
