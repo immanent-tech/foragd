@@ -62,7 +62,7 @@ enhance your protection as well:
 
 - Always keep up to date with updates for your computer or device.
 - Always use the latest version of your browser when accessing Foragd. Foragd supports all major browsers, Chrome,
-  Safari and Firefox, as well as others.
+  Safari, and Firefox, as well as others.
 - Foragd will **never** send you an email asking for your personal details. If you receive any suspicious emails that
   appear to come from Foragd, [please let us know](mailto:support@immanent.tech)!
 - Only subscribe to feeds from sources you believe can be trusted. Ensure the URL looks legitimate (the domain matches
@@ -78,3 +78,39 @@ Want to browse feeds more safely? Start a free trial of [Foragd](/?utm_source=bl
 gathering your own collection of topics, news, and opinions, safely!
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+
+<script id="keeping-safe-browsing-feeds" type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to stay safe while browsing RSS and Atom Feeds",
+  "description": "What you can do and what to watch out for when browsing RSS and Atom feeds.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "name": "Choose a secure feed viewer",
+      "text": "Choose a feed viewer with security protections built in. Look for readers that protect you with CSP (Content Security Policy) and CORS (Cross Origin Resource Sharing), and apply sanitization of feed content before you view it."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Keep your computer up to date",
+      "text": "Always keep up to date with updates for your computer or device."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Use the latest browser versions",
+      "text": "Always use the latest version of your browser when accessing Foragd. Foragd supports all major browsers, Chrome, Safari, and Firefox, as well as others."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Be mindful of which feeds you subscribe to",
+      "text": "Only subscribe to feeds from sources you believe can be trusted. Ensure the URL looks legitimate (the domain matches the site, etc.)."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Be careful with OPML imports",
+      "text": "Avoid mass importing from OPML files you find on places like GitHub or social media, unless you trust the author."
+    },
+  ]
+}
+</script>
