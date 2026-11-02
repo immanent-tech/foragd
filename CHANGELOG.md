@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.254.5](https://github.com/immanent-tech/foragd/compare/v0.254.4...v0.254.5) (2026-11-02)
+
+
+### Bug Fixes
+
+* **templates:** 🔧 disable scripting and htmx processing on ugc on subscription/article cards ([e57f481](https://github.com/immanent-tech/foragd/commit/e57f48125d289a3a9ce5364e4e847c12f1758cef))
+
+
+### Performance Improvements
+
+* **providers/auth0:** ⚡ increase timeout for establishing connections ([4779d7e](https://github.com/immanent-tech/foragd/commit/4779d7eb01aefc32942276a435bd877e5104bdbe))
+
 ## [0.254.4](https://github.com/immanent-tech/foragd/compare/v0.254.3...v0.254.4) (2026-11-01)
 
 
