@@ -22,11 +22,8 @@ const (
 	ReqIDHeader = "X-Opaque-Id"
 )
 
-// Define default server configuration options.
-var cfg *esconfig
-
-// config defines the configuration options for connecting to Elasticsearch. Set from the environment.
-type esconfig struct {
+// Config defines the configuration options for connecting to Elasticsearch. Set from the environment.
+type Config struct {
 	CloudID  string   `koanf:"cloudid"  validate:"required_without=URLs"`
 	APIKey   string   `koanf:"apikey"   validate:"required_without_all=Username Password"`
 	URLs     []string `koanf:"urls"     validate:"required_without=CloudID"`
@@ -35,14 +32,15 @@ type esconfig struct {
 	Password string   `koanf:"password" validate:"required_with=Username"`
 }
 
-// loadConfigOnce loads the Elasticsearch configuration and ensures this is done
-// one-time only, no matter how many times it is called.
-var loadConfigOnce = sync.OnceValue(func() error {
+// loadConfig loads the Elasticsearch configuration and ensures this is done one-time only, no matter how many times it
+// is called.
+var loadConfig = sync.OnceValues(func() (*Config, error) {
+	cfg := &Config{}
 	if err := config.Load(elasticConfigEnvPrefix, &cfg); err != nil {
-		return fmt.Errorf("unable to load production config: %w", err)
+		return nil, fmt.Errorf("unable to load production config: %w", err)
 	}
 	if err := validation.Validate.Struct(cfg); err != nil {
-		return fmt.Errorf("config validation failed: %w", err)
+		return nil, fmt.Errorf("config validation failed: %w", err)
 	}
-	return nil
+	return cfg, nil
 })

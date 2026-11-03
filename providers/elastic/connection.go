@@ -30,8 +30,9 @@ var (
 
 // Connect sets up a connection to Elasticsearch.
 var Connect = sync.OnceValue(func() error {
-	if err := loadConfigOnce(); err != nil {
-		return fmt.Errorf("load config environment: %w", err)
+	cfg, err := loadConfig()
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
 	}
 
 	var options []elasticsearch.Option
