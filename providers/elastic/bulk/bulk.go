@@ -19,6 +19,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/esapi"
 	"github.com/elastic/go-elasticsearch/v9/esutil"
 	slogctx "github.com/veqryn/slog-context"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/immanent-tech/foragd/providers/elastic"
 )
@@ -49,6 +51,8 @@ var (
 	indexer     *Indexer
 	initialized atomic.Bool
 )
+
+var tracer = otel.Tracer("github.com/immanent-tech/foragd/providers/elastic/bulk")
 
 // Indexer represents a bulk indexer instance. The indexer instance is generally created once when needed and then
 // reused throughout the application life cycle.
@@ -156,6 +160,10 @@ func IndexDocuments[T ~string, O Document[T]](
 	index string,
 	documents ...O,
 ) error {
+	ctx, span := tracer.Start(ctx, "BulkIndex")
+	defer span.End()
+	span.SetAttributes(attribute.String("index", index))
+
 	if _, err := NewIndexer(context.Background()); err != nil {
 		return fmt.Errorf("%w: %w", ErrInitIndexer, err)
 	}

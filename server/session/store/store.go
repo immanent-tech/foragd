@@ -14,9 +14,6 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 	"go.opentelemetry.io/otel"
 
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -39,6 +36,7 @@ var tracer = otel.Tracer("github.com/immanent-tech/foragd/server/session/store")
 
 // UserSession tracks a user session.
 type UserSession struct {
+	UpdatedAt time.Time `json:"updated_at"`
 	// Data the encoded session data.
 	Data []byte `json:"data"`
 
@@ -69,7 +67,6 @@ func (s *Store) DeleteCtx(ctx context.Context, token string) error {
 		ctx,
 		s.backend.GetIndexRW(service.SessionsIndex),
 		token,
-		elastic.WithRefresh[*delete.Delete](refresh.Waitfor),
 	); err != nil {
 		return fmt.Errorf("could not delete session: %w", err)
 	}
@@ -118,17 +115,14 @@ func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry
 	spanCtx, span := tracer.Start(ctx, "session-commit")
 	defer span.End()
 
-	if err := elastic.UpdateDoc(spanCtx, s.backend.GetIndexRW(service.SessionsIndex),
+	if err := elastic.IndexDoc(spanCtx, s.backend.GetIndexRW(service.SessionsIndex),
 		token,
-		map[string]any{
-			"token":      token,
-			"data":       data,
-			"expiry":     expiry,
-			"updated_at": time.Now().UTC(),
-		},
-		elastic.WithDocAsUpsert[*update.Update](true),
-		elastic.WithRefresh[*update.Update](refresh.Waitfor),
-	); err != nil {
+		&UserSession{
+			UpdatedAt: time.Now().UTC(),
+			Token:     token,
+			Data:      data,
+			Expiry:    expiry,
+		}); err != nil {
 		return fmt.Errorf("could not commit session: %w", err)
 	}
 

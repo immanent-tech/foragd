@@ -19,6 +19,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"golang.org/x/oauth2"
 
@@ -404,6 +405,8 @@ func createUserFromProfileData(
 func (m *Manager) syncUser(ctx context.Context, userSvc UserService, authMgr AuthManager, user *models.User) error {
 	ctx, span := tracer.Start(ctx, "SyncUser")
 	defer span.End()
+	span.SetAttributes(attribute.String("user", user.GetID()))
+
 	log := slogctx.FromCtx(ctx)
 
 	auth0User, err := authMgr.GetUser(ctx, user.GetExternalID())

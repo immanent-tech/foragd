@@ -13,10 +13,12 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/create"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/get"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/index"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/immanent-tech/go-base/logging"
 
@@ -30,6 +32,10 @@ func GetDocs[T ~string, O any](
 	index string,
 	ids ...T,
 ) ([]O, error) {
+	ctx, span := tracer.Start(ctx, "Mget")
+	defer span.End()
+	span.SetAttributes(attribute.String("index", index))
+
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
 		return nil, fmt.Errorf("connect to elasticsearch: %w", err)
@@ -56,6 +62,10 @@ func GetDocs[T ~string, O any](
 
 // GetDoc retrieves the doc with the given id from the given index. A non-nil error is returned on a failure.
 func GetDoc[T ~string, O any](ctx context.Context, index string, id T) (O, error) {
+	ctx, span := tracer.Start(ctx, "Get")
+	defer span.End()
+	span.SetAttributes(attribute.String("index", index))
+
 	var doc O
 
 	// Connect to elasticsearch (if not already connected).
@@ -85,6 +95,10 @@ func CreateDoc[T ~string, O any](
 	doc O,
 	options ...Option[*create.Create],
 ) error {
+	ctx, span := tracer.Start(ctx, "Create")
+	defer span.End()
+	span.SetAttributes(attribute.String("index", index))
+
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
 		return AsAPIError(fmt.Errorf("connect to elasticsearch: %w", err))
@@ -111,6 +125,41 @@ func CreateDoc[T ~string, O any](
 	return nil
 }
 
+// CreateDoc will create the given document, with given id, in the given index.
+func IndexDoc[T ~string, O any](
+	ctx context.Context,
+	index string,
+	id T,
+	doc O,
+	options ...Option[*index.Index],
+) error {
+	ctx, span := tracer.Start(ctx, "Index")
+	defer span.End()
+	span.SetAttributes(attribute.String("index", index))
+
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return AsAPIError(fmt.Errorf("connect to elasticsearch: %w", err))
+	}
+
+	req := api.Index(index).
+		Id(string(id)).
+		Document(doc).
+		Header(ReqIDHeader, middleware.GetReqID(ctx))
+
+	resp, err := req.Do(ctx)
+	if err != nil {
+		return AsAPIError(err)
+	}
+	if resp != nil {
+		slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Indexed document.",
+			slog.String("id", resp.Id_),
+			slog.String("result", resp.Result.String()),
+		)
+	}
+	return nil
+}
+
 // UpdateDoc performs a partial doc update on the document with the given id in the given index. A non-nil error is
 // returned on a failure.
 func UpdateDoc[T ~string](
@@ -120,6 +169,10 @@ func UpdateDoc[T ~string](
 	updates any,
 	options ...Option[*update.Update],
 ) error {
+	ctx, span := tracer.Start(ctx, "Update")
+	defer span.End()
+	span.SetAttributes(attribute.String("index", index))
+
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
 		return fmt.Errorf("connect to elasticsearch: %w", err)

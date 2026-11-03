@@ -23,8 +23,8 @@ import (
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/service"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/create"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/index"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 )
 
@@ -88,11 +88,11 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 	serialized.UpdatedAt = time.Now().UTC()
 
 	// Update in backend.
-	if err := elastic.CreateDoc(ctx,
+	if err := elastic.IndexDoc(ctx,
 		jq.backend.GetIndexRW(service.ScheduleIndex),
 		job.JobDetail().JobKey().String(),
 		serialized,
-		elastic.WithRefresh[*create.Create](refresh.Waitfor),
+		elastic.WithRefresh[*index.Index](refresh.Waitfor),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}

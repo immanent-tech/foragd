@@ -9,7 +9,10 @@ import (
 
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/validation"
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer("github.com/immanent-tech/foragd/providers/elastic")
 
 const (
 	elasticConfigEnvPrefix = "ELASTICSEARCH_"

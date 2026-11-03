@@ -12,6 +12,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/immanent-tech/go-base/logging"
 
@@ -34,6 +35,10 @@ func Search[O any](
 	index string,
 	options ...Option[*search.Search],
 ) (*SearchResponse[O], error) {
+	ctx, span := tracer.Start(ctx, "Search")
+	defer span.End()
+	span.SetAttributes(attribute.String("index", index))
+
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
 		return nil, fmt.Errorf("connect to elasticsearch: %w", err)
@@ -72,6 +77,10 @@ func SearchAll[O any](
 	paginationSize int,
 	options ...Option[*search.Search],
 ) ([]O, error) {
+	ctx, span := tracer.Start(ctx, "SearchAll")
+	defer span.End()
+	span.SetAttributes(attribute.String("index", index))
+
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
 		return nil, fmt.Errorf("connect to elasticsearch: %w", err)

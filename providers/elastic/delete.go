@@ -13,6 +13,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/deletebyquery"
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/immanent-tech/go-base/logging"
 
@@ -21,6 +22,10 @@ import (
 
 // DeleteDocs performs a delete by query request on the given index to delete documents matching the given queries.
 func DeleteDocs(ctx context.Context, index string, queries ...query.Option) error {
+	ctx, span := tracer.Start(ctx, "DeleteByQuery")
+	defer span.End()
+	span.SetAttributes(attribute.String("index", index))
+
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
 		return fmt.Errorf("connect to elasticsearch: %w", err)

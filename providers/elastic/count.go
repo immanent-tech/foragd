@@ -10,12 +10,17 @@ import (
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/count"
 	"github.com/go-chi/chi/v5/middleware"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
 // Count will return the number of docs matching the given queries in the given index.
 func Count(ctx context.Context, index string, queries ...query.Option) (int64, error) {
+	ctx, span := tracer.Start(ctx, "Count")
+	defer span.End()
+	span.SetAttributes(attribute.String("index", index))
+
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
 		return 0, fmt.Errorf("connect to elasticsearch: %w", err)
