@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.255.1](https://github.com/immanent-tech/foragd/compare/v0.255.0...v0.255.1) (2026-11-03)
+
+
+### Performance Improvements
+
+* ⚡ add otel tracing on elasticsearch operations and improve performance of session store ([38429fb](https://github.com/immanent-tech/foragd/commit/38429fb9a97f758f7324157b6a7efb1473ca834d))
+
 ## [0.255.0](https://github.com/immanent-tech/foragd/compare/v0.254.5...v0.255.0) (2026-11-02)
 
 
