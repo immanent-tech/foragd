@@ -139,7 +139,7 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 // key should be the session token and the map value should be the session data. If no active sessions exist this should
 // return an empty (not nil) map.
 func (s *Store) AllCtx(ctx context.Context) (map[string][]byte, error) {
-	const defaultPaginationSize = 5000
+	const defaultPaginationSize = 500
 	sessions, err := elastic.SearchAll[UserSession](
 		ctx,
 		s.backend.GetIndexRO(service.SessionsIndex),
