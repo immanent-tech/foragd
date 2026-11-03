@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.255.2](https://github.com/immanent-tech/foragd/compare/v0.255.1...v0.255.2) (2026-11-03)
+
+
+### Bug Fixes
+
+* **handlers:** 🔧 fix ValidateSubscriptionLimits middleware ([3748295](https://github.com/immanent-tech/foragd/commit/37482953d27097df8fb548e42dea705b2b076720))
+
+
+### Performance Improvements
+
+* **handlers:** ⚡ improve ValidateSubscriptionLimits middleware ([8684488](https://github.com/immanent-tech/foragd/commit/8684488af03a2ed30392b9ade5213bf9ccbf1426))
+* **server/session:** ⚡ reduce pagination size for fetching all session for better elasticsearch heap management ([5e79312](https://github.com/immanent-tech/foragd/commit/5e79312cb16fd014a9aed83cf0e14dde8a085943))
+
 ## [0.255.1](https://github.com/immanent-tech/foragd/compare/v0.255.0...v0.255.1) (2026-11-03)
 
 
