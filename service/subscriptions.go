@@ -797,6 +797,8 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 
 	itemSvc, err := LoadItemService()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("load items service: %w", err)
 	}
 
@@ -816,6 +818,8 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 		var err error
 		unreadCounts, err = s.getSubscriptionUnreadCounts(jobCtx, subscriptions)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return fmt.Errorf("get unread counts: %w", err)
 		}
 		return nil
@@ -912,6 +916,8 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 		// Get the avg daily updates and last update for each subscription in the group.
 		allSubscriptions := models.SubscriptionsFromCtx(ctx)
 		if len(allSubscriptions) == 0 {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 		}
 		groupedSubscriptions := allSubscriptions.FilterByIDs(subscription.GroupData.GetGroupedSubscriptionIDs()...)

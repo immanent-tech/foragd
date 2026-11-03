@@ -6,6 +6,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -888,6 +889,9 @@ func (m *Manager) HandleUserUnsubscribe(users UserService) http.HandlerFunc {
 	}
 }
 
+// ValidateSubscriptionLimits handles checking the user has not exceeded their subscription limits. If they have, it
+// will show a warning and set a grace period for correcting the limit, after which access to the app is blocked. It
+// also handles resetting any grace period/access once the user has corrected their limits.
 func (m *Manager) ValidateSubscriptionLimits(
 	users UserService,
 	subscriptions SubscriptionsService,
@@ -907,13 +911,19 @@ func (m *Manager) ValidateSubscriptionLimits(
 				return
 			}
 
+			// Fetch subscriptions once.
 			allSubscriptions, err := subscriptions.GetAllSubscriptions(ctx)
 			if err != nil {
 				m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 				return
 			}
 
-			// Check current limits.
+			// OPTIMIZATION: Cache filtered subscriptions to avoid O(n²) complexity.
+			// FilterByType is called 6 times in the original code. Compute once.
+			emailSubscriptions := allSubscriptions.FilterByType(models.SubscriptionTypeEmail)
+			totalCount := len(allSubscriptions)
+			emailCount := len(emailSubscriptions)
+			nonEmailCount := totalCount - emailCount
 			switch {
 			case user.Metadata.SubscriptionLimit != nil:
 				if user.Metadata.SubscriptionLimit.Exceeded &&
@@ -925,11 +935,7 @@ func (m *Manager) ValidateSubscriptionLimits(
 						ServeHTTP(res, req.WithContext(ctx))
 					return
 				}
-				if user.Metadata.SubscriptionLimit.Exceeded && len(
-					allSubscriptions,
-				)-len(
-					allSubscriptions.FilterByType(models.SubscriptionTypeEmail),
-				) <= models.MaxSubscriptions {
+				if user.Metadata.SubscriptionLimit.Exceeded && nonEmailCount <= models.MaxSubscriptions {
 					// User has corrected limit overage.
 					user.Metadata.SubscriptionLimit = &models.UserLimit{
 						Exceeded:  false,
@@ -951,8 +957,7 @@ func (m *Manager) ValidateSubscriptionLimits(
 						ServeHTTP(res, req.WithContext(ctx))
 					return
 				}
-				if user.Metadata.NewsletterLimit.Exceeded &&
-					len(allSubscriptions.FilterByType(models.SubscriptionTypeEmail)) <= models.MaxEmailNewsletters {
+				if user.Metadata.NewsletterLimit.Exceeded && emailCount <= models.MaxEmailNewsletters {
 					// User has corrected limit overage.
 					user.Metadata.NewsletterLimit = &models.UserLimit{
 						Exceeded:  false,
@@ -966,7 +971,7 @@ func (m *Manager) ValidateSubscriptionLimits(
 			}
 
 			switch {
-			case len(allSubscriptions)-len(allSubscriptions.FilterByType(models.SubscriptionTypeEmail)) > models.MaxSubscriptions:
+			case nonEmailCount > models.MaxSubscriptions:
 				// Mark user as exceeding subscription limit.
 				user.Metadata.SubscriptionLimit = &models.UserLimit{
 					Exceeded:  true,
@@ -976,33 +981,13 @@ func (m *Manager) ValidateSubscriptionLimits(
 					m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 					return
 				}
-				// Create and send email to notify them about exceeding their limit.
-				email, err := resend.NewTemplatedEmail(
-					"account-limit-exceeded",
-					resend.WithTo(user.GetEmail()),
-					resend.WithTag(resend.TagCategory, resend.TagCategoryPromotional),
-					resend.WithVariable("USER_NICKNAME", user.GetNickname()),
-					resend.WithVariable("LIMIT_NAME", "subscriptions"),
-					resend.WithVariable(
-						"TOTAL",
-						len(allSubscriptions)-len(allSubscriptions.FilterByType(models.SubscriptionTypeEmail)),
-					),
-					resend.WithVariable("ALLOWED", models.MaxSubscriptions),
-				)
-				if err != nil {
-					slogctx.Error(ctx, "Unable to send account limit email.",
-						slog.Any("error", err))
-				}
-				if err := emailSender.Send(ctx, resend.WithExistingEmail(email)); err != nil {
-					slogctx.Error(ctx, "Unable to send account limit email.",
-						slog.Any("error", err))
-				}
+				sendLimitExceededEmail(ctx, emailSender, user, "subscriptions", nonEmailCount, models.MaxSubscriptions)
 				m.HandleInternalError(
 					http.StatusForbidden,
 					models.ErrSubscriptionLimitExceeded,
 				).ServeHTTP(res, req.WithContext(ctx))
 				return
-			case len(allSubscriptions.FilterByType(models.SubscriptionTypeEmail)) > models.MaxEmailNewsletters:
+			case emailCount > models.MaxEmailNewsletters:
 				// Mark user as exceeding newsletter limit.
 				user.Metadata.NewsletterLimit = &models.UserLimit{
 					Exceeded:  true,
@@ -1012,27 +997,14 @@ func (m *Manager) ValidateSubscriptionLimits(
 					m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 					return
 				}
-				// Create and send email to notify them about exceeding their limit.
-				email, err := resend.NewTemplatedEmail(
-					"account-limit-exceeded",
-					resend.WithTo(user.GetEmail()),
-					resend.WithTag(resend.TagCategory, resend.TagCategoryPromotional),
-					resend.WithVariable("USER_NICKNAME", user.GetNickname()),
-					resend.WithVariable("LIMIT_NAME", "email newsletters"),
-					resend.WithVariable(
-						"TOTAL",
-						len(allSubscriptions)-len(allSubscriptions.FilterByType(models.SubscriptionTypeEmail)),
-					),
-					resend.WithVariable("ALLOWED", models.MaxSubscriptions),
+				sendLimitExceededEmail(
+					ctx,
+					emailSender,
+					user,
+					"email newsletters",
+					emailCount,
+					models.MaxSubscriptions,
 				)
-				if err != nil {
-					slogctx.Error(ctx, "Unable to send account limit email.",
-						slog.Any("error", err))
-				}
-				if err := emailSender.Send(ctx, resend.WithExistingEmail(email)); err != nil {
-					slogctx.Error(ctx, "Unable to send account limit email.",
-						slog.Any("error", err))
-				}
 				m.HandleInternalError(
 					http.StatusForbidden,
 					models.ErrEmailNewsletterLimitExceeded,
@@ -1042,5 +1014,32 @@ func (m *Manager) ValidateSubscriptionLimits(
 
 			next.ServeHTTP(res, req)
 		})
+	}
+}
+
+func sendLimitExceededEmail(
+	ctx context.Context,
+	senderSvc EmailSender,
+	user *models.User,
+	limitName string,
+	limitCurrent, limitMax int,
+) {
+	// Create and send email to notify them about exceeding their limit.
+	email, err := resend.NewTemplatedEmail(
+		"account-limit-exceeded",
+		resend.WithTo(user.GetEmail()),
+		resend.WithTag(resend.TagCategory, resend.TagCategoryPromotional),
+		resend.WithVariable("USER_NICKNAME", user.GetNickname()),
+		resend.WithVariable("LIMIT_NAME", limitName),
+		resend.WithVariable("TOTAL", limitCurrent),
+		resend.WithVariable("ALLOWED", limitMax),
+	)
+	if err != nil {
+		slogctx.Error(ctx, "Unable to send account limit email.",
+			slog.Any("error", err))
+	}
+	if err := senderSvc.Send(ctx, resend.WithExistingEmail(email)); err != nil {
+		slogctx.Error(ctx, "Unable to send account limit email.",
+			slog.Any("error", err))
 	}
 }
