@@ -10,12 +10,31 @@
 # - minor
 # - patch
 
+[[releases]]
+version = "v0.255"
+date = "Nov 4, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+Through profiling some key logic in the app, Foragd should now load faster.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+When you click on the favorite or mark toggle buttons on a card, there is a subtle feedback pulse to let you know Foragd is working on it, if the action is a little slow.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Foragd now delves into more parts of a source feed to enrich items with images and titles/descriptions.
+"""
 
 [[releases]]
 version = "v0.254"
 date = "Oct 30, 2026"
 type = "minor"
-is_latest = true
 [[releases.changes]]
 type = "improved"
 description = """
@@ -31,7 +50,6 @@ Grid layout on desktop and larger screens should be smoother and faster.
 version = "v0.253"
 date = "Oct 28, 2026"
 type = "minor"
-is_latest = true
 [[releases.changes]]
 type = "fixed"
 description = """
