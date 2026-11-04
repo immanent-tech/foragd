@@ -23,7 +23,7 @@ import (
 )
 
 // ArticleFavoriteToggle renders an icon-only button for toggling the favorite status of an article.
-templ ArticleFavoriteToggle(article *models.Article, options ...element.PropertiesOption) {
+templ ArticleFavoriteToggle(article Article, options ...element.PropertiesOption) {
 	{{
 		props := element.NewProperties(options...)
 		var label string
@@ -57,12 +57,12 @@ templ ArticleFavoriteToggle(article *models.Article, options ...element.Properti
 	</div>
 }
 
-func markValueID(article *models.Article) htmx.ID {
+func markValueID(article Article) htmx.ID {
 	return htmx.ID(article.GetID() + "-mark-value")
 }
 
 // articleMarkToggle renders a button toggle for toggling the read status of an article.
-templ articleMarkToggle(article *models.Article) {
+templ articleMarkToggle(article Article) {
 	{{
 		var mark models.Mark
 		if article.IsUnread() {
@@ -146,7 +146,7 @@ templ articleMarkToggle(article *models.Article) {
 }
 
 // articleGoToToggle shows a toggle that when clicked, will take the user to the original article page.
-templ articleGoToToggle(article *models.Article) {
+templ articleGoToToggle(article Article) {
 	<div
 		class="tooltip tooltip-top tooltip-end"
 		data-tip="Go to article"
@@ -159,7 +159,7 @@ templ articleGoToToggle(article *models.Article) {
 }
 
 // articleViewToggle shows a toggle that when clicked, will view the article content.
-templ articleViewToggle(article *models.Article) {
+templ articleViewToggle(article Article) {
 	<div
 		class="tooltip tooltip-top tooltip-end"
 		data-tip="View article"
@@ -180,7 +180,7 @@ templ articleViewToggle(article *models.Article) {
 }
 
 // articleShareAction renders a button for prompting to share an article.
-templ articleShareButton(article *models.Article) {
+templ articleShareButton(article Article) {
 	// Mobile share action via navigator API.
 	<a
 		role="button"
@@ -216,7 +216,7 @@ templ articleShareButton(article *models.Article) {
 }
 
 // articleViewOriginalButton shows a button to go to the original article.
-templ articleViewOriginalButton(article *models.Article) {
+templ articleViewOriginalButton(article Article) {
 	<a
 		role="button"
 		class="btn border-neutral/15 btn-outline"
@@ -233,7 +233,7 @@ templ articleViewOriginalButton(article *models.Article) {
 }
 
 // articleShowRemoteContentButton renders a button to show the remote content.
-templ articleShowRemoteContentButton(article *models.Article) {
+templ articleShowRemoteContentButton(article Article) {
 	<button
 		role="button"
 		id="show-remote-content-button"
@@ -260,7 +260,7 @@ templ articleShowRemoteContentButton(article *models.Article) {
 }
 
 // articleShowFeedContentButton renders a button to show the feed content.
-templ articleShowFeedContentButton(article *models.Article) {
+templ articleShowFeedContentButton(article Article) {
 	<a
 		role="button"
 		id="show-feed-content-button"
@@ -287,7 +287,7 @@ templ articleShowFeedContentButton(article *models.Article) {
 }
 
 // articleActionsMenu renders a menu containing article-specific actions.
-templ articleActionsMenu(article *models.Article) {
+templ articleActionsMenu(article Article) {
 	<div class="tooltip tooltip-top tooltip-end" data-tip="Article actions">
 		<el-dropdown class="relative ml-auto touch-manipulation" _="on click halt the event's bubbling">
 			<button id={ article.GetID() + "-actions-menu" } class="btn btn-square btn-ghost btn-sm">
@@ -364,7 +364,7 @@ templ articleActionsMenu(article *models.Article) {
 	</div>
 }
 
-templ ArticleMapPopup(article *models.Article) {
+templ ArticleMapPopup(article Article) {
 	<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
 	<div>
 		if img := article.GetImage(); img != nil {
@@ -389,7 +389,7 @@ templ ArticleMapPopup(article *models.Article) {
 			</figure>
 		} else {
 			// Show the feed name at the top left.
-			<span class="mt-2.5 ml-2.5 badge line-clamp-1 truncate badge-sm">{ article.Item.FeedTitle }</span>
+			<span class="mt-2.5 ml-2.5 badge line-clamp-1 truncate badge-sm">{ article.GetSubscriptionTitle() }</span>
 		}
 	</div>
 	<div class="px-2 pt-5 pb-2">
@@ -449,7 +449,7 @@ templ ArticleMapPopup(article *models.Article) {
 			hx-values={ templ.JSONString(map[string]string{"subscriptions": article.GetSubscriptionID()}) }
 			hx-nonce={ templ.GetNonce(ctx) }
 			class="line-clamp-1 link truncate link-hover"
-		>{ article.Item.FeedTitle }</a>
+		>{ article.GetSubscriptionTitle() }</a>
 	</div>
 }
 
@@ -709,7 +709,7 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 	}
 }
 
-templ ShareArticleModal(article *models.Article) {
+templ ShareArticleModal(article Article) {
 	{{ id := string(article.GetID()) + "-share" }}
 	// _={ "on click if navigator.share then " + shareAPIDialog(a.GetTitle(), a.GetLink()) + " else call document.getElementById('share-" + a.GetID() + "').show() then halt the event's bubbling" }
 	@partials.Modal(id, true) {
@@ -750,7 +750,7 @@ templ ShareArticleModal(article *models.Article) {
 	}
 }
 
-templ articleThumbnail(article *models.Article) {
+templ articleThumbnail(article Article) {
 	if article.GetImage() != nil {
 		@partials.Thumbnail(
 			&models.RemoteImage{

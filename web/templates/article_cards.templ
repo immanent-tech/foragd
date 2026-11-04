@@ -26,7 +26,7 @@ func ShowSubscriptionDetail(value bool) func(*articleCardOptions) {
 }
 
 // Card renders an article as a card, for displaying in a list.
-templ ArticleCard(idx int, article *models.Article, options ...func(*articleCardOptions)) {
+templ ArticleCard(idx int, article Article, options ...func(*articleCardOptions)) {
 	{{
 		opts := &articleCardOptions{
 			showSubscriptionDetail: true,
@@ -85,7 +85,7 @@ templ ArticleCard(idx int, article *models.Article, options ...func(*articleCard
 	}
 }
 
-templ articleCardImage(idx int, article *models.Article) {
+templ articleCardImage(idx int, article Article) {
 	{{ img := article.GetImage() }}
 	if img.GetTitle() == "" {
 		{{ img.Title = new(article.GetTitle()) }}
@@ -112,7 +112,7 @@ templ articleCardImage(idx int, article *models.Article) {
 	</figure>
 }
 
-templ articleCardBody(article *models.Article) {
+templ articleCardBody(article Article) {
 	// Title.
 	{{
 		var title string
@@ -186,7 +186,7 @@ templ articleCardBody(article *models.Article) {
 	}
 }
 
-templ articleCardFooter(article *models.Article) {
+templ articleCardFooter(article Article) {
 	<div class="flex items-center justify-between">
 		// Last updated relative timestamp.
 		<p class="mt-2 text-center text-sm/6 tabular-nums">
@@ -203,7 +203,7 @@ templ articleCardFooter(article *models.Article) {
 	</div>
 }
 
-templ articleCardActions(article *models.Article) {
+templ articleCardActions(article Article) {
 	<div class="ml-auto flex shrink-0 items-center">
 		// Toggle favorite action.
 		@ArticleFavoriteToggle(article)
@@ -216,14 +216,14 @@ templ articleCardActions(article *models.Article) {
 	</div>
 }
 
-templ articleSource(article *models.Article) {
-	{{ styleAttr := fmt.Sprintf("--hue: %ddeg", hueFromText(article.Subscription.GetTitle()+article.Subscription.GetLink())) }}
+templ articleSource(article Article) {
+	{{ styleAttr := fmt.Sprintf("--hue: %ddeg", hueFromText(article.GetSubscriptionTitle()+article.GetSubscriptionLink())) }}
 	<div
 		style={ styleAttr }
 		class="line-clamp-1 w-fit cursor-pointer touch-manipulation items-center gap-1 rounded-field accent-hue-rotate p-1 text-sm hover:underline"
 	>
-		<a { generateSubscriptionViewAttributes(ctx,&article.Subscription)... }>
-			{ article.Subscription.GetTitle() }
+		<a { generateSubscriptionViewAttributes(ctx,new(article.GetSubscription()))... }>
+			{ article.GetSubscriptionTitle() }
 		</a>
 	</div>
 }

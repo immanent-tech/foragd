@@ -8,10 +8,596 @@ import (
 	"context"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/a-h/templ"
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
 )
+
+// Ensure that MoqArticle does implement templates.Article.
+// If this is not the case, regenerate this file with mockery.
+var _ templates.Article = &MoqArticle{}
+
+// MoqArticle is a mock implementation of templates.Article.
+//
+//	func TestSomethingThatUsesArticle(t *testing.T) {
+//
+//		// make and configure a mocked templates.Article
+//		mockedArticle := &MoqArticle{
+//			GetAuthorsFunc: func() []models.Author {
+//				panic("mock out the GetAuthors method")
+//			},
+//			GetCategoriesFunc: func(limit int) models.Categories {
+//				panic("mock out the GetCategories method")
+//			},
+//			GetContentFunc: func() string {
+//				panic("mock out the GetContent method")
+//			},
+//			GetDescriptionFunc: func() string {
+//				panic("mock out the GetDescription method")
+//			},
+//			GetIDFunc: func() string {
+//				panic("mock out the GetID method")
+//			},
+//			GetImageFunc: func() *models.RemoteImage {
+//				panic("mock out the GetImage method")
+//			},
+//			GetLinkFunc: func() string {
+//				panic("mock out the GetLink method")
+//			},
+//			GetSubscriptionFunc: func() models.Subscription {
+//				panic("mock out the GetSubscription method")
+//			},
+//			GetSubscriptionIDFunc: func() models.SubscriptionID {
+//				panic("mock out the GetSubscriptionID method")
+//			},
+//			GetSubscriptionLinkFunc: func() string {
+//				panic("mock out the GetSubscriptionLink method")
+//			},
+//			GetSubscriptionTitleFunc: func() string {
+//				panic("mock out the GetSubscriptionTitle method")
+//			},
+//			GetTitleFunc: func() string {
+//				panic("mock out the GetTitle method")
+//			},
+//			GetUpdatedDateFunc: func() time.Time {
+//				panic("mock out the GetUpdatedDate method")
+//			},
+//			IsFavoriteFunc: func() bool {
+//				panic("mock out the IsFavorite method")
+//			},
+//			IsUnreadFunc: func() bool {
+//				panic("mock out the IsUnread method")
+//			},
+//		}
+//
+//		// use mockedArticle in code that requires templates.Article
+//		// and then make assertions.
+//
+//	}
+type MoqArticle struct {
+	// GetAuthorsFunc mocks the GetAuthors method.
+	GetAuthorsFunc func() []models.Author
+
+	// GetCategoriesFunc mocks the GetCategories method.
+	GetCategoriesFunc func(limit int) models.Categories
+
+	// GetContentFunc mocks the GetContent method.
+	GetContentFunc func() string
+
+	// GetDescriptionFunc mocks the GetDescription method.
+	GetDescriptionFunc func() string
+
+	// GetIDFunc mocks the GetID method.
+	GetIDFunc func() string
+
+	// GetImageFunc mocks the GetImage method.
+	GetImageFunc func() *models.RemoteImage
+
+	// GetLinkFunc mocks the GetLink method.
+	GetLinkFunc func() string
+
+	// GetSubscriptionFunc mocks the GetSubscription method.
+	GetSubscriptionFunc func() models.Subscription
+
+	// GetSubscriptionIDFunc mocks the GetSubscriptionID method.
+	GetSubscriptionIDFunc func() models.SubscriptionID
+
+	// GetSubscriptionLinkFunc mocks the GetSubscriptionLink method.
+	GetSubscriptionLinkFunc func() string
+
+	// GetSubscriptionTitleFunc mocks the GetSubscriptionTitle method.
+	GetSubscriptionTitleFunc func() string
+
+	// GetTitleFunc mocks the GetTitle method.
+	GetTitleFunc func() string
+
+	// GetUpdatedDateFunc mocks the GetUpdatedDate method.
+	GetUpdatedDateFunc func() time.Time
+
+	// IsFavoriteFunc mocks the IsFavorite method.
+	IsFavoriteFunc func() bool
+
+	// IsUnreadFunc mocks the IsUnread method.
+	IsUnreadFunc func() bool
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// GetAuthors holds details about calls to the GetAuthors method.
+		GetAuthors []struct {
+		}
+		// GetCategories holds details about calls to the GetCategories method.
+		GetCategories []struct {
+			// Limit is the limit argument value.
+			Limit int
+		}
+		// GetContent holds details about calls to the GetContent method.
+		GetContent []struct {
+		}
+		// GetDescription holds details about calls to the GetDescription method.
+		GetDescription []struct {
+		}
+		// GetID holds details about calls to the GetID method.
+		GetID []struct {
+		}
+		// GetImage holds details about calls to the GetImage method.
+		GetImage []struct {
+		}
+		// GetLink holds details about calls to the GetLink method.
+		GetLink []struct {
+		}
+		// GetSubscription holds details about calls to the GetSubscription method.
+		GetSubscription []struct {
+		}
+		// GetSubscriptionID holds details about calls to the GetSubscriptionID method.
+		GetSubscriptionID []struct {
+		}
+		// GetSubscriptionLink holds details about calls to the GetSubscriptionLink method.
+		GetSubscriptionLink []struct {
+		}
+		// GetSubscriptionTitle holds details about calls to the GetSubscriptionTitle method.
+		GetSubscriptionTitle []struct {
+		}
+		// GetTitle holds details about calls to the GetTitle method.
+		GetTitle []struct {
+		}
+		// GetUpdatedDate holds details about calls to the GetUpdatedDate method.
+		GetUpdatedDate []struct {
+		}
+		// IsFavorite holds details about calls to the IsFavorite method.
+		IsFavorite []struct {
+		}
+		// IsUnread holds details about calls to the IsUnread method.
+		IsUnread []struct {
+		}
+	}
+	lockGetAuthors           sync.RWMutex
+	lockGetCategories        sync.RWMutex
+	lockGetContent           sync.RWMutex
+	lockGetDescription       sync.RWMutex
+	lockGetID                sync.RWMutex
+	lockGetImage             sync.RWMutex
+	lockGetLink              sync.RWMutex
+	lockGetSubscription      sync.RWMutex
+	lockGetSubscriptionID    sync.RWMutex
+	lockGetSubscriptionLink  sync.RWMutex
+	lockGetSubscriptionTitle sync.RWMutex
+	lockGetTitle             sync.RWMutex
+	lockGetUpdatedDate       sync.RWMutex
+	lockIsFavorite           sync.RWMutex
+	lockIsUnread             sync.RWMutex
+}
+
+// GetAuthors calls GetAuthorsFunc.
+func (mock *MoqArticle) GetAuthors() []models.Author {
+	if mock.GetAuthorsFunc == nil {
+		panic("MoqArticle.GetAuthorsFunc: method is nil but Article.GetAuthors was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetAuthors.Lock()
+	mock.calls.GetAuthors = append(mock.calls.GetAuthors, callInfo)
+	mock.lockGetAuthors.Unlock()
+	return mock.GetAuthorsFunc()
+}
+
+// GetAuthorsCalls gets all the calls that were made to GetAuthors.
+// Check the length with:
+//
+//	len(mockedArticle.GetAuthorsCalls())
+func (mock *MoqArticle) GetAuthorsCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetAuthors.RLock()
+	calls = mock.calls.GetAuthors
+	mock.lockGetAuthors.RUnlock()
+	return calls
+}
+
+// GetCategories calls GetCategoriesFunc.
+func (mock *MoqArticle) GetCategories(limit int) models.Categories {
+	if mock.GetCategoriesFunc == nil {
+		panic("MoqArticle.GetCategoriesFunc: method is nil but Article.GetCategories was just called")
+	}
+	callInfo := struct {
+		Limit int
+	}{
+		Limit: limit,
+	}
+	mock.lockGetCategories.Lock()
+	mock.calls.GetCategories = append(mock.calls.GetCategories, callInfo)
+	mock.lockGetCategories.Unlock()
+	return mock.GetCategoriesFunc(limit)
+}
+
+// GetCategoriesCalls gets all the calls that were made to GetCategories.
+// Check the length with:
+//
+//	len(mockedArticle.GetCategoriesCalls())
+func (mock *MoqArticle) GetCategoriesCalls() []struct {
+	Limit int
+} {
+	var calls []struct {
+		Limit int
+	}
+	mock.lockGetCategories.RLock()
+	calls = mock.calls.GetCategories
+	mock.lockGetCategories.RUnlock()
+	return calls
+}
+
+// GetContent calls GetContentFunc.
+func (mock *MoqArticle) GetContent() string {
+	if mock.GetContentFunc == nil {
+		panic("MoqArticle.GetContentFunc: method is nil but Article.GetContent was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetContent.Lock()
+	mock.calls.GetContent = append(mock.calls.GetContent, callInfo)
+	mock.lockGetContent.Unlock()
+	return mock.GetContentFunc()
+}
+
+// GetContentCalls gets all the calls that were made to GetContent.
+// Check the length with:
+//
+//	len(mockedArticle.GetContentCalls())
+func (mock *MoqArticle) GetContentCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetContent.RLock()
+	calls = mock.calls.GetContent
+	mock.lockGetContent.RUnlock()
+	return calls
+}
+
+// GetDescription calls GetDescriptionFunc.
+func (mock *MoqArticle) GetDescription() string {
+	if mock.GetDescriptionFunc == nil {
+		panic("MoqArticle.GetDescriptionFunc: method is nil but Article.GetDescription was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetDescription.Lock()
+	mock.calls.GetDescription = append(mock.calls.GetDescription, callInfo)
+	mock.lockGetDescription.Unlock()
+	return mock.GetDescriptionFunc()
+}
+
+// GetDescriptionCalls gets all the calls that were made to GetDescription.
+// Check the length with:
+//
+//	len(mockedArticle.GetDescriptionCalls())
+func (mock *MoqArticle) GetDescriptionCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetDescription.RLock()
+	calls = mock.calls.GetDescription
+	mock.lockGetDescription.RUnlock()
+	return calls
+}
+
+// GetID calls GetIDFunc.
+func (mock *MoqArticle) GetID() string {
+	if mock.GetIDFunc == nil {
+		panic("MoqArticle.GetIDFunc: method is nil but Article.GetID was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetID.Lock()
+	mock.calls.GetID = append(mock.calls.GetID, callInfo)
+	mock.lockGetID.Unlock()
+	return mock.GetIDFunc()
+}
+
+// GetIDCalls gets all the calls that were made to GetID.
+// Check the length with:
+//
+//	len(mockedArticle.GetIDCalls())
+func (mock *MoqArticle) GetIDCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetID.RLock()
+	calls = mock.calls.GetID
+	mock.lockGetID.RUnlock()
+	return calls
+}
+
+// GetImage calls GetImageFunc.
+func (mock *MoqArticle) GetImage() *models.RemoteImage {
+	if mock.GetImageFunc == nil {
+		panic("MoqArticle.GetImageFunc: method is nil but Article.GetImage was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetImage.Lock()
+	mock.calls.GetImage = append(mock.calls.GetImage, callInfo)
+	mock.lockGetImage.Unlock()
+	return mock.GetImageFunc()
+}
+
+// GetImageCalls gets all the calls that were made to GetImage.
+// Check the length with:
+//
+//	len(mockedArticle.GetImageCalls())
+func (mock *MoqArticle) GetImageCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetImage.RLock()
+	calls = mock.calls.GetImage
+	mock.lockGetImage.RUnlock()
+	return calls
+}
+
+// GetLink calls GetLinkFunc.
+func (mock *MoqArticle) GetLink() string {
+	if mock.GetLinkFunc == nil {
+		panic("MoqArticle.GetLinkFunc: method is nil but Article.GetLink was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetLink.Lock()
+	mock.calls.GetLink = append(mock.calls.GetLink, callInfo)
+	mock.lockGetLink.Unlock()
+	return mock.GetLinkFunc()
+}
+
+// GetLinkCalls gets all the calls that were made to GetLink.
+// Check the length with:
+//
+//	len(mockedArticle.GetLinkCalls())
+func (mock *MoqArticle) GetLinkCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetLink.RLock()
+	calls = mock.calls.GetLink
+	mock.lockGetLink.RUnlock()
+	return calls
+}
+
+// GetSubscription calls GetSubscriptionFunc.
+func (mock *MoqArticle) GetSubscription() models.Subscription {
+	if mock.GetSubscriptionFunc == nil {
+		panic("MoqArticle.GetSubscriptionFunc: method is nil but Article.GetSubscription was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetSubscription.Lock()
+	mock.calls.GetSubscription = append(mock.calls.GetSubscription, callInfo)
+	mock.lockGetSubscription.Unlock()
+	return mock.GetSubscriptionFunc()
+}
+
+// GetSubscriptionCalls gets all the calls that were made to GetSubscription.
+// Check the length with:
+//
+//	len(mockedArticle.GetSubscriptionCalls())
+func (mock *MoqArticle) GetSubscriptionCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetSubscription.RLock()
+	calls = mock.calls.GetSubscription
+	mock.lockGetSubscription.RUnlock()
+	return calls
+}
+
+// GetSubscriptionID calls GetSubscriptionIDFunc.
+func (mock *MoqArticle) GetSubscriptionID() models.SubscriptionID {
+	if mock.GetSubscriptionIDFunc == nil {
+		panic("MoqArticle.GetSubscriptionIDFunc: method is nil but Article.GetSubscriptionID was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetSubscriptionID.Lock()
+	mock.calls.GetSubscriptionID = append(mock.calls.GetSubscriptionID, callInfo)
+	mock.lockGetSubscriptionID.Unlock()
+	return mock.GetSubscriptionIDFunc()
+}
+
+// GetSubscriptionIDCalls gets all the calls that were made to GetSubscriptionID.
+// Check the length with:
+//
+//	len(mockedArticle.GetSubscriptionIDCalls())
+func (mock *MoqArticle) GetSubscriptionIDCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetSubscriptionID.RLock()
+	calls = mock.calls.GetSubscriptionID
+	mock.lockGetSubscriptionID.RUnlock()
+	return calls
+}
+
+// GetSubscriptionLink calls GetSubscriptionLinkFunc.
+func (mock *MoqArticle) GetSubscriptionLink() string {
+	if mock.GetSubscriptionLinkFunc == nil {
+		panic("MoqArticle.GetSubscriptionLinkFunc: method is nil but Article.GetSubscriptionLink was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetSubscriptionLink.Lock()
+	mock.calls.GetSubscriptionLink = append(mock.calls.GetSubscriptionLink, callInfo)
+	mock.lockGetSubscriptionLink.Unlock()
+	return mock.GetSubscriptionLinkFunc()
+}
+
+// GetSubscriptionLinkCalls gets all the calls that were made to GetSubscriptionLink.
+// Check the length with:
+//
+//	len(mockedArticle.GetSubscriptionLinkCalls())
+func (mock *MoqArticle) GetSubscriptionLinkCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetSubscriptionLink.RLock()
+	calls = mock.calls.GetSubscriptionLink
+	mock.lockGetSubscriptionLink.RUnlock()
+	return calls
+}
+
+// GetSubscriptionTitle calls GetSubscriptionTitleFunc.
+func (mock *MoqArticle) GetSubscriptionTitle() string {
+	if mock.GetSubscriptionTitleFunc == nil {
+		panic("MoqArticle.GetSubscriptionTitleFunc: method is nil but Article.GetSubscriptionTitle was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetSubscriptionTitle.Lock()
+	mock.calls.GetSubscriptionTitle = append(mock.calls.GetSubscriptionTitle, callInfo)
+	mock.lockGetSubscriptionTitle.Unlock()
+	return mock.GetSubscriptionTitleFunc()
+}
+
+// GetSubscriptionTitleCalls gets all the calls that were made to GetSubscriptionTitle.
+// Check the length with:
+//
+//	len(mockedArticle.GetSubscriptionTitleCalls())
+func (mock *MoqArticle) GetSubscriptionTitleCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetSubscriptionTitle.RLock()
+	calls = mock.calls.GetSubscriptionTitle
+	mock.lockGetSubscriptionTitle.RUnlock()
+	return calls
+}
+
+// GetTitle calls GetTitleFunc.
+func (mock *MoqArticle) GetTitle() string {
+	if mock.GetTitleFunc == nil {
+		panic("MoqArticle.GetTitleFunc: method is nil but Article.GetTitle was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetTitle.Lock()
+	mock.calls.GetTitle = append(mock.calls.GetTitle, callInfo)
+	mock.lockGetTitle.Unlock()
+	return mock.GetTitleFunc()
+}
+
+// GetTitleCalls gets all the calls that were made to GetTitle.
+// Check the length with:
+//
+//	len(mockedArticle.GetTitleCalls())
+func (mock *MoqArticle) GetTitleCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetTitle.RLock()
+	calls = mock.calls.GetTitle
+	mock.lockGetTitle.RUnlock()
+	return calls
+}
+
+// GetUpdatedDate calls GetUpdatedDateFunc.
+func (mock *MoqArticle) GetUpdatedDate() time.Time {
+	if mock.GetUpdatedDateFunc == nil {
+		panic("MoqArticle.GetUpdatedDateFunc: method is nil but Article.GetUpdatedDate was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetUpdatedDate.Lock()
+	mock.calls.GetUpdatedDate = append(mock.calls.GetUpdatedDate, callInfo)
+	mock.lockGetUpdatedDate.Unlock()
+	return mock.GetUpdatedDateFunc()
+}
+
+// GetUpdatedDateCalls gets all the calls that were made to GetUpdatedDate.
+// Check the length with:
+//
+//	len(mockedArticle.GetUpdatedDateCalls())
+func (mock *MoqArticle) GetUpdatedDateCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetUpdatedDate.RLock()
+	calls = mock.calls.GetUpdatedDate
+	mock.lockGetUpdatedDate.RUnlock()
+	return calls
+}
+
+// IsFavorite calls IsFavoriteFunc.
+func (mock *MoqArticle) IsFavorite() bool {
+	if mock.IsFavoriteFunc == nil {
+		panic("MoqArticle.IsFavoriteFunc: method is nil but Article.IsFavorite was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockIsFavorite.Lock()
+	mock.calls.IsFavorite = append(mock.calls.IsFavorite, callInfo)
+	mock.lockIsFavorite.Unlock()
+	return mock.IsFavoriteFunc()
+}
+
+// IsFavoriteCalls gets all the calls that were made to IsFavorite.
+// Check the length with:
+//
+//	len(mockedArticle.IsFavoriteCalls())
+func (mock *MoqArticle) IsFavoriteCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockIsFavorite.RLock()
+	calls = mock.calls.IsFavorite
+	mock.lockIsFavorite.RUnlock()
+	return calls
+}
+
+// IsUnread calls IsUnreadFunc.
+func (mock *MoqArticle) IsUnread() bool {
+	if mock.IsUnreadFunc == nil {
+		panic("MoqArticle.IsUnreadFunc: method is nil but Article.IsUnread was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockIsUnread.Lock()
+	mock.calls.IsUnread = append(mock.calls.IsUnread, callInfo)
+	mock.lockIsUnread.Unlock()
+	return mock.IsUnreadFunc()
+}
+
+// IsUnreadCalls gets all the calls that were made to IsUnread.
+// Check the length with:
+//
+//	len(mockedArticle.IsUnreadCalls())
+func (mock *MoqArticle) IsUnreadCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockIsUnread.RLock()
+	calls = mock.calls.IsUnread
+	mock.lockIsUnread.RUnlock()
+	return calls
+}
 
 // Ensure that MoqAppConfig does implement templates.AppConfig.
 // If this is not the case, regenerate this file with mockery.

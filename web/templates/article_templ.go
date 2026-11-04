@@ -37,7 +37,7 @@ import (
 )
 
 // ArticleFavoriteToggle renders an icon-only button for toggling the favorite status of an article.
-func ArticleFavoriteToggle(article *models.Article, options ...element.PropertiesOption) templ.Component {
+func ArticleFavoriteToggle(article Article, options ...element.PropertiesOption) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -172,12 +172,12 @@ func ArticleFavoriteToggle(article *models.Article, options ...element.Propertie
 	})
 }
 
-func markValueID(article *models.Article) htmx.ID {
+func markValueID(article Article) htmx.ID {
 	return htmx.ID(article.GetID() + "-mark-value")
 }
 
 // articleMarkToggle renders a button toggle for toggling the read status of an article.
-func articleMarkToggle(article *models.Article) templ.Component {
+func articleMarkToggle(article Article) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -340,7 +340,7 @@ func articleMarkToggle(article *models.Article) templ.Component {
 }
 
 // articleGoToToggle shows a toggle that when clicked, will take the user to the original article page.
-func articleGoToToggle(article *models.Article) templ.Component {
+func articleGoToToggle(article Article) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -387,7 +387,7 @@ func articleGoToToggle(article *models.Article) templ.Component {
 }
 
 // articleViewToggle shows a toggle that when clicked, will view the article content.
-func articleViewToggle(article *models.Article) templ.Component {
+func articleViewToggle(article Article) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -460,7 +460,7 @@ func articleViewToggle(article *models.Article) templ.Component {
 }
 
 // articleShareAction renders a button for prompting to share an article.
-func articleShareButton(article *models.Article) templ.Component {
+func articleShareButton(article Article) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -567,7 +567,7 @@ func articleShareButton(article *models.Article) templ.Component {
 }
 
 // articleViewOriginalButton shows a button to go to the original article.
-func articleViewOriginalButton(article *models.Article) templ.Component {
+func articleViewOriginalButton(article Article) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -614,7 +614,7 @@ func articleViewOriginalButton(article *models.Article) templ.Component {
 }
 
 // articleShowRemoteContentButton renders a button to show the remote content.
-func articleShowRemoteContentButton(article *models.Article) templ.Component {
+func articleShowRemoteContentButton(article Article) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -713,7 +713,7 @@ func articleShowRemoteContentButton(article *models.Article) templ.Component {
 }
 
 // articleShowFeedContentButton renders a button to show the feed content.
-func articleShowFeedContentButton(article *models.Article) templ.Component {
+func articleShowFeedContentButton(article Article) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -812,7 +812,7 @@ func articleShowFeedContentButton(article *models.Article) templ.Component {
 }
 
 // articleActionsMenu renders a menu containing article-specific actions.
-func articleActionsMenu(article *models.Article) templ.Component {
+func articleActionsMenu(article Article) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1219,7 +1219,7 @@ func articleActionsMenu(article *models.Article) templ.Component {
 	})
 }
 
-func ArticleMapPopup(article *models.Article) templ.Component {
+func ArticleMapPopup(article Article) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1297,9 +1297,9 @@ func ArticleMapPopup(article *models.Article) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var62 string
-			templ_7745c5c3_Var62, templ_7745c5c3_Err = templ.JoinStringErrs(article.Item.FeedTitle)
+			templ_7745c5c3_Var62, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetSubscriptionTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 392, Col: 92}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 392, Col: 100}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var62))
 			if templ_7745c5c3_Err != nil {
@@ -1472,9 +1472,9 @@ func ArticleMapPopup(article *models.Article) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var72 string
-		templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(article.Item.FeedTitle)
+		templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetSubscriptionTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 452, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 452, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var72))
 		if templ_7745c5c3_Err != nil {
@@ -2332,7 +2332,7 @@ func listArticlesButtons(response *models.ListArticlesResponse) templ.Component 
 	})
 }
 
-func ShareArticleModal(article *models.Article) templ.Component {
+func ShareArticleModal(article Article) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -2452,7 +2452,7 @@ func ShareArticleModal(article *models.Article) templ.Component {
 	})
 }
 
-func articleThumbnail(article *models.Article) templ.Component {
+func articleThumbnail(article Article) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

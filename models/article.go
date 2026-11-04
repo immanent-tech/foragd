@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package models
 
@@ -120,6 +122,20 @@ func (a Article) GetID() string {
 // GetSubscriptionID returns the ID of the user subscription the article belongs to.
 func (a Article) GetSubscriptionID() SubscriptionID {
 	return a.Subscription.GetID()
+}
+
+// GetSubscriptionTitle returns the title of the subscription the article belongs to.
+func (a Article) GetSubscriptionTitle() string {
+	return a.Subscription.GetTitle()
+}
+
+// GetSubscriptionLink returns the link of the subscription the article belongs to.
+func (a Article) GetSubscriptionLink() string {
+	return a.Subscription.GetLink()
+}
+
+func (a Article) GetSubscription() Subscription {
+	return a.Subscription
 }
 
 // GetFeedID returns the ID of the feed the article belongs to.
