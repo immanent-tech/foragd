@@ -178,14 +178,8 @@ templ subscriptionCardFooter(sub *models.Subscription) {
 		<div class="flex items-center justify-between">
 			// Last updated relative timestamp.
 			<p class="mt-2 text-center text-sm/6 tabular-nums">
-				Updated
-				<relative-time
-					datetime={ sub.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-					format="relative"
-					class="font-semibold"
-				>
-					{ sub.GetUpdatedDate().Format("Jan _2, 2006") }
-				</relative-time>
+				Updated&nbsp;
+				@partials.RelativeTime(sub.GetUpdatedDate(), "font-semibold")
 			</p>
 			@subscriptionCardActions(sub)
 		</div>

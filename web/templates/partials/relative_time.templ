@@ -1,0 +1,20 @@
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package partials
+
+import "time"
+
+// RelativeTime uses the <relative-time/> custom element to display a [time.Time] in a human-readable format "relative" to
+// the current time.
+templ RelativeTime(ts time.Time, class ...string) {
+	<relative-time
+		datetime={ ts.Format(time.RFC3339) }
+		format="relative"
+		class={ "tabular-nums", class }
+	>
+		{ ts.Format("Jan _2, 2006") }
+	</relative-time>
+}

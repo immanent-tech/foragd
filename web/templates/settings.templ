@@ -187,14 +187,8 @@ templ AccountSettings(user *models.User) {
 					switch  {
 						case user.InTrial():
 							<p>
-								Trial, ending:
-								<relative-time
-									datetime={ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("2006-01-02T15:04:05-0700") }
-									format="relative"
-									class="tabular-nums"
-								>
-									{ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006") }
-								</relative-time>
+								Trial, ending:&nbsp;
+								@partials.RelativeTime(user.CreatedAt.Add(models.DefaultTrialPeriod))
 								({ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006") })
 							</p>
 							<div class="flex w-full justify-end">
@@ -1194,13 +1188,7 @@ templ subscriptionsTable(subscriptions models.Subscriptions) {
 					<td>
 						// Subscription last updated timestamp.
 						<span class="col-span-full justify-start text-xs/4 text-wrap text-neutral capitalize">
-							<relative-time
-								datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-								format="relative"
-								class="tabular-nums"
-							>
-								{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
-							</relative-time>
+							@partials.RelativeTime(subscription.GetUpdatedDate())
 						</span>
 					</td>
 					<td>

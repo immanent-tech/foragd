@@ -1,6 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
-
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package templates
 
@@ -8,7 +9,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/google/android"
 	"strings"
-	"time"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 templ androidCheckoutButton(frequency string) {
@@ -200,14 +201,8 @@ templ showAndroidSubscriptionDetails(user *models.User) {
 		</p>
 		if expiresAt := subscription.ExpiresAt; expiresAt != nil {
 			<p class="mt-1 text-sm/6">
-				Next billing date:
-				<relative-time
-					datetime={ expiresAt.Format(time.RFC3339) }
-					format="relative"
-					class="tabular-nums"
-				>
-					{ subscription.ExpiresAt.Format("Jan _2, 2006") }
-				</relative-time>
+				Next billing date:&nbsp;
+                @partials.RelativeTime(*expiresAt)
 			</p>
 		}
 	}

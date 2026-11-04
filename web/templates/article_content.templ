@@ -50,12 +50,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 						</a>
 						<span class="flex-none px-4">·</span>
 						<span class="flex-none capitalize tabular-nums">
-							<relative-time
-								datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-								format="relative"
-							>
-								{ article.GetUpdatedDate().Format("Jan _2, 2006") }
-							</relative-time>
+                        @partials.RelativeTime(article.GetUpdatedDate())
 						</span>
 					</div>
 					// Categories.

@@ -1163,14 +1163,8 @@ templ demoArticleCard() {
 				<div class="flex items-center justify-between">
 					// Last updated relative timestamp.
 					<p class="mt-2 text-center text-sm/6 tabular-nums">
-						Updated
-						<relative-time
-							datetime={ time.Now().Format("2006-01-02T15:04:05-0700") }
-							format="relative"
-							class="font-semibold"
-						>
-							{ time.Now().Format("Jan _2, 2006") }
-						</relative-time>
+						Updated&nbsp;
+						@partials.RelativeTime(time.Now(), "font-semibold")
 					</p>
 					<div class="ml-auto flex shrink-0 items-center">
 						<button class="btn btn-square btn-ghost btn-sm">

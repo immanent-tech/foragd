@@ -142,14 +142,8 @@ templ homeSubscriptions(subscriptions models.Subscriptions) {
 				>
 					@subscriptionCardTitle(subscription)
 					<p class="mt-2 text-center text-sm/6 tabular-nums">
-						Updated
-						<relative-time
-							datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-							format="relative"
-							class="font-semibold"
-						>
-							{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
-						</relative-time>
+						Updated&nbsp;
+						@partials.RelativeTime(subscription.GetUpdatedDate(), "font-semibold")
 					</p>
 				</li>
 			}

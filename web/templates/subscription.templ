@@ -184,13 +184,7 @@ templ latestItemSummary(item *models.Item) {
 				<span class="line-clamp-2 font-serif text-base/7 font-semibold">
 					{ item.GetTitle() }
 				</span>
-				<relative-time
-					datetime={ item.GetTimestamp().Format("2006-01-02T15:04:05-0700") }
-					format="relative"
-					class="shrink-0 text-sm/6 text-base-content capitalize tabular-nums"
-				>
-					{ item.GetTimestamp().Format("Jan _2, 2006") }
-				</relative-time>
+				@partials.RelativeTime(item.GetTimestamp(), "shrink-0 text-sm/6 text-base-content")
 			</a>
 		</div>
 	</li>
