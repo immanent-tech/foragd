@@ -1995,65 +1995,6 @@
         border-bottom: var(--border) solid color-mix(in oklch, var(--color-base-content) 5%, #0000);
       }
     }
-  }
-  .soft-gradient-top {
-    position: relative;
-    left: calc(50% - 11rem);
-    aspect-ratio: 1155/678;
-    width: calc(var(--spacing) * 144.5);
-    --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);
-    translate: var(--tw-translate-x) var(--tw-translate-y);
-    rotate: 30deg;
-    transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
-    --tw-gradient-position: to top right;
-    @supports (background-image: linear-gradient(in lab, red, red)) {
-      --tw-gradient-position: to top right in oklab;
-    }
-    background-image: linear-gradient(var(--tw-gradient-stops));
-    --tw-gradient-from: var(--color-primary);
-    --tw-gradient-to: var(--color-secondary);
-    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
-    opacity: 30%;
-    @media (width >= 40rem) {
-      left: calc(50% - 30rem);
-    }
-    @media (width >= 40rem) {
-      width: calc(var(--spacing) * 288.75);
-    }
-    @media (prefers-color-scheme: dark) {
-      opacity: 20%;
-    }
-    clip-path: polygon( 74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1% );
-  }
-  .soft-gradient-bottom {
-    position: relative;
-    left: calc(50% + 3rem);
-    aspect-ratio: 1155/678;
-    width: calc(var(--spacing) * 144.5);
-    --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);
-    translate: var(--tw-translate-x) var(--tw-translate-y);
-    transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
-    --tw-gradient-position: to top right;
-    @supports (background-image: linear-gradient(in lab, red, red)) {
-      --tw-gradient-position: to top right in oklab;
-    }
-    background-image: linear-gradient(var(--tw-gradient-stops));
-    --tw-gradient-from: var(--color-primary);
-    --tw-gradient-to: var(--color-secondary);
-    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
-    opacity: 30%;
-    @media (width >= 40rem) {
-      left: calc(50% + 36rem);
-    }
-    @media (width >= 40rem) {
-      width: calc(var(--spacing) * 288.75);
-    }
-    @media (prefers-color-scheme: dark) {
-      opacity: 20%;
-    }
-    clip-path: polygon( 74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1% );
-  }
-  @layer daisyui.l1.l2.l3 {
     .timeline {
       position: relative;
       display: flex;
@@ -3167,9 +3108,6 @@
   }
   .left-2\.5 {
     left: calc(var(--spacing) * 2.5);
-  }
-  .left-\[calc\(50\%\+3rem\)\] {
-    left: calc(50% + 3rem);
   }
   .left-\[calc\(50\%-11rem\)\] {
     left: calc(50% - 11rem);
@@ -9894,9 +9832,6 @@
         content: var(--tw-content);
       }
     }
-    .sm\:-top-16 {
-      top: calc(var(--spacing) * -16);
-    }
     .sm\:-top-80 {
       top: calc(var(--spacing) * -80);
     }
@@ -9908,9 +9843,6 @@
     }
     .sm\:bottom-0 {
       bottom: 0px;
-    }
-    .sm\:left-\[calc\(50\%\+36rem\)\] {
-      left: calc(50% + 36rem);
     }
     .sm\:left-\[calc\(50\%-30rem\)\] {
       left: calc(50% - 30rem);
@@ -10561,6 +10493,9 @@
     }
   }
   @media (prefers-color-scheme: dark) {
+    .dark\:opacity-20 {
+      opacity: 20%;
+    }
     .dark\:inset-ring-white\/10 {
       --tw-inset-ring-color: color-mix(in srgb, #fff 10%, transparent);
     }
@@ -11427,83 +11362,6 @@
     --noise: 1;
   }
 }
-@property --tw-translate-x {
-  syntax: "*";
-  inherits: false;
-  initial-value: 0;
-}
-@property --tw-translate-y {
-  syntax: "*";
-  inherits: false;
-  initial-value: 0;
-}
-@property --tw-translate-z {
-  syntax: "*";
-  inherits: false;
-  initial-value: 0;
-}
-@property --tw-rotate-x {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-rotate-y {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-rotate-z {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-skew-x {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-skew-y {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-gradient-position {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-gradient-from {
-  syntax: "<color>";
-  inherits: false;
-  initial-value: #0000;
-}
-@property --tw-gradient-via {
-  syntax: "<color>";
-  inherits: false;
-  initial-value: #0000;
-}
-@property --tw-gradient-to {
-  syntax: "<color>";
-  inherits: false;
-  initial-value: #0000;
-}
-@property --tw-gradient-stops {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-gradient-via-stops {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-gradient-from-position {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 0%;
-}
-@property --tw-gradient-via-position {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 50%;
-}
-@property --tw-gradient-to-position {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 100%;
-}
 @property --tw-tracking {
   syntax: "*";
   inherits: false;
@@ -11583,6 +11441,41 @@
   inherits: false;
 }
 @property --tw-font-weight {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-translate-x {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-translate-y {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-translate-z {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-rotate-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-z {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-y {
   syntax: "*";
   inherits: false;
 }
@@ -11673,6 +11566,48 @@
 @property --tw-drop-shadow-size {
   syntax: "*";
   inherits: false;
+}
+@property --tw-gradient-position {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-gradient-from {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0000;
+}
+@property --tw-gradient-via {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0000;
+}
+@property --tw-gradient-to {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0000;
+}
+@property --tw-gradient-stops {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-gradient-via-stops {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-gradient-from-position {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+@property --tw-gradient-via-position {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 50%;
+}
+@property --tw-gradient-to-position {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 100%;
 }
 @property --tw-ordinal {
   syntax: "*";
@@ -11776,23 +11711,6 @@
 @layer properties {
   @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
     *, ::before, ::after, ::backdrop {
-      --tw-translate-x: 0;
-      --tw-translate-y: 0;
-      --tw-translate-z: 0;
-      --tw-rotate-x: initial;
-      --tw-rotate-y: initial;
-      --tw-rotate-z: initial;
-      --tw-skew-x: initial;
-      --tw-skew-y: initial;
-      --tw-gradient-position: initial;
-      --tw-gradient-from: #0000;
-      --tw-gradient-via: #0000;
-      --tw-gradient-to: #0000;
-      --tw-gradient-stops: initial;
-      --tw-gradient-via-stops: initial;
-      --tw-gradient-from-position: 0%;
-      --tw-gradient-via-position: 50%;
-      --tw-gradient-to-position: 100%;
       --tw-tracking: initial;
       --tw-outline-style: solid;
       --tw-shadow: 0 0 #0000;
@@ -11811,6 +11729,14 @@
       --tw-ring-offset-shadow: 0 0 #0000;
       --tw-leading: initial;
       --tw-font-weight: initial;
+      --tw-translate-x: 0;
+      --tw-translate-y: 0;
+      --tw-translate-z: 0;
+      --tw-rotate-x: initial;
+      --tw-rotate-y: initial;
+      --tw-rotate-z: initial;
+      --tw-skew-x: initial;
+      --tw-skew-y: initial;
       --tw-scroll-snap-strictness: proximity;
       --tw-scrollbar-thumb: #0000;
       --tw-scrollbar-track: #0000;
@@ -11831,6 +11757,15 @@
       --tw-drop-shadow-color: initial;
       --tw-drop-shadow-alpha: 100%;
       --tw-drop-shadow-size: initial;
+      --tw-gradient-position: initial;
+      --tw-gradient-from: #0000;
+      --tw-gradient-via: #0000;
+      --tw-gradient-to: #0000;
+      --tw-gradient-stops: initial;
+      --tw-gradient-via-stops: initial;
+      --tw-gradient-from-position: 0%;
+      --tw-gradient-via-position: 50%;
+      --tw-gradient-to-position: 100%;
       --tw-ordinal: initial;
       --tw-slashed-zero: initial;
       --tw-numeric-figure: initial;

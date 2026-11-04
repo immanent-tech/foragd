@@ -48,7 +48,23 @@ func Landing() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"min-h-dvh snap-y snap-mandatory md:snap-none\"><section class=\"hero h-dvh snap-start md:snap-align-none\"><div class=\"hero-content text-center\"><div class=\"isolate\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-0 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-16\"><div style=\"\n\t\tclip-path: polygon(\n\t\t\t74.1% 44.1%,\n\t\t\t100% 61.6%,\n\t\t\t97.5% 26.9%,\n\t\t\t85.5% 0.1%,\n\t\t\t80.7% 2%,\n\t\t\t72.5% 32.5%,\n\t\t\t60.2% 62.4%,\n\t\t\t52.4% 68.1%,\n\t\t\t47.5% 58.3%,\n\t\t\t45.2% 34.5%,\n\t\t\t27.5% 76.7%,\n\t\t\t0.1% 64.9%,\n\t\t\t17.9% 100%,\n\t\t\t27.6% 76.8%,\n\t\t\t76.1% 97.7%,\n\t\t\t74.1% 44.1%\n\t\t);\n\t\" class=\"relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75\"></div></div></div><div class=\"z-10 max-w-md\"><p class=\"text-base font-semibold text-primary\">Algorithms decide.<br>You scroll.</p><h1 class=\"mt-2 font-display text-5xl font-semibold tracking-tight sm:text-7xl\"><span class=\"font-serif\">foragd</span>:<br>A calmer way to\tfollow the web</h1><p class=\"mt-6 font-serif text-lg font-medium text-pretty text-secondary\">Foragd gathers every RSS feed, YouTube channel, Google News topic and email newsletter into one searchable place, with no unread-count guilt and no algorithm quietly reordering what you see.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a role=\"button\" class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a role=\"button\" href=\"/features\" class=\"btn btn-outline text-sm/6 font-semibold\">See features</a></div><p class=\"my-4 text-sm/6 text-base-content/50\">No credit card required · Cancel anytime · Import from Feedly, Inoreader or another service in minutes.</p><div class=\"mt-2 text-sm/6 font-semibold text-accent\">Already have an account?&nbsp;<a href=\"/login\" class=\"link\">Log in</a></div><div class=\"mt-2\"><a href=\"https://play.google.com/store/apps/details?id=app.foragd.twa\" rel=\"_noopener\" target=\"_blank\"><img src=\"/images/google-play-badge.svg\" height=\"92\" width=\"240\" class=\"mx-auto\"></a></div></div><div class=\"isolate\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div style=\"\n\t\tclip-path: polygon(\n\t\t\t74.1% 44.1%,\n\t\t\t100% 61.6%,\n\t\t\t97.5% 26.9%,\n\t\t\t85.5% 0.1%,\n\t\t\t80.7% 2%,\n\t\t\t72.5% 32.5%,\n\t\t\t60.2% 62.4%,\n\t\t\t52.4% 68.1%,\n\t\t\t47.5% 58.3%,\n\t\t\t45.2% 34.5%,\n\t\t\t27.5% 76.7%,\n\t\t\t0.1% 64.9%,\n\t\t\t17.9% 100%,\n\t\t\t27.6% 76.8%,\n\t\t\t76.1% 97.7%,\n\t\t\t74.1% 44.1%\n\t\t);\n\t\" class=\"relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75\"></div></div></div></div></section><section id=\"feature-image\" class=\"relative snap-start md:snap-align-none\"><div class=\"mx-auto flex flex-col items-center justify-center gap-8 px-8 sm:flex-row\"><div class=\"max-w-280\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"min-h-dvh snap-y snap-mandatory md:snap-none\"><section class=\"hero h-dvh snap-start md:snap-align-none\"><div class=\"hero-content text-center\"><div class=\"isolate\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = partials.SoftGradientTop().Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div class=\"z-10 max-w-md\"><p class=\"text-base font-semibold text-primary\">Algorithms decide.<br>You scroll.</p><h1 class=\"mt-2 font-display text-5xl font-semibold tracking-tight sm:text-7xl\"><span class=\"font-serif\">foragd</span>:<br>A calmer way to\tfollow the web</h1><p class=\"mt-6 font-serif text-lg font-medium text-pretty text-secondary\">Foragd gathers every RSS feed, YouTube channel, Google News topic and email newsletter into one searchable place, with no unread-count guilt and no algorithm quietly reordering what you see.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a role=\"button\" class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a role=\"button\" href=\"/features\" class=\"btn btn-outline text-sm/6 font-semibold\">See features</a></div><p class=\"my-4 text-sm/6 text-base-content/50\">No credit card required · Cancel anytime · Import from Feedly, Inoreader or another service in minutes.</p><div class=\"mt-2 text-sm/6 font-semibold text-accent\">Already have an account?&nbsp;<a href=\"/login\" class=\"link\">Log in</a></div><div class=\"mt-2\"><a href=\"https://play.google.com/store/apps/details?id=app.foragd.twa\" rel=\"_noopener\" target=\"_blank\"><img src=\"/images/google-play-badge.svg\" height=\"92\" width=\"240\" class=\"mx-auto\"></a></div></div><div class=\"isolate\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = partials.SoftGradientBottom().Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div></section><section id=\"feature-image\" class=\"relative snap-start md:snap-align-none\"><div class=\"mx-auto flex flex-col items-center justify-center gap-8 px-8 sm:flex-row\"><div class=\"max-w-280\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -64,7 +80,7 @@ func Landing() templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<img src=\"/images/screenshots/screenshot-home-desktop.webp\" alt=\"Foragd RSS feed reader on desktop showing home page with latest articles and subscriptions\" class=\"block w-full object-cover\" loading=\"lazy\" fetchpriority=\"high\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<img src=\"/images/screenshots/screenshot-home-desktop.webp\" alt=\"Foragd RSS feed reader on desktop showing home page with latest articles and subscriptions\" class=\"block w-full object-cover\" loading=\"lazy\" fetchpriority=\"high\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -74,7 +90,7 @@ func Landing() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div class=\"shrink-0\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div><div class=\"shrink-0\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -90,7 +106,7 @@ func Landing() templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<img src=\"/images/screenshots/screenshot-home-mobile.webp\" alt=\"Foragd RSS feed reader on mobile showing home page with latest articles\" class=\"block aspect-9/19.5 w-full object-cover\" loading=\"lazy\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<img src=\"/images/screenshots/screenshot-home-mobile.webp\" alt=\"Foragd RSS feed reader on mobile showing home page with latest articles\" class=\"block aspect-9/19.5 w-full object-cover\" loading=\"lazy\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -100,7 +116,7 @@ func Landing() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div><div class=\"mx-auto flex max-w-280 flex-col pt-12\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div><div class=\"mx-auto flex max-w-280 flex-col pt-12\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -112,7 +128,7 @@ func Landing() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div class=\"border-y border-base-300/60 bg-base-200/40\"><div class=\"sm:flex-separated mx-auto flex max-w-6xl flex-wrap justify-center gap-2 px-5 py-6 text-sm text-base-content/55\"><a href=\"https://github.com/immanent-tech/foragd\" class=\"link\">Open source</a> <span>Built by <a href=\"https://joshuarich.pages.dev\" class=\"link\">one indie developer</a>, not a growth team</span> <span>Your data is yours — exportable anytime</span></div></div></section><section id=\"manifesto\" class=\"hero mx-auto min-h-dvh snap-start md:snap-align-none\"><div class=\"hero-content flex-col text-center sm:flex-row\"><div class=\"sm:w-1/3\"><h2 class=\"text-lg font-semibold tracking-widest text-primary/80 uppercase\">Why Foragd</h2></div><div class=\"sm:w-2/3\"><p class=\"font-display text-3xl leading-snug font-medium text-base-content/90 md:text-3xl\">Social Media shoves content in your face. Traditional feed readers pretend to be an inbox. Both suck.</p><p class=\"mt-6 font-serif text-lg font-medium text-pretty text-base-content/70\">No unread count guilting you into \"clearing the queue.\" No rigid folders you have to maintain. No feed silently reordered by an algorithm you can't see. Foragd just holds the sources you chose, organized your way, in an interface built for reading.</p></div></div></section><section id=\"pillars\" class=\"mx-auto min-h-dvh max-w-6xl snap-start px-5 py-4 pb-24 md:snap-align-none\"><div class=\"mx-auto mb-14 max-w-xl text-center\"><h2 class=\"font-display text-3xl font-medium tracking-tight\">Your internet, gathered together</h2><p class=\"mt-3 font-serif text-lg font-medium text-pretty text-base-content/65\">Foragd uses three pillars to build your private library.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div><div class=\"border-y border-base-300/60 bg-base-200/40\"><div class=\"sm:flex-separated mx-auto flex max-w-6xl flex-wrap justify-center gap-2 px-5 py-6 text-sm text-base-content/55\"><a href=\"https://github.com/immanent-tech/foragd\" class=\"link\">Open source</a> <span>Built by <a href=\"https://joshuarich.pages.dev\" class=\"link\">one indie developer</a>, not a growth team</span> <span>Your data is yours — exportable anytime</span></div></div></section><section id=\"manifesto\" class=\"hero mx-auto min-h-dvh snap-start md:snap-align-none\"><div class=\"hero-content flex-col text-center sm:flex-row\"><div class=\"sm:w-1/3\"><h2 class=\"text-lg font-semibold tracking-widest text-primary/80 uppercase\">Why Foragd</h2></div><div class=\"sm:w-2/3\"><p class=\"font-display text-3xl leading-snug font-medium text-base-content/90 md:text-3xl\">Social Media shoves content in your face. Traditional feed readers pretend to be an inbox. Both suck.</p><p class=\"mt-6 font-serif text-lg font-medium text-pretty text-base-content/70\">No unread count guilting you into \"clearing the queue.\" No rigid folders you have to maintain. No feed silently reordered by an algorithm you can't see. Foragd just holds the sources you chose, organized your way, in an interface built for reading.</p></div></div></section><section id=\"pillars\" class=\"mx-auto min-h-dvh max-w-6xl snap-start px-5 py-4 pb-24 md:snap-align-none\"><div class=\"mx-auto mb-14 max-w-xl text-center\"><h2 class=\"font-display text-3xl font-medium tracking-tight\">Your internet, gathered together</h2><p class=\"mt-3 font-serif text-lg font-medium text-pretty text-base-content/65\">Foragd uses three pillars to build your private library.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -120,7 +136,7 @@ func Landing() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</section><section id=\"comparison\" class=\"hero h-dvh snap-start md:snap-align-none\"><div class=\"hero-content text-center\"><div class=\"max-w-md\"><p class=\"text-base/7 font-semibold text-primary\"></p><h2 class=\"mt-2 font-display text-3xl font-semibold tracking-tight\">Built different on purpose</h2><p class=\"mt-6 font-serif text-lg font-medium text-pretty text-secondary\">No ads sold against your attention, no algorithmic ranking, just your feeds. See exactly how that compares to Feedly, Inoreader and FreshRSS.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a role=\"button\" href=\"/compare/feedly\" class=\"btn mt-6 btn-outline btn-primary\">vs Feedly</a> <a role=\"button\" href=\"/compare/inoreader\" class=\"btn mt-6 btn-outline btn-primary\">vs Inoreader</a> <a role=\"button\" href=\"/compare/newsblur\" class=\"btn mt-6 btn-outline btn-primary\">vs Newsblur</a> <a role=\"button\" href=\"/compare/freshrss\" class=\"btn mt-6 btn-outline btn-primary\">vs FreshRSS</a></div></div></div></section><section id=\"pricing\" class=\"mx-auto min-h-dvh max-w-3xl snap-start px-5 py-4 pb-24 md:snap-align-none\"><div class=\"hero-content text-center\"><div class=\"max-w-lg\"><p class=\"text-base/7 font-semibold text-primary\"></p><h2 class=\"mt-2 font-display text-3xl font-semibold tracking-tight\">Simple, honest pricing</h2><p class=\"mt-6 font-serif text-lg font-medium text-pretty text-secondary\">One plan. Every feature. No tiers designed to make you feel behind.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</section><section id=\"comparison\" class=\"hero h-dvh snap-start md:snap-align-none\"><div class=\"hero-content text-center\"><div class=\"max-w-md\"><p class=\"text-base/7 font-semibold text-primary\"></p><h2 class=\"mt-2 font-display text-3xl font-semibold tracking-tight\">Built different on purpose</h2><p class=\"mt-6 font-serif text-lg font-medium text-pretty text-secondary\">No ads sold against your attention, no algorithmic ranking, just your feeds. See exactly how that compares to Feedly, Inoreader and FreshRSS.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a role=\"button\" href=\"/compare/feedly\" class=\"btn mt-6 btn-outline btn-primary\">vs Feedly</a> <a role=\"button\" href=\"/compare/inoreader\" class=\"btn mt-6 btn-outline btn-primary\">vs Inoreader</a> <a role=\"button\" href=\"/compare/newsblur\" class=\"btn mt-6 btn-outline btn-primary\">vs Newsblur</a> <a role=\"button\" href=\"/compare/freshrss\" class=\"btn mt-6 btn-outline btn-primary\">vs FreshRSS</a></div></div></div></section><section id=\"pricing\" class=\"mx-auto min-h-dvh max-w-3xl snap-start px-5 py-4 pb-24 md:snap-align-none\"><div class=\"hero-content text-center\"><div class=\"max-w-lg\"><p class=\"text-base/7 font-semibold text-primary\"></p><h2 class=\"mt-2 font-display text-3xl font-semibold tracking-tight\">Simple, honest pricing</h2><p class=\"mt-6 font-serif text-lg font-medium text-pretty text-secondary\">One plan. Every feature. No tiers designed to make you feel behind.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -136,7 +152,7 @@ func Landing() templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<a role=\"button\" aria-label=\"Start a free trial on the One plan\" type=\"submit\" class=\"btn btn-block btn-accent\">Start a free trial</a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<a role=\"button\" aria-label=\"Start a free trial on the One plan\" type=\"submit\" class=\"btn btn-block btn-accent\">Start a free trial</a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -146,7 +162,7 @@ func Landing() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div></div></section><section id=\"faq\" class=\"mx-auto min-h-dvh max-w-3xl snap-start px-5 pb-24 md:snap-align-none\"><h2 class=\"mb-10 text-center font-display text-3xl font-medium tracking-tight\">Frequently Asked Questions</h2><div class=\"mx-auto max-w-4xl\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></div></section><section id=\"faq\" class=\"mx-auto min-h-dvh max-w-3xl snap-start px-5 pb-24 md:snap-align-none\"><h2 class=\"mb-10 text-center font-display text-3xl font-medium tracking-tight\">Frequently Asked Questions</h2><div class=\"mx-auto max-w-4xl\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -154,7 +170,7 @@ func Landing() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></section>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -162,7 +178,7 @@ func Landing() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -193,7 +209,7 @@ func ctaBanner() templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<section class=\"snap-start border-y border-primary/20 bg-primary/10 md:snap-align-none\"><div class=\"mx-auto max-w-3xl px-5 py-20 text-center\"><h2 class=\"font-display text-3xl font-medium tracking-tight\">Ready to read without the noise?</h2><p class=\"mt-3 font-serif text-lg font-medium text-base-content/65\">Start free. No credit card, no algorithm, no catch.</p><a role=\"button\" href=\"/signup\" class=\"btn mt-7 btn-primary\">Start your free trial</a></div></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<section class=\"snap-start border-y border-primary/20 bg-primary/10 md:snap-align-none\"><div class=\"mx-auto max-w-3xl px-5 py-20 text-center\"><h2 class=\"font-display text-3xl font-medium tracking-tight\">Ready to read without the noise?</h2><p class=\"mt-3 font-serif text-lg font-medium text-base-content/65\">Start free. No credit card, no algorithm, no catch.</p><a role=\"button\" href=\"/signup\" class=\"btn mt-7 btn-primary\">Start your free trial</a></div></section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
