@@ -20,9 +20,9 @@ import (
 	"github.com/immanent-tech/go-base/pkg/markdownx"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
+	"github.com/immanent-tech/go-syndication/extensions/content"
+	"github.com/immanent-tech/go-syndication/extensions/syndication"
 	"github.com/immanent-tech/go-syndication/rss"
-
-	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -160,27 +160,31 @@ func (m *Manager) HandlePostsFeed() http.HandlerFunc {
 		}
 
 		// Generate RSS file.
-		rssFile := rss.NewRSS(
-			"Posts from the Foragd Team",
-			"Comparisons, opinions and other content from the Foragd team",
-			m.AppConfig.GetBaseURL().String(),
-			rss.WithCopyright("Copyright 2026 Joshua Rich joshua.rich@gmail.com"),
-			rss.WithManagingEditor("hello@immanent.tech (Immanent Tech)"),
-			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
-			rss.WithAtomLink(&atom.Link{
-				Rel:  new(atom.LinkRelSelf),
-				Href: m.AppConfig.GetBaseURL().JoinPath("/rss").String(),
-				Type: new("application/rss+xml"),
-			}),
-			rss.WithChannelLanguage("en-us"),
-			rss.WithChannelImage(&rss.Image{
-				Link:  m.AppConfig.GetBaseURL().String(),
-				URL:   m.AppConfig.GetBaseURL().JoinPath("/images/logo-vertical-light.webp").String(),
-				Title: "Posts from the Foragd Team",
-			}),
-			rss.WithUpdatePeriod("monthly"),
-			rss.WithUpdateFrequency(2),
-		)
+		rssFile := &rss.RSS{
+			Channel: rss.Channel{
+				Title:       "Posts from the Foragd Team",
+				Description: "Comparisons, opinions and other content from the Foragd team",
+				Link:        m.AppConfig.GetBaseURL().String(),
+				AtomLinks: []atom.Link{
+					{
+						Rel:  new(atom.LinkRelSelf),
+						Href: m.AppConfig.GetBaseURL().JoinPath("/rss").String(),
+						Type: new("application/rss+xml"),
+					},
+				},
+				Copyright:      new("Copyright 2026 Joshua Rich joshua.rich@gmail.com"),
+				ManagingEditor: new("hello@immanent.tech (Immanent Tech)"),
+				WebMaster:      new("hello@immanent.tech (Immanent Tech)"),
+				Language:       new("en-US"),
+				Image: &rss.Image{
+					Link:  m.AppConfig.GetBaseURL().String(),
+					URL:   m.AppConfig.GetBaseURL().JoinPath("/images/logo-vertical-light.webp").String(),
+					Title: "Posts from the Foragd team",
+				},
+				SYUdatePeriod:     new(syndication.UpdatedMonthly),
+				SYUpdateFrequency: new(2),
+			},
+		}
 		for post := range slices.Values(posts) {
 			contentStr, err := post.Decode("utf-8")
 			if err != nil {
@@ -188,21 +192,24 @@ func (m *Manager) HandlePostsFeed() http.HandlerFunc {
 					slog.Any("error", err))
 			}
 			// Generate item for post.
-			item := rss.NewItem(
-				rss.WithItemTitle(post.Frontmatter.Title),
-				rss.WithItemDescription(post.Frontmatter.Description, false),
-				rss.WithItemLink(m.AppConfig.GetBaseURL().JoinPath("/blog/"+post.Frontmatter.Slug).String()),
-				rss.WithItemGUID(
-					rss.NewGUID(m.AppConfig.GetBaseURL().JoinPath("/blog/"+post.Frontmatter.Slug).String(), true),
+			item := rss.Item{
+				Title:       post.Frontmatter.Title,
+				Description: rss.NewItemDescription(post.Frontmatter.Description, false),
+				Link:        m.AppConfig.GetBaseURL().JoinPath("/blog/" + post.Frontmatter.Slug).String(),
+				GUID: rss.NewGUID(
+					m.AppConfig.GetBaseURL().JoinPath("/blog/"+post.Frontmatter.Slug).String(),
+					true,
 				),
-				rss.WithItemImage(&types.Image{
-					Title: &post.Frontmatter.Title,
+				Image: &rss.Image{
+					Title: post.Frontmatter.Title,
 					URL:   m.AppConfig.GetBaseURL().JoinPath(*post.Frontmatter.Image).String(),
-				}),
-				rss.WithItemContent(contentStr, true),
-				rss.WithItemPublishedDate(post.Frontmatter.GetCreatedDate()),
-			)
-			rssFile.Channel.Items = append(rssFile.Channel.Items, *item)
+				},
+				ContentEncoded: &content.ContentEncoded{
+					Value: contentStr,
+				},
+				PubDate: rss.NewPubDate(post.Frontmatter.GetCreatedDate()),
+			}
+			rssFile.Channel.Items = append(rssFile.Channel.Items, item)
 		}
 		slices.SortFunc(rssFile.Channel.Items, func(a rss.Item, b rss.Item) int {
 			return a.GetPublishedDate().Compare(*b.GetPublishedDate())

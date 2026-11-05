@@ -17,6 +17,8 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-syndication/atom"
+	"github.com/immanent-tech/go-syndication/extensions/content"
+	"github.com/immanent-tech/go-syndication/extensions/syndication"
 	"github.com/immanent-tech/go-syndication/rss"
 
 	"github.com/immanent-tech/foragd/models"
@@ -96,26 +98,30 @@ func (m *Manager) HandleChangelogFeed() http.HandlerFunc {
 		}
 
 		// Generate RSS file.
-		rssFile := rss.NewRSS(
-			changelog.GetTitle(),
-			changelog.GetDescription(),
-			m.AppConfig.GetBaseURL().String(),
-			rss.WithAtomLink(&atom.Link{
-				Rel:  new(atom.LinkRelSelf),
-				Href: m.AppConfig.GetBaseURL().JoinPath("/changelog/feed").String(),
-				Type: new("application/rss+xml"),
-			}),
-			rss.WithCopyright("Copyright 2026 Joshua Rich joshua.rich@gmail.com"),
-			rss.WithManagingEditor("hello@immanent.tech (Immanent Tech)"),
-			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
-			rss.WithChannelLanguage("en-us"),
-			rss.WithChannelImage(&rss.Image{
-				Link:  m.AppConfig.GetBaseURL().String(),
-				URL:   m.AppConfig.GetBaseURL().JoinPath("/images/logo-vertical-light.webp").String(),
-				Title: "Foragd Logo",
-			}),
-			rss.WithUpdatePeriod("daily"),
-		)
+		rssFile := &rss.RSS{
+			Channel: rss.Channel{
+				Title:       changelog.GetTitle(),
+				Description: changelog.GetDescription(),
+				Link:        m.AppConfig.GetBaseURL().String(),
+				AtomLinks: []atom.Link{
+					{
+						Rel:  new(atom.LinkRelSelf),
+						Href: m.AppConfig.GetBaseURL().JoinPath("/changelog/feed").String(),
+						Type: new("application/rss+xml"),
+					},
+				},
+				Copyright:      new("Copyright 2026 Joshua Rich joshua.rich@gmail.com"),
+				ManagingEditor: new("hello@immanent.tech (Immanent Tech)"),
+				WebMaster:      new("hello@immanent.tech (Immanent Tech)"),
+				Language:       new("en-US"),
+				Image: &rss.Image{
+					Link:  m.AppConfig.GetBaseURL().String(),
+					URL:   m.AppConfig.GetBaseURL().JoinPath("/images/logo-vertical-light.webp").String(),
+					Title: "Foragd Logo",
+				},
+				SYUdatePeriod: new(syndication.UpdatedDaily),
+			},
+		}
 
 		for release := range slices.Values(changelog.Releases) {
 			timestamp, err := time.Parse("Jan 2, 2006", release.Date)
@@ -127,20 +133,21 @@ func (m *Manager) HandleChangelogFeed() http.HandlerFunc {
 				continue
 			}
 
-			var content strings.Builder
+			var contentStr strings.Builder
 			for change := range slices.Values(release.Changes) {
-				fmt.Fprintf(&content, "%s: %s\n", change.Type, change.Description)
+				fmt.Fprintf(&contentStr, "%s: %s\n", change.Type, change.Description)
 			}
 
 			// Generate item for post.
-			item := rss.NewItem(
-				rss.WithItemTitle(release.Version),
-				rss.WithItemDescription(string(release.Type), false),
-				rss.WithItemLink(m.AppConfig.GetBaseURL().JoinPath("/changelog#"+release.Version).String()),
-				rss.WithItemContent(content.String(), true),
-				rss.WithItemPublishedDate(timestamp),
-			)
-			rssFile.Channel.Items = append(rssFile.Channel.Items, *item)
+			item := rss.Item{
+				Title:          release.Version,
+				Description:    rss.NewItemDescription(string(release.Type), false),
+				Link:           m.AppConfig.GetBaseURL().JoinPath("/changelog#" + release.Version).String(),
+				ContentEncoded: &content.ContentEncoded{Value: contentStr.String()},
+				PubDate:        rss.NewPubDate(timestamp),
+			}
+
+			rssFile.Channel.Items = append(rssFile.Channel.Items, item)
 		}
 		rssFile.AutoDeclareNamespaces()
 
