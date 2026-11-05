@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.255.3](https://github.com/immanent-tech/foragd/compare/v0.255.2...v0.255.3) (2026-11-05)
+
+
+### Bug Fixes
+
+* **providers/auth0:** ⚡ increase client connection timeouts to handle slow connection to backend ([953b61e](https://github.com/immanent-tech/foragd/commit/953b61ee484aeb4dbeeafeb34e842e56c4e7a7cb))
+
 ## [0.255.2](https://github.com/immanent-tech/foragd/compare/v0.255.1...v0.255.2) (2026-11-03)
 
 
