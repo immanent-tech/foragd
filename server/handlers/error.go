@@ -79,7 +79,7 @@ func (m *Manager) HandleInternalError(status int, err error, options ...ErrorOpt
 				status = http.StatusInternalServerError
 			}
 			if status >= 500 {
-				gerror.ReportError(apiErr)
+				gerror.ReportError(err)
 			}
 			apiErr = models.NewAPIError(status, err, models.WithUserMessage(opts.UserMessage))
 			apiErr.WriteLog(req.Context())
