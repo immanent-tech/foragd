@@ -38,12 +38,20 @@ func (h *SearchSuggestions) PartialResponse(res http.ResponseWriter, req *http.R
 // HandleSearchSuggestions performs a search with the user input and presents suggestions back to the user.
 func (m *Manager) HandleSearchSuggestions(svc SubscriptionsService, itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Decode search.
-		search, err := forms.DecodeForm[*models.SearchRequest](req)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Debug("Get search suggestions failed.",
-				slog.Any("error", err))
-			res.WriteHeader(http.StatusUnprocessableEntity)
+		log := slogctx.FromCtx(req.Context())
+
+		// Retrieve search params.
+		search := SearchParamsFromCtx(req.Context())
+		if txt := req.FormValue("advanced-search-text"); txt != "" {
+			search.Text = txt
+		}
+
+		// Retrieve the user object.
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			log.Error("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 
@@ -53,44 +61,36 @@ func (m *Manager) HandleSearchSuggestions(svc SubscriptionsService, itemSvc Item
 			return
 		}
 
-		// Retrieve the user object.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-				slog.Any("error", models.ErrCtxValueNotFound))
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		searchJobs := new(errgroup.Group)
 
-		searchJobs, jobCtx := errgroup.WithContext(req.Context())
-		defer jobCtx.Done()
-
-		var subscriptions models.Subscriptions
-		var articles models.Articles
+		var (
+			subscriptions models.Subscriptions
+			articles      models.Articles
+			err           error
+		)
 
 		// Generate subscription suggestions.
 		searchJobs.Go(func() error {
 			subscriptions, err = svc.GetSubscriptionSuggestions(
-				jobCtx,
+				req.Context(),
 				search.Text,
 				defaultSubscriptionSuggestionsCount,
 				nil,
 			)
 			if err != nil {
-				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get subscription suggestions.",
-					slog.Any("error", err))
+				return fmt.Errorf("get subscription suggestions: %w", err)
 			}
 			return nil
 		})
 
 		// Generate article suggestions.
 		searchJobs.Go(func() error {
-			items, err := itemSvc.SuggestItems(jobCtx, search)
+			items, err := itemSvc.SuggestItems(req.Context(), search)
 			if err != nil {
-				return fmt.Errorf("search articles: %w", err)
+				return fmt.Errorf("suggest articles: %w", err)
 			}
 			if len(items) > 0 {
-				articles, err = service.GenerateArticles(jobCtx, items)
+				articles, err = service.GenerateArticles(req.Context(), items)
 				if err != nil {
 					return fmt.Errorf("generate articles: %w", err)
 				}
@@ -99,10 +99,16 @@ func (m *Manager) HandleSearchSuggestions(svc SubscriptionsService, itemSvc Item
 		})
 
 		if err := searchJobs.Wait(); err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Get search suggestions: run background jobs failed.",
+			log.Warn("Get search suggestions: run background jobs failed.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusInternalServerError)
+		}
+
+		// Short-circuit: no suggestions to show.
+		if len(subscriptions)+len(articles) == 0 {
+			res.WriteHeader(http.StatusNoContent)
+			return
 		}
 
 		// Generate search suggestions object.
@@ -142,12 +148,6 @@ func (p *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 		} else {
 			templ.Handler(templates.SearchResults(p.results), templ.WithFragments(templates.PaginateFragment)).
 				ServeHTTP(res, req)
-			// RenderPartial(&PartialTemplate{
-			// 	template: templates.SearchPaginationControl(
-			// 		&p.results.Search,
-			// 		element.WithHXSwapOOB("true"),
-			// 	),
-			// }).ServeHTTP(res, req)
 		}
 	}
 }
