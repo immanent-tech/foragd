@@ -36,17 +36,24 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 				return
 			}
 
-			filters, _, redirect := prepareFilters(req, path, session)
-			if redirect {
-				// Optimization: redirect without span context (already captured).
-				req.URL.RawQuery = filters.Encode()
-				http.Redirect(res, req, req.URL.String(), http.StatusFound)
-				return
-			}
+			var filters *models.ListFilters
 
 			// Process filters based on request method.
-			if req.Method == http.MethodPost {
-				filters = processFilters(req, path, session)
+			switch {
+			case htmx.IsHistoryRestoreRequest(req) || req.Header.Get(models.ActionHeader) == "mark-subscription":
+				// History restore or mark-subscription: fetch from session
+				filters = handlerFiltersRestore(req, path, session)
+			case req.Method == http.MethodGet:
+				var redirect bool
+				filters, redirect = handleFiltersGet(req)
+				if redirect {
+					// Optimization: redirect without span context (already captured).
+					req.URL.RawQuery = filters.Encode()
+					http.Redirect(res, req, req.URL.String(), http.StatusFound)
+					return
+				}
+			case req.Method == http.MethodPost:
+				filters = handleFiltersPost(req, path, session)
 			}
 
 			// Single context setup - all operations below.
@@ -58,7 +65,11 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 
 			ctx := handlers.ListFiltersToCtx(req.Context(), *filters)
 			handlers.ListFiltersToSession(ctx, session, path, *filters)
-			handlers.ListCountToSession(ctx, session, path, filters.Count)
+			if filters.UpTo != nil {
+				handlers.ListCountToSession(ctx, session, path, *filters.UpTo)
+			} else {
+				handlers.ListCountToSession(ctx, session, path, filters.Count)
+			}
 			if req.Method == http.MethodGet {
 				pushURL := req.URL.Clone()
 				pushURL.Path = path
@@ -67,20 +78,6 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 			}
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
-	}
-}
-
-// determinePath extracts the canonical path from URL for filter key suffixes.
-func determinePath(urlPath string) string {
-	switch {
-	case strings.HasPrefix(urlPath, "/subscriptions"):
-		return "/subscriptions"
-	case strings.HasPrefix(urlPath, "/articles"):
-		return "/articles"
-	case strings.HasPrefix(urlPath, "/map"):
-		return "/map"
-	default:
-		return ""
 	}
 }
 
@@ -98,35 +95,46 @@ func IsListPage(urlPath string) bool {
 	}
 }
 
-// prepareFilters extracts, sanitizes, and validates filters based on request type. Returns filters pointer, whether to
-// fetch from session, and whether to redirect.
-func prepareFilters(req *http.Request, path string, session handlers.SessionManager) (*models.ListFilters, bool, bool) {
-	if req.Method != http.MethodGet {
-		// POST: will be handled by caller (session decode logic below)
-		return nil, false, false
+// determinePath extracts the canonical path from URL for filter key suffixes.
+func determinePath(urlPath string) string {
+	switch {
+	case strings.HasPrefix(urlPath, "/subscriptions"):
+		return "/subscriptions"
+	case strings.HasPrefix(urlPath, "/articles"):
+		return "/articles"
+	case strings.HasPrefix(urlPath, "/map"):
+		return "/map"
+	default:
+		return ""
 	}
+}
 
+func handlerFiltersRestore(req *http.Request, path string, session handlers.SessionManager) *models.ListFilters {
+	filters := handlers.ListFiltersFromSession(req.Context(), session, path)
+	slogctx.Debug(req.Context(),
+		"Restored filters from session.",
+		slog.String("filters", filters.Encode()),
+		slog.String("path", path),
+	)
+	if filters.From != nil {
+		upto := *filters.From + filters.Count
+		filters.UpTo = &upto
+		filters.From = nil
+	} else if filters.SearchAfter != nil {
+		count := handlers.ListCountFromSession(req.Context(), session, path)
+		upto := count + filters.Count
+		filters.UpTo = &upto
+		filters.SearchAfter = nil
+	}
+	return filters
+}
+
+// handleFiltersGet extracts, sanitizes, and validates filters based on request type. Returns filters pointer and
+// whether to redirect.
+func handleFiltersGet(
+	req *http.Request,
+) (*models.ListFilters, bool) {
 	log := slogctx.FromCtx(req.Context())
-
-	// History restore or mark-subscription: fetch from session
-	if htmx.IsHistoryRestoreRequest(req) || req.Header.Get(models.ActionHeader) == "mark-subscription" {
-		filters := handlers.ListFiltersFromSession(req.Context(), session, path)
-		log.Debug(
-			"Restored filters from session.",
-			slog.String("filters", filters.Encode()),
-			slog.String("path", path),
-		)
-		if filters.From != nil {
-			upto := *filters.From + filters.Count
-			filters.UpTo = &upto
-			filters.From = nil
-		} else if filters.SearchAfter != nil {
-			count := handlers.ListCountFromSession(req.Context(), session, path)
-			filters.UpTo = &count
-			filters.SearchAfter = nil
-		}
-		return filters, true, false
-	}
 
 	// Regular GET: parse from query string
 	filters := models.ParseListFilters(req.URL.Query())
@@ -136,11 +144,11 @@ func prepareFilters(req *http.Request, path string, session handlers.SessionMana
 
 	// Check canonicalization - redirect if query changes
 	canonical := filters.Encode()
-	return filters, false, req.URL.RawQuery != canonical
+	return filters, req.URL.RawQuery != canonical
 }
 
-// processFilters handles POST requests and session storage.
-func processFilters(
+// handleFiltersPost handles POST requests and session storage.
+func handleFiltersPost(
 	req *http.Request,
 	path string,
 	session handlers.SessionManager,
