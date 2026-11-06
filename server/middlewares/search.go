@@ -55,6 +55,7 @@ func CanonicalizeSearchParams(session handlers.SessionManager) func(next http.Ha
 
 			// Update URL.
 			newURL := req.URL.Clone()
+			newURL.Path = "/search"
 			newURL.RawQuery = search.Encode()
 			res.Header().Set(urlHeader, newURL.String())
 
