@@ -20,101 +20,79 @@ import (
 	"github.com/immanent-tech/foragd/server/handlers"
 )
 
-func TestManager_HandleListSubscriptionsGet(t *testing.T) {
+func TestManager_HandleListSubscriptions(t *testing.T) {
 	tests := []struct {
-		name     string
-		subSvc   handlers.SubscriptionsService
-		ctxSetup func(ctx context.Context) context.Context
-		want     int
+		name   string
+		method string
+		subSvc handlers.SubscriptionsService
+		ctx    func(ctx context.Context) context.Context
+		htmx   bool
+		want   int
 	}{
 		{
-			name: "ok",
+			name:   "ok",
+			method: http.MethodGet,
 			subSvc: &MoqSubscriptionsService{
 				GetAllSubscriptionsFunc: func(ctx context.Context) (models.Subscriptions, error) {
 					return models.Subscriptions{&models.Subscription{}}, nil
 				},
 			},
-			want: http.StatusOK,
-			ctxSetup: func(ctx context.Context) context.Context {
+			ctx: func(ctx context.Context) context.Context {
 				return models.UserToCtx(ctx, &models.User{})
 			},
-		},
-		{
-			name: "no subscriptions",
-			subSvc: &MoqSubscriptionsService{
-				GetAllSubscriptionsFunc: func(ctx context.Context) (models.Subscriptions, error) {
-					return nil, nil
-				},
-			},
 			want: http.StatusOK,
-			ctxSetup: func(ctx context.Context) context.Context {
-				return models.UserToCtx(ctx, &models.User{})
-			},
 		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mgr := setupManager(t)
-			ctx := t.Context()
-			if tt.ctxSetup != nil {
-				ctx = tt.ctxSetup(ctx)
-			}
-
-			rec := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, "/subscriptions", nil)
-
-			mgr.HandleListSubscriptions(tt.subSvc)(rec, req.WithContext(ctx))
-
-			if rec.Code != tt.want {
-				t.Fatalf("got status %d, want %d", rec.Code, tt.want)
-			}
-		})
-	}
-}
-
-func TestManager_HandleListSubscriptionsPost(t *testing.T) {
-	tests := []struct {
-		name     string
-		subSvc   handlers.SubscriptionsService
-		ctxSetup func(ctx context.Context) context.Context
-		want     int
-	}{
 		{
-			name: "ok",
+			name:   "ok (htmx)",
+			method: http.MethodGet,
 			subSvc: &MoqSubscriptionsService{
 				GetAllSubscriptionsFunc: func(ctx context.Context) (models.Subscriptions, error) {
 					return models.Subscriptions{&models.Subscription{}}, nil
 				},
 			},
-			want: http.StatusOK,
-			ctxSetup: func(ctx context.Context) context.Context {
+			htmx: true,
+			ctx: func(ctx context.Context) context.Context {
 				return models.UserToCtx(ctx, &models.User{})
 			},
+			want: http.StatusOK,
 		},
 		{
-			name: "no subscriptions",
+			name:   "no subscriptions",
+			method: http.MethodGet,
 			subSvc: &MoqSubscriptionsService{
 				GetAllSubscriptionsFunc: func(ctx context.Context) (models.Subscriptions, error) {
 					return nil, nil
 				},
 			},
-			want: http.StatusOK,
-			ctxSetup: func(ctx context.Context) context.Context {
+			ctx: func(ctx context.Context) context.Context {
 				return models.UserToCtx(ctx, &models.User{})
 			},
+			want: http.StatusOK,
+		},
+		{
+			name:   "no user",
+			method: http.MethodGet,
+			subSvc: &MoqSubscriptionsService{
+				GetAllSubscriptionsFunc: func(ctx context.Context) (models.Subscriptions, error) {
+					return models.Subscriptions{&models.Subscription{}}, nil
+				},
+			},
+			ctx: func(ctx context.Context) context.Context {
+				return ctx
+			},
+			want: http.StatusSeeOther,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mgr := setupManager(t)
-			ctx := t.Context()
-			if tt.ctxSetup != nil {
-				ctx = tt.ctxSetup(ctx)
-			}
+			ctx := tt.ctx(t.Context())
 
 			rec := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodPost, "/subscriptions", nil)
-			req.Header.Set(htmx.HeaderRequest, "true")
+			req := httptest.NewRequest(tt.method, "/subscriptions", nil)
+			if tt.htmx {
+				req.Header.Set(htmx.HeaderRequest, "true")
+			}
 
 			mgr.HandleListSubscriptions(tt.subSvc)(rec, req.WithContext(ctx))
 
