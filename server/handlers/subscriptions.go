@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
@@ -114,8 +113,6 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 			}
 		}
 		subscriptions = subscriptions.ExcludeIDs(hiddenSubscriptions...)
-
-		godump.Dump(filters)
 
 		// Get subscriptions with filters applied.
 		var pagination models.Pagination
