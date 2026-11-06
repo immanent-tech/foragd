@@ -162,6 +162,9 @@ func (s *ItemService) SuggestItems(
 	ctx context.Context,
 	request *models.SearchRequest,
 ) (models.Items, error) {
+	ctx, span := tracer.Start(ctx, "SuggestItems")
+	defer span.End()
+
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return nil, fmt.Errorf("get user details: %w", models.ErrCtxValueNotFound)

@@ -556,6 +556,9 @@ func (s *SubscriptionService) GetSubscriptionSuggestions(
 	count int,
 	ignoredSubscriptions []models.SubscriptionID,
 ) (models.Subscriptions, error) {
+	ctx, span := tracer.Start(ctx, "GetSubscriptionSuggestions")
+	defer span.End()
+
 	// Get subscriptions by ID.
 	user := models.UserFromCtx(ctx)
 	if user == nil {
