@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/handlers"
@@ -39,9 +40,12 @@ func TestManager_CanonicalizeListFilters(t *testing.T) {
 			nextCalled: true,
 		},
 		{
-			name:       "default filters",
-			method:     http.MethodGet,
-			path:       "/subscriptions",
+			name:   "default filters (htmx)",
+			method: http.MethodGet,
+			path:   "/subscriptions",
+			headers: map[string]string{
+				htmx.HeaderRequest: "true",
+			},
 			have:       models.NewListFilters(),
 			want:       models.NewListFilters(),
 			sessionMgr: newMoqSessionMap(nil),
@@ -56,65 +60,23 @@ func TestManager_CanonicalizeListFilters(t *testing.T) {
 			nextCalled: false,
 		},
 		{
-			name:   "invalid count",
-			method: http.MethodGet,
-			path:   "/subscriptions",
-			have: &models.ListFilters{
-				Count: 1000,
-				Sort:  models.SortNewestFirst,
-				View:  models.ViewAll,
-			},
-			want: &models.ListFilters{
-				Count: 9,
-				Sort:  models.SortNewestFirst,
-				View:  models.ViewAll,
-			},
-			sessionMgr: newMoqSessionMap(nil),
-			nextCalled: false,
-		},
-		{
-			name:   "invalid upto",
-			method: http.MethodPost,
-			path:   "/subscriptions",
-			have: &models.ListFilters{
-				Count: 9,
-				Sort:  models.SortNewestFirst,
-				View:  models.ViewUnread,
-				UpTo:  new(5000),
-			},
-			want: &models.ListFilters{
-				Count: 9,
-				Sort:  models.SortNewestFirst,
-				View:  models.ViewUnread,
-				UpTo:  new(1000),
-			},
-			sessionMgr: newMoqSessionMap(nil),
-			nextCalled: true,
-		},
-		{
 			name:   "back button navigation (subscriptions)",
 			method: http.MethodGet,
 			path:   "/subscriptions",
 			headers: map[string]string{
 				htmx.HeaderHistoryRestoreRequest: "true",
 			},
-			have: &models.ListFilters{
-				Count: 9,
-				Sort:  models.SortNewestFirst,
-				View:  models.ViewAll,
-			},
 			want: &models.ListFilters{
-				Count: 9,
+				From:  0,
 				Sort:  models.SortNewestFirst,
 				View:  models.ViewAll,
-				UpTo:  new(27),
+				Count: new(18),
 			},
 			sessionMgr: newMoqSessionMap(map[string]any{
 				"listFilters/subscriptions": models.ListFilters{
-					Count: 9,
-					Sort:  models.SortNewestFirst,
-					View:  models.ViewAll,
-					From:  new(18),
+					Sort: models.SortNewestFirst,
+					View: models.ViewAll,
+					From: 18,
 				},
 			}),
 			nextCalled: true,
@@ -126,25 +88,58 @@ func TestManager_CanonicalizeListFilters(t *testing.T) {
 			headers: map[string]string{
 				htmx.HeaderHistoryRestoreRequest: "true",
 			},
-			have: &models.ListFilters{
-				Count: 9,
-				Sort:  models.SortNewestFirst,
-				View:  models.ViewAll,
-			},
 			want: &models.ListFilters{
-				Count: 9,
+				From:  0,
 				Sort:  models.SortNewestFirst,
 				View:  models.ViewAll,
-				UpTo:  new(18),
+				Count: new(18),
 			},
 			sessionMgr: newMoqSessionMap(map[string]any{
 				"listFilters/articles": models.ListFilters{
-					Count: 9,
-					Sort:  models.SortNewestFirst,
-					View:  models.ViewAll,
-					From:  new(9),
+					SearchAfter: new("foo"),
+					Sort:        models.SortNewestFirst,
+					View:        models.ViewAll,
+					From:        18,
 				},
 			}),
+			nextCalled: true,
+		},
+		{
+			name:   "subscriptions pagination",
+			method: http.MethodPost,
+			path:   "/subscriptions",
+			have: &models.ListFilters{
+				From: 9,
+				Sort: models.SortNewestFirst,
+				View: models.ViewUnread,
+			},
+			want: &models.ListFilters{
+				From: 9,
+				Sort: models.SortNewestFirst,
+				View: models.ViewUnread,
+			},
+			sessionMgr: newMoqSessionMap(nil),
+			nextCalled: true,
+		},
+		{
+			name:   "articles pagination",
+			method: http.MethodPost,
+			path:   "/articles",
+			have: &models.ListFilters{
+				From:          9,
+				SearchAfter:   new("test"),
+				Subscriptions: []models.SubscriptionID{"sub_test"},
+				Sort:          models.SortNewestFirst,
+				View:          models.ViewUnread,
+			},
+			want: &models.ListFilters{
+				From:          9,
+				SearchAfter:   new("test"),
+				Subscriptions: []models.SubscriptionID{"sub_test"},
+				Sort:          models.SortNewestFirst,
+				View:          models.ViewUnread,
+			},
+			sessionMgr: newMoqSessionMap(nil),
 			nextCalled: true,
 		},
 		{
@@ -158,6 +153,7 @@ func TestManager_CanonicalizeListFilters(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			assert := assert.New(t)
 			// Set up context.
 			ctx := t.Context()
 			if tt.ctx != nil {
@@ -172,13 +168,17 @@ func TestManager_CanonicalizeListFilters(t *testing.T) {
 				}),
 			)
 			// Set up request.
-			var req *http.Request
+			var (
+				req       *http.Request
+				urlHeader string
+			)
 			switch tt.method {
 			case http.MethodGet:
 				req = httptest.NewRequestWithContext(ctx, tt.method, tt.path, nil)
 				if tt.have != nil {
 					req.URL.RawQuery = tt.have.Encode()
 				}
+				urlHeader = htmx.HeaderPushURL
 			case http.MethodPost:
 				if tt.have != nil {
 					req = httptest.NewRequestWithContext(ctx, tt.method, tt.path, strings.NewReader(tt.have.Encode()))
@@ -186,6 +186,7 @@ func TestManager_CanonicalizeListFilters(t *testing.T) {
 				} else {
 					req = httptest.NewRequestWithContext(ctx, tt.method, tt.path, nil)
 				}
+				urlHeader = htmx.HeaderReplaceUrl
 			}
 			if tt.headers != nil {
 				for k, v := range tt.headers {
@@ -201,9 +202,14 @@ func TestManager_CanonicalizeListFilters(t *testing.T) {
 					t.Fatal("next handler should be called")
 				}
 				// Check context values properly set.
-				if got := handlers.ListFiltersFromCtx(gotReq.Context()); got.Encode() != tt.want.Encode() {
-					t.Errorf("Filters context = %q, want %q", got.Encode(), tt.want.Encode())
+				gotCtx := handlers.ListFiltersFromCtx(gotReq.Context())
+				if gotCtx.Encode() != tt.want.Encode() {
+					t.Errorf("Filters context = %q, want %q", gotCtx.Encode(), tt.want.Encode())
 				}
+				assert.Equal(tt.want.GetFrom(), gotCtx.GetFrom(), "From")
+				assert.Equal(tt.want.GetUpTo(), gotCtx.GetUpTo(), "UpTo")
+				assert.Equal(tt.want.SearchAfter, gotCtx.SearchAfter, "SearchAfter")
+
 				if middlewares.IsListPage(tt.path) {
 					// For list pages, check session values properly set.
 					if got := handlers.ListFiltersFromSession(
@@ -213,18 +219,15 @@ func TestManager_CanonicalizeListFilters(t *testing.T) {
 					); got.Encode() != tt.want.Encode() {
 						t.Errorf("Filters session = %q, want %q", got.Encode(), tt.want.Encode())
 					}
-					// For GET request, check HTMX PushURL header set.
-					if tt.method == http.MethodGet {
-						// For
-						if pushURL := rec.Header().
-							Get(htmx.HeaderPushURL); pushURL != tt.path+"?"+handlers.ListFiltersFromCtx(gotReq.Context()).
-							Encode() {
-							t.Errorf(
-								"Push URL = %q, want %q",
-								pushURL,
-								handlers.ListFiltersFromCtx(gotReq.Context()).Encode(),
-							)
-						}
+					// Check HTMX PushURL header set.
+					if newURL := rec.Header().
+						Get(urlHeader); newURL != tt.path+"?"+handlers.ListFiltersFromCtx(gotReq.Context()).
+						Encode() {
+						t.Errorf(
+							"Push URL = %q, want %q",
+							newURL,
+							handlers.ListFiltersFromCtx(gotReq.Context()).Encode(),
+						)
 					}
 				}
 			} else {

@@ -169,7 +169,7 @@ func (s *ItemService) SuggestItems(
 
 	clause := buildSearchResultsQuery(ctx, user, request, searchSuggestionsClause(request))
 
-	items, _, err := s.QueryItems(ctx, clause, request.Count, &request.Sort, nil)
+	items, _, err := s.QueryItems(ctx, clause, 9, &request.Sort, nil)
 	if err != nil {
 		return nil, fmt.Errorf("query items: %w", err)
 	}
@@ -186,13 +186,6 @@ func (s *ItemService) RetrieveItems(
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return nil, models.Pagination{}, fmt.Errorf("retrieve items: get user: %w", models.ErrCtxValueNotFound)
-	}
-
-	var from int
-	if request.GetPagination().From == nil {
-		from = 0
-	} else {
-		from = *request.GetPagination().From
 	}
 
 	filter := buildSearchResultsQuery(ctx, user, request, nil)
@@ -217,8 +210,8 @@ func (s *ItemService) RetrieveItems(
 			),
 		),
 		// elastic.WithSort(NewItemSortOptions(sort)...),
-		elastic.WithFrom[*search.Search](from),
-		elastic.WithSize[*search.Search](request.Count),
+		elastic.WithFrom[*search.Search](request.GetFrom()),
+		elastic.WithSize[*search.Search](request.GetCount()),
 	)
 	if err != nil {
 		return nil, models.Pagination{}, fmt.Errorf("search items: %w", err)
@@ -229,7 +222,7 @@ func (s *ItemService) RetrieveItems(
 		s.Set(item.GetID(), item)
 	}
 	// Parse last search after value into pagination.
-	return resp.Results, models.Pagination{From: new(from + request.Count)}, nil
+	return resp.Results, models.Pagination{From: request.GetFrom() + request.GetCount()}, nil
 }
 
 // CountSearchResults will return an approximate count of the number of items that would match the given

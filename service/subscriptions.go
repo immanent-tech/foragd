@@ -833,7 +833,7 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 			searchJobs.Go(func() error {
 				request := subscription.SearchData.Search
 				request.Sort = models.SortNewestFirst
-				request.Count = 1
+				request.Count = new(1)
 				items, _, err := itemSvc.RetrieveItems(ctx, &request)
 				if err != nil {
 					return fmt.Errorf("retrieve items: %w", err)
@@ -1170,7 +1170,7 @@ func (s *SubscriptionService) getSearchSubscriptionLatestItems(
 	for subscription := range slices.Values(subscriptions) {
 		wg.Go(func() {
 			request := subscription.SearchData.Search
-			request.Count = count
+			request.Count = &count
 			request.Sort = models.SortNewestFirst
 			items, _, err := itemSvc.RetrieveItems(ctx, &request)
 			if err != nil && !errors.Is(err, models.ErrNotFound) {

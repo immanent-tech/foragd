@@ -66,7 +66,7 @@ func BenchmarkCanonicalizeListFilters_POST(b *testing.B) {
 			switch key {
 			case "listFilters":
 				filters := models.NewListFilters()
-				filters.From = new(10)
+				filters.From = 10
 			case "listCount":
 				return 9
 			}

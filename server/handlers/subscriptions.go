@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
@@ -114,6 +115,8 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 		}
 		subscriptions = subscriptions.ExcludeIDs(hiddenSubscriptions...)
 
+		godump.Dump(filters)
+
 		// Get subscriptions with filters applied.
 		var pagination models.Pagination
 		subscriptions, pagination = subscriptions.
@@ -136,9 +139,9 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 		}
 		// Update filters in response.
 		response.Filters.From = pagination.From
-		if filters.UpTo != nil {
-			response.Filters.UpTo = nil
-		}
+		// if filters.UpTo != nil {
+		// 	response.Filters.UpTo = nil
+		// }
 
 		page := &ListSubscriptions{
 			Page: m.NewPage("/subscriptions",
@@ -207,10 +210,10 @@ func (m *Manager) HandleListSubscriptionsUpdates(itemSvc ItemService) http.Handl
 
 		// If updates found, render a notification.
 		if updateCount > 0 {
-			// Reset from count.
-			if filters.From != nil {
-				filters.From = nil
-			}
+			// // Reset from count.
+			// if filters.From != nil {
+			// 	filters.From = nil
+			// }
 			m.HandleUpdatesToast(res, req, "/subscriptions", filters)
 		} else {
 			res.WriteHeader(http.StatusNoContent)
@@ -301,7 +304,6 @@ func postMarkSubscriptionArticles(session SessionManager) PostHandlerHook {
 			htmx.WithLocationHeaders(map[string]string{
 				models.ActionHeader: "mark-subscription",
 			}),
-			htmx.WithLocationValues(ListFiltersFromSession(req.Context(), session, "/subscriptions")),
 		).ServeHTTP(res, req)
 		return nil
 	}

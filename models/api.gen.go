@@ -355,14 +355,14 @@ type SearchRequest struct {
 	// Categories a list of search terms for categories.
 	Categories *string `form:"categories" json:"categories,omitempty"`
 
-	// Count is the number of items to retrieve with a request. This number will be added to the upto value to get the total number of items retrieved, else, will this number of items will be retrieved from the pagination point specified with pagination value.
-	Count int `form:"count" json:"count" validate:"required,gt=0"`
+	// Count is the number of results to retrieve.
+	Count *int `json:"count,omitempty,omitzero" validate:"omitnil,gt=0"`
 
-	// From is the count from which to retrieve objects.
-	From *int `form:"from" json:"from,omitempty,omitzero"`
+	// From in a list of results, is the index from where to start retrieving results.
+	From int `form:"from" json:"from,omitzero" validate:"gte=0"`
 
 	// PublishedWithin represents a time range within which the objects should be published
-	PublishedWithin SearchRequestPublishedWithin `form:"published_within" json:"published_within" validate:"required,oneof=all_time last_hour last_12hours last_day last_week last_month"`
+	PublishedWithin SearchRequestPublishedWithin `form:"published_within" json:"published_within" validate:"oneof=all_time last_hour last_12hours last_day last_week last_month"`
 
 	// SearchAfter is the data indicating the point after which objects should be retrieved.
 	SearchAfter *string `form:"search_after" json:"search_after,omitempty"`
@@ -380,10 +380,7 @@ type SearchRequest struct {
 	Text string `form:"text" json:"text" validate:"omitempty,required"`
 
 	// Timezone represents the timezone of the browser (i.e., user), used for calculating published_within offset.
-	Timezone string `form:"timezone" json:"timezone" validate:"required,timezone"`
-
-	// UpTo is the number up to which objects to should be retrieved.
-	UpTo *int `form:"upto" json:"upto,omitempty,omitzero"`
+	Timezone string `form:"timezone" json:"timezone" validate:"timezone"`
 
 	// View is the state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
@@ -423,7 +420,7 @@ type SuggestFeedsRequest struct {
 	Categories []Category `form:"categories" json:"categories,omitempty" validate:"omitnil,unique,dive,url_encoded"`
 
 	// Count is the number of items to retrieve with a request.
-	Count Count `form:"count" json:"count" validate:"gt=0"`
+	Count int `form:"count" json:"count" validate:"gt=0"`
 
 	// Text is text used to find suggested feeds.
 	Text string `form:"text" json:"text"`

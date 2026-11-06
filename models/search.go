@@ -34,15 +34,10 @@ func ParseSearchParams(query url.Values) *SearchRequest {
 		search.Categories = &v
 	}
 	if v, err := strconv.Atoi(query.Get("from")); err == nil && v > 0 {
-		search.From = &v
-	}
-	if v, err := strconv.Atoi(query.Get("upto")); err == nil && v > 0 {
-		search.UpTo = &v
+		search.From = v
 	}
 	if a := query.Get("search_after"); a != "" {
-		if pagination, err := url.QueryUnescape(a); err != nil {
-			search.SearchAfter = &pagination
-		}
+		search.SearchAfter = &a
 	}
 	if v := query.Get("published_within"); v != "" {
 		search.PublishedWithin = SearchRequestPublishedWithin(v)
@@ -76,20 +71,18 @@ func NewSearchRequest() *SearchRequest {
 		View:            ViewAll,
 		Sort:            DefaultSearchSort,
 		Timezone:        defaultSearchTimezone,
-		Count:           DefaultSearchCount,
 	}
+}
+
+func (r SearchRequest) GetFrom() int {
+	return r.From
 }
 
 func (r SearchRequest) GetCount() int {
-	if r.Count > 0 {
-		return r.Count
+	if r.Count != nil && *r.Count > 0 {
+		return *r.Count
 	}
-	return defaultCount
-}
-
-// GetPagination generates a [Pagination] value from the request.
-func (r SearchRequest) GetPagination() *Pagination {
-	return &Pagination{From: r.From}
+	return DefaultSearchCount
 }
 
 // Location generates the appropriate [*time.Location] value based on the request's timezone value. If the request has
@@ -219,8 +212,12 @@ func (r *SearchRequest) Sanitise() error {
 	if !validSort[r.Sort] {
 		r.Sort = DefaultSearchSort
 	}
-	if r.Count < 1 {
-		r.Count = defaultCount
+	if r.SearchAfter != nil {
+		if pagination, err := url.QueryUnescape(*r.SearchAfter); err != nil {
+			r.SearchAfter = nil
+		} else {
+			r.SearchAfter = &pagination
+		}
 	}
 	return nil
 }
@@ -241,10 +238,13 @@ func (r *SearchRequest) Encode() string {
 	params.Set("view", string(r.View))
 	params.Set("published_within", string(r.PublishedWithin))
 	params.Set("sort", string(r.Sort))
-	params.Set("count", strconv.Itoa(r.Count))
 	params.Set("timezone", r.Timezone)
 	if r.SubscriptionID != nil {
 		params.Set("subscription_id", *r.SubscriptionID)
+	}
+	params.Set("from", strconv.Itoa(r.From))
+	if r.SearchAfter != nil {
+		params.Set("search_after", url.QueryEscape(*r.SearchAfter))
 	}
 	return params.Encode()
 }

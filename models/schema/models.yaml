@@ -182,12 +182,12 @@ components:
         count:
           type: integer
           minimum: 0
-    Count:
-      description: is the number of items to retrieve with a request.
-      type: integer
-      x-oapi-codegen-extra-tags:
-        form: "count"
-        validate: "gt=0"
+    # Count:
+    #   description: is the number of items to retrieve with a request.
+    #   type: integer
+    #   x-oapi-codegen-extra-tags:
+    #     form: "count"
+    #     validate: "gt=0"
     View:
       description: is the state of objects to view.
       type: string
@@ -1440,13 +1440,12 @@ components:
         - type: object
           required:
             - view
-            - count
             - sort
           properties:
             view:
               $ref: "#/components/schemas/View"
-            count:
-              $ref: "#/components/schemas/Count"
+            # count:
+            #   $ref: "#/components/schemas/Count"
             sort:
               $ref: "#/components/schemas/Sort"
             category:
@@ -1467,13 +1466,21 @@ components:
     Pagination:
       description: contains data for paginating through a list of subscriptions or articles.
       type: object
+      required:
+        - from
       properties:
         from:
-          description: is the count from which to retrieve objects.
+          description: in a list of results, is the index from where to start retrieving results.
           type: integer
           x-oapi-codegen-extra-tags:
             form: "from"
-            # validate: 'required_without=UpTo SearchAfter,gte=0'
+            validate: "gte=0"
+          x-omitzero: true
+        count:
+          description: is the number of results to retrieve.
+          type: integer
+          x-oapi-codegen-extra-tags:
+            validate: "omitnil,gt=0"
           x-omitzero: true
         searchAfter:
           description: is the data indicating the point after which objects should be retrieved.
@@ -1481,15 +1488,7 @@ components:
           x-oapi-codegen-extra-tags:
             form: "search_after"
             json: "search_after,omitempty"
-            # validate: 'required_without=UpTo From'
           x-omitzero: true
-        upTo:
-          description: is the number up to which objects to should be retrieved.
-          type: integer
-          x-oapi-codegen-extra-tags:
-            form: "upto"
-            json: "upto,omitempty,omitzero"
-            # validate: 'required_without=From SearchAfter,gt=0'
     ListSubscriptionCategoriesRequest:
       description: >
         contains data for listing categories for a list of subscriptions.

@@ -4,7 +4,6 @@
 package models
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"slices"
@@ -15,12 +14,8 @@ import (
 )
 
 const (
-	// maxCount is the maximum number of objects to fetch at once.
-	maxCount = 90
-	// maxUpTo is the maximum number of objects to fetch when restoring the page.
-	maxUpTo = 1000
-	// defaultCount is to show 9 objects.
-	defaultCount = 9
+	// DefaultListResultsCount is how many objects can be fetched in a single request when fetching for a list page.
+	DefaultListResultsCount = 9
 	// defaultView is to show unread objects.
 	defaultView = ViewUnread
 	// defaultSort is newest first.
@@ -75,8 +70,8 @@ func ParseListFilters(query url.Values) *ListFilters {
 	if v := query.Get("view"); validView[View(v)] {
 		filters.View = View(v)
 	}
-	if v, err := strconv.Atoi(query.Get("count")); err == nil && v > 0 {
-		filters.Count = v
+	if v, err := strconv.Atoi(query.Get("from")); err == nil && v > 0 {
+		filters.From = v
 	}
 	if c := query.Get("category"); c != "" {
 		filters.Category = &c
@@ -84,18 +79,9 @@ func ParseListFilters(query url.Values) *ListFilters {
 	if c := query.Get("language"); c != "" {
 		filters.Language = &c
 	}
-
-	// if v, err := strconv.Atoi(query.Get("from")); err == nil && v > 0 {
-	// 	filters.From = &v
-	// }
-	// if v, err := strconv.Atoi(query.Get("upto")); err == nil && v > 0 {
-	// 	filters.UpTo = &v
-	// }
-	// if a := query.Get("search_after"); a != "" {
-	// 	if pagination, err := url.QueryUnescape(a); err != nil {
-	// 		filters.SearchAfter = &pagination
-	// 	}
-	// }
+	if a := query.Get("search_after"); a != "" {
+		filters.SearchAfter = &a
+	}
 	if s := query.Get("subscriptions"); s != "" {
 		filters.Subscriptions = strings.Split(s, ",")
 	}
@@ -105,9 +91,9 @@ func ParseListFilters(query url.Values) *ListFilters {
 // NewListFilters creates a new ListFilters with default values.
 func NewListFilters() *ListFilters {
 	return &ListFilters{
-		Sort:  defaultSort,
-		Count: defaultCount,
-		View:  defaultView,
+		Sort: defaultSort,
+		From: 0,
+		View: defaultView,
 	}
 }
 
@@ -115,8 +101,17 @@ func (f ListFilters) GetView() View {
 	return f.View
 }
 
-func (f ListFilters) GetCount() int {
-	return f.Count
+// GetFrom returns the index in a set of results from where to start retrieving results.
+func (f ListFilters) GetFrom() int {
+	return f.From
+}
+
+// GetUpTo returns the index in a set of results up to which results should be retrieved.
+func (f ListFilters) GetUpTo() int {
+	if f.Count != nil && *f.Count > 0 {
+		return *f.Count
+	}
+	return f.From + DefaultListResultsCount
 }
 
 func (f ListFilters) GetSort() Sort {
@@ -141,7 +136,7 @@ func (f ListFilters) GetSubscriptions() []SubscriptionID {
 	return f.Subscriptions
 }
 
-// Sanitize performs sanitisation of the filter values to ensure correctness.
+// Sanitise performs sanitisation of the filter values to ensure correctness.
 func (f *ListFilters) Sanitise() error {
 	if f == nil {
 		f = NewListFilters()
@@ -152,8 +147,8 @@ func (f *ListFilters) Sanitise() error {
 	if !validView[f.View] {
 		f.View = defaultView
 	}
-	if f.Count < 0 || f.Count > maxCount {
-		f.Count = maxCount
+	if f.From < 0 {
+		f.From = 0
 	}
 	if f.Category != nil {
 		f.Category = new(validation.SanitizeInput(*f.Category))
@@ -164,17 +159,6 @@ func (f *ListFilters) Sanitise() error {
 	if len(f.Subscriptions) > 0 {
 		slices.Sort(f.Subscriptions)
 		f.Subscriptions = slices.Compact(f.Subscriptions)
-	}
-	if f.UpTo != nil {
-		switch {
-		case *f.UpTo < 0:
-			f.UpTo = nil
-		case *f.UpTo > maxUpTo:
-			f.UpTo = new(maxUpTo)
-		}
-	}
-	if f.From != nil && *f.From < 0 {
-		f.From = new(0)
 	}
 	if f.SearchAfter != nil {
 		if pagination, err := url.QueryUnescape(*f.SearchAfter); err != nil {
@@ -191,14 +175,6 @@ func (f *ListFilters) Validate() error {
 	if f == nil {
 		return nil
 	}
-	switch {
-	case f.From != nil && (f.UpTo != nil || f.SearchAfter != nil):
-		return errors.New("invalid filters: from can only be set if upto or searchAfter is unset")
-	case f.SearchAfter != nil && (f.UpTo != nil || f.From != nil):
-		return errors.New("invalid filters: searchAfter can only be set if upto or from is unset")
-	case f.UpTo != nil && (f.From != nil || f.SearchAfter != nil):
-		return errors.New("invalid filters: upto can only be set if from or searchAfter is unset")
-	}
 	if err := validation.Validate.Struct(f); err != nil {
 		return fmt.Errorf("filters are invalid: %w", err)
 	}
@@ -210,7 +186,7 @@ func (f ListFilters) Encode() string {
 	query := url.Values{}
 	query.Set("sort", string(f.Sort))
 	query.Set("view", string(f.View))
-	query.Set("count", strconv.Itoa(f.Count))
+	query.Set("from", strconv.Itoa(f.From))
 	if f.Category != nil {
 		query.Set("category", *f.Category)
 	}
@@ -219,12 +195,6 @@ func (f ListFilters) Encode() string {
 	}
 	if len(f.Subscriptions) > 0 {
 		query.Set("subscriptions", strings.Join(f.Subscriptions, ","))
-	}
-	if f.From != nil {
-		query.Set("from", strconv.Itoa(*f.From))
-	}
-	if f.UpTo != nil {
-		query.Set("upto", strconv.Itoa(*f.UpTo))
 	}
 	if f.SearchAfter != nil {
 		query.Set("search_after", url.QueryEscape(*f.SearchAfter))

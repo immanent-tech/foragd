@@ -34,8 +34,8 @@ func NewListControls(path string, filters models.ListFilters, options ...ListCon
 		option(controls)
 	}
 	// Reset any pagination for controls.
-	controls.Filters.From = nil
-	controls.Filters.UpTo = nil
+	controls.Filters.From = 0
+	controls.Filters.Count = nil
 	controls.Filters.SearchAfter = nil
 	return controls
 }

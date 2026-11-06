@@ -52,7 +52,7 @@ func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {
 		}
 		// Update response filters.
 		response.Filters.SearchAfter = next.SearchAfter
-		response.Filters.UpTo = nil
+		response.Filters.From = filters.GetUpTo()
 		page.template = templates.MapArticles(response)
 
 		// If the list of articles is from a single subscription, update the page title to include the subscription
@@ -106,10 +106,10 @@ func (m *Manager) HandleMapUpdates(itemSvc ItemService) http.HandlerFunc {
 
 		// If updates found, render a notification.
 		if updateCount > 0 {
-			// Reset from count.
-			if filters.From != nil {
-				filters.From = nil
-			}
+			// // Reset from count.
+			// if filters.From != nil {
+			// 	filters.From = nil
+			// }
 			m.HandleUpdatesToast(res, req, "/map", filters)
 		} else {
 			res.WriteHeader(http.StatusNoContent)

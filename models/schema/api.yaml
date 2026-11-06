@@ -291,7 +291,6 @@ components:
             - text
             - view
             - sort
-            - count
           properties:
             subscription_id:
               description: >
@@ -323,15 +322,6 @@ components:
                 form: "authors"
             view:
               $ref: "models.yaml#/components/schemas/View"
-            count:
-              description: >
-                is the number of items to retrieve with a request. This number will be added to the upto value to get the
-                total number of items retrieved, else, will this number of items will be retrieved from the pagination point
-                specified with pagination value.
-              type: integer
-              x-oapi-codegen-extra-tags:
-                form: "count"
-                validate: "required,gt=0"
             subscriptions:
               description: >
                 is a list of subscription IDs.
@@ -357,7 +347,7 @@ components:
               default: all_time
               x-oapi-codegen-extra-tags:
                 form: "published_within"
-                validate: "required,oneof=all_time last_hour last_12hours last_day last_week last_month"
+                validate: "oneof=all_time last_hour last_12hours last_day last_week last_month"
             sort:
               $ref: "models.yaml#/components/schemas/Sort"
             timezone:
@@ -366,7 +356,7 @@ components:
               type: string
               x-oapi-codegen-extra-tags:
                 form: "timezone"
-                validate: "required,timezone"
+                validate: "timezone"
       x-oapi-codegen-extra-tags:
         validate: "required"
         form: "search"
@@ -420,7 +410,11 @@ components:
             validate: "omitnil,unique,dive,url_encoded"
           x-go-type-skip-optional-pointer: true
         count:
-          $ref: "models.yaml#/components/schemas/Count"
+          description: is the number of items to retrieve with a request.
+          type: integer
+          x-oapi-codegen-extra-tags:
+            form: "count"
+            validate: "gt=0"
     SuggestFeedsResults:
       description: >
         contains a list of feeds and their latest items, based on the provided text query.

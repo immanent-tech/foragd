@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/immanent-tech/go-base/server/forms"
@@ -92,13 +93,16 @@ func parseMultipartForm[T forms.FormInput](req *http.Request) (T, error) {
 type PostHandlerHook func(res http.ResponseWriter, req *http.Request) error
 
 const listFiltersCtxKey contextKey = "listFilters"
-const listCountCtxKey contextKey = "listCount"
 
 type contextKey string
 
 // ListFiltersToSession stores the given list filters in the session. The path is used as a suffix so that filters are
 // stored per-route.
 func ListFiltersToSession(ctx context.Context, session SessionManager, path string, filters models.ListFilters) {
+	slogctx.Debug(ctx,
+		"Saving filters to session",
+		slog.String("filters", filters.Encode()),
+	)
 	session.Put(ctx, string(listFiltersCtxKey)+path, filters)
 }
 
@@ -115,6 +119,10 @@ func ListFiltersFromSession(ctx context.Context, session SessionManager, path st
 
 // ListFiltersToCtx stores the given list filters in the context.
 func ListFiltersToCtx(ctx context.Context, filters models.ListFilters) context.Context {
+	slogctx.Debug(ctx,
+		"Saving filters to context",
+		slog.String("filters", filters.Encode()),
+	)
 	return context.WithValue(ctx, listFiltersCtxKey, filters)
 }
 
@@ -126,24 +134,9 @@ func ListFiltersFromCtx(ctx context.Context) *models.ListFilters {
 	return models.NewListFilters()
 }
 
-// ListCountToSession stores the current count of objects displayed in the list in the session. The path is used as a
-// suffix so that the count is stored per-route.
-func ListCountToSession(ctx context.Context, session SessionManager, path string, count int) {
-	session.Put(ctx, string(listCountCtxKey)+path, count)
-}
-
-// ListCountFromSession stores the current count of objects displayed in the list in the session. The path is used as a
-// suffix so that the count is retrieved per-route.
-func ListCountFromSession(ctx context.Context, session SessionManager, path string) int {
-	count, ok := session.Get(ctx, string(listCountCtxKey)+path).(int)
-	if !ok {
-		return 9
-	}
-	return count
-}
-
 const searchParamsCtxKey contextKey = "searchParams"
-const searchCountCtxKey contextKey = "searchCount"
+
+// const searchCountCtxKey contextKey = "searchCount"
 
 // SearchParamsToSession stores the given search params in the session.
 func SearchParamsToSession(ctx context.Context, session SessionManager, search *models.SearchRequest) {
@@ -160,20 +153,20 @@ func SearchParamsFromSession(ctx context.Context, session SessionManager) *model
 	return &search
 }
 
-// SearchCountToSession stores the current count of objects displayed in the search in the session.
-func SearchCountToSession(ctx context.Context, session SessionManager, count int) {
-	session.Put(ctx, string(searchCountCtxKey), count)
-}
+// // SearchCountToSession stores the current count of objects displayed in the search in the session.
+// func SearchCountToSession(ctx context.Context, session SessionManager, count int) {
+// 	session.Put(ctx, string(searchCountCtxKey), count)
+// }
 
-// SearchCountFromSession stores the current count of objects displayed in the search in the session.
-func SearchCountFromSession(ctx context.Context, session SessionManager) int {
-	count, ok := session.Get(ctx, string(searchCountCtxKey)).(int)
-	if !ok {
-		slogctx.Warn(ctx, "Unable to restore list search count from session. Using default.")
-		return 9
-	}
-	return count
-}
+// // SearchCountFromSession stores the current count of objects displayed in the search in the session.
+// func SearchCountFromSession(ctx context.Context, session SessionManager) int {
+// 	count, ok := session.Get(ctx, string(searchCountCtxKey)).(int)
+// 	if !ok {
+// 		slogctx.Warn(ctx, "Unable to restore list search count from session. Using default.")
+// 		return 9
+// 	}
+// 	return count
+// }
 
 // SearchParamsToCtx stores the given search params in the context.
 func SearchParamsToCtx(ctx context.Context, search *models.SearchRequest) context.Context {

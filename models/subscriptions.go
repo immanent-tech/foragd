@@ -761,22 +761,7 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 // Paginate will paginate through a slice of subscriptions, returning a new slice of subscriptions and the next
 // pagination value (if any).
 func (s Subscriptions) Paginate(filters *ListFilters) (Subscriptions, Pagination) {
-	switch {
-	case filters.UpTo != nil:
-		// History restore request. Retrieve all subscriptions upto value.
-		to := *filters.UpTo
-		return s[:to], Pagination{From: &to}
-	case filters.From != nil:
-		// Pagination request. Retrieve subscriptions from.
-		from := *filters.From
-		to := min(from+filters.Count, len(s))
-		return s[from:to], Pagination{From: &to}
-	default:
-		// Fresh request. Get from start
-		from := 0
-		to := min(from+filters.Count, len(s))
-		return s[from:to], Pagination{From: &to}
-	}
+	return s[filters.GetFrom():filters.GetUpTo()], Pagination{From: filters.GetUpTo()}
 }
 
 const subscriptionsCtxKey contextKey = "subscriptions"

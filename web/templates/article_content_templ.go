@@ -161,14 +161,9 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var9 string
-					templ_7745c5c3_Var9, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.JSONString(map[string]any{
-						"view":          a.Filters.GetView(),
-						"count":         a.Filters.GetCount(),
-						"sort":          a.Filters.GetSort(),
-						"subscriptions": article.GetSubscriptionID(),
-					})).Resolve(ctx)
+					templ_7745c5c3_Var9, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.JSONString(a.Filters)).Resolve(ctx)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 45, Col: 10}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 40, Col: 44}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 					if templ_7745c5c3_Err != nil {
@@ -181,7 +176,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 					var templ_7745c5c3_Var10 string
 					templ_7745c5c3_Var10, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.GetNonce(ctx)).Resolve(ctx)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 46, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 41, Col: 37}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 					if templ_7745c5c3_Err != nil {
@@ -194,7 +189,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 					var templ_7745c5c3_Var11 string
 					templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetFeedTitle())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 49, Col: 31}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 44, Col: 31}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 					if templ_7745c5c3_Err != nil {
@@ -248,7 +243,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 						var templ_7745c5c3_Var12 string
 						templ_7745c5c3_Var12, templ_7745c5c3_Err = templruntime.NewAttributeExpression(article.GetLink()).ResolveURL(ctx)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 78, Col: 32}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 73, Col: 32}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 						if templ_7745c5c3_Err != nil {
@@ -261,7 +256,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 						var templ_7745c5c3_Var13 string
 						templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetTitle())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 83, Col: 151}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 78, Col: 151}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 						if templ_7745c5c3_Err != nil {
@@ -279,7 +274,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 						var templ_7745c5c3_Var14 string
 						templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetTitle())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 86, Col: 150}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 81, Col: 150}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 						if templ_7745c5c3_Err != nil {
@@ -311,7 +306,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 							var templ_7745c5c3_Var15 string
 							templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(strings.Join(authors, ","))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 102, Col: 37}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 97, Col: 37}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 							if templ_7745c5c3_Err != nil {
@@ -351,7 +346,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 						var templ_7745c5c3_Var16 string
 						templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(strings.ReplaceAll(textx.ReadingTime(string(article.GetContent())).Round(time.Minute).String(), "0s", ""))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 122, Col: 113}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 117, Col: 113}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 						if templ_7745c5c3_Err != nil {
@@ -389,7 +384,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 							var templ_7745c5c3_Var17 string
 							templ_7745c5c3_Var17, templ_7745c5c3_Err = templruntime.NewAttributeExpression(youtubeData.VideoId).Resolve(ctx)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 142, Col: 40}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 137, Col: 40}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 							if templ_7745c5c3_Err != nil {
@@ -402,7 +397,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 							var templ_7745c5c3_Var18 string
 							templ_7745c5c3_Var18, templ_7745c5c3_Err = templruntime.NewAttributeExpression(*youtubeData.Width).Resolve(ctx)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 143, Col: 36}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 138, Col: 36}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
 							if templ_7745c5c3_Err != nil {
@@ -415,7 +410,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 							var templ_7745c5c3_Var19 string
 							templ_7745c5c3_Var19, templ_7745c5c3_Err = templruntime.NewAttributeExpression(*youtubeData.Height).Resolve(ctx)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 144, Col: 38}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 139, Col: 38}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var19)
 							if templ_7745c5c3_Err != nil {
@@ -428,7 +423,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 							var templ_7745c5c3_Var20 string
 							templ_7745c5c3_Var20, templ_7745c5c3_Err = templruntime.NewAttributeExpression(a.BaseURL.String()).Resolve(ctx)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 145, Col: 37}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 140, Col: 37}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 							if templ_7745c5c3_Err != nil {
@@ -500,7 +495,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 							var templ_7745c5c3_Var21 string
 							templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(rights)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 177, Col: 40}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 172, Col: 40}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 							if templ_7745c5c3_Err != nil {
@@ -583,7 +578,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 						var templ_7745c5c3_Var22 string
 						templ_7745c5c3_Var22, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/articles/" + article.GetID() + "/read").Resolve(ctx)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 210, Col: 56}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 205, Col: 56}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var22)
 						if templ_7745c5c3_Err != nil {
@@ -596,7 +591,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 						var templ_7745c5c3_Var23 string
 						templ_7745c5c3_Var23, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.GetNonce(ctx)).Resolve(ctx)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 213, Col: 36}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 208, Col: 36}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var23)
 						if templ_7745c5c3_Err != nil {
@@ -609,7 +604,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 						var templ_7745c5c3_Var24 string
 						templ_7745c5c3_Var24, templ_7745c5c3_Err = templruntime.NewAttributeExpression("on htmx:after:request(successful) toggle @checked on <input[type='checkbox']/> in #" + article.GetID() + "-mark-toggle").Resolve(ctx)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 215, Col: 130}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 210, Col: 130}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var24)
 						if templ_7745c5c3_Err != nil {
@@ -666,7 +661,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/articles/" + resp.Article.GetID() + "/prev").Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 228, Col: 58}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 223, Col: 58}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var26)
 		if templ_7745c5c3_Err != nil {
@@ -679,7 +674,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 		var templ_7745c5c3_Var27 string
 		templ_7745c5c3_Var27, templ_7745c5c3_Err = templruntime.NewAttributeExpression(ContentID.Target()).Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 229, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 224, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var27)
 		if templ_7745c5c3_Err != nil {
@@ -692,7 +687,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 		var templ_7745c5c3_Var28 string
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/articles/" + resp.Article.GetID()).ResolveURL(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 231, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 226, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var28)
 		if templ_7745c5c3_Err != nil {
@@ -705,7 +700,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 		var templ_7745c5c3_Var29 string
 		templ_7745c5c3_Var29, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.GetNonce(ctx)).Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 232, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 227, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var29)
 		if templ_7745c5c3_Err != nil {
@@ -726,7 +721,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 		var templ_7745c5c3_Var30 string
 		templ_7745c5c3_Var30, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/articles/" + resp.Article.GetID() + "/next").Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 241, Col: 58}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 236, Col: 58}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var30)
 		if templ_7745c5c3_Err != nil {
@@ -739,7 +734,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 		var templ_7745c5c3_Var31 string
 		templ_7745c5c3_Var31, templ_7745c5c3_Err = templruntime.NewAttributeExpression(ContentID.Target()).Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 242, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 237, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var31)
 		if templ_7745c5c3_Err != nil {
@@ -752,7 +747,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 		var templ_7745c5c3_Var32 string
 		templ_7745c5c3_Var32, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/articles/" + resp.Article.GetID()).ResolveURL(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 244, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 239, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var32)
 		if templ_7745c5c3_Err != nil {
@@ -765,7 +760,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 		var templ_7745c5c3_Var33 string
 		templ_7745c5c3_Var33, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.GetNonce(ctx)).Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 245, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article_content.templ`, Line: 240, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var33)
 		if templ_7745c5c3_Err != nil {

@@ -85,7 +85,7 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 		}
 		// Update response filters.
 		response.Filters.SearchAfter = next.SearchAfter
-		response.Filters.UpTo = nil
+		response.Filters.From = filters.GetUpTo()
 
 		// If the list of articles is from a single subscription, update the page title to include the subscription
 		// name.
@@ -172,10 +172,10 @@ func (m *Manager) HandleListArticlesUpdates(itemSvc ItemService) http.HandlerFun
 			default:
 				route = "/articles"
 			}
-			// Reset from count.
-			if filters.From != nil {
-				filters.From = nil
-			}
+			// // Reset from count.
+			// if filters.From != nil {
+			// 	filters.From = nil
+			// }
 			m.HandleUpdatesToast(res, req, route, filters)
 		} else {
 			res.WriteHeader(http.StatusNoContent)
@@ -269,7 +269,7 @@ func (m *Manager) HandleViewArticle(itemSvc ItemService) http.HandlerFunc {
 				WithTemplate(
 					templates.ArticleContent(&models.ShowArticleResponse{
 						Article: *article,
-						Filters: *ListFiltersFromSession(req.Context(), m.SessionMgr, "/articles"),
+						Filters: *ListFiltersFromCtx(req.Context()),
 						BaseURL: m.AppConfig.GetBaseURL(),
 					}),
 				),

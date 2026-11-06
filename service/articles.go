@@ -146,16 +146,15 @@ func (s *ItemService) FilterArticles(
 		subscriptions = subscriptions.FilterByIDs(filters.GetSubscriptions()...)
 	}
 
+	var count int
+	if filters.SearchAfter != nil {
+		count = models.DefaultListResultsCount
+	} else {
+		count = filters.GetUpTo()
+	}
+
 	// Set sorting of results.
 	sort := filters.GetSort()
-
-	// Set number of items to fetch.
-	var count int
-	if filters.UpTo != nil {
-		count = *filters.UpTo
-	} else {
-		count = filters.Count
-	}
 
 	// Find items matching filters.
 	items, pagination, err := s.QueryItems(

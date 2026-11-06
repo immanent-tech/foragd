@@ -37,12 +37,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 							hx-get={ routeArticles.String() }
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
-							hx-vals={ templ.JSONString(map[string]any{
-									"view": a.Filters.GetView(),
-									"count": a.Filters.GetCount(),
-									"sort": a.Filters.GetSort(),
-									"subscriptions": article.GetSubscriptionID(),
-								}) }
+							hx-vals={ templ.JSONString(a.Filters) }
 							hx-nonce={ templ.GetNonce(ctx) }
 							class="flex link link-hover"
 						>
@@ -50,7 +45,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 						</a>
 						<span class="flex-none px-4">·</span>
 						<span class="flex-none capitalize tabular-nums">
-                        @partials.RelativeTime(article.GetUpdatedDate())
+							@partials.RelativeTime(article.GetUpdatedDate())
 						</span>
 					</div>
 					// Categories.

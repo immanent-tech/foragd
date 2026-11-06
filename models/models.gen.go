@@ -537,9 +537,6 @@ type ChangePasswordRequest struct {
 // ClientType represents which type of client is accessing the app.
 type ClientType string
 
-// Count is the number of items to retrieve with a request.
-type Count = int
-
 // CreatedAt records when the object was created in the database.
 type CreatedAt = time.Time
 
@@ -889,11 +886,11 @@ type ListFilters struct {
 	// Category represents a taxonomy applied to an object.
 	Category *Category `form:"category" json:"category,omitempty"`
 
-	// Count is the number of items to retrieve with a request.
-	Count Count `form:"count" json:"count" validate:"gt=0"`
+	// Count is the number of results to retrieve.
+	Count *int `json:"count,omitempty,omitzero" validate:"omitnil,gt=0"`
 
-	// From is the count from which to retrieve objects.
-	From *int `form:"from" json:"from,omitempty,omitzero"`
+	// From in a list of results, is the index from where to start retrieving results.
+	From int `form:"from" json:"from,omitzero" validate:"gte=0"`
 
 	// Language is the language the content is written in.
 	Language *Language `json:"language,omitempty"`
@@ -906,9 +903,6 @@ type ListFilters struct {
 
 	// Subscriptions is a list of subscription IDs to filter on.
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions,omitempty" validate:"omitempty,unique,dive,startswith=sub_"`
-
-	// UpTo is the number up to which objects to should be retrieved.
-	UpTo *int `form:"upto" json:"upto,omitempty,omitzero"`
 
 	// View is the state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
@@ -1009,14 +1003,14 @@ type PaddleSubscription struct {
 
 // Pagination contains data for paginating through a list of subscriptions or articles.
 type Pagination struct {
-	// From is the count from which to retrieve objects.
-	From *int `form:"from" json:"from,omitempty,omitzero"`
+	// Count is the number of results to retrieve.
+	Count *int `json:"count,omitempty,omitzero" validate:"omitnil,gt=0"`
+
+	// From in a list of results, is the index from where to start retrieving results.
+	From int `form:"from" json:"from,omitzero" validate:"gte=0"`
 
 	// SearchAfter is the data indicating the point after which objects should be retrieved.
 	SearchAfter *string `form:"search_after" json:"search_after,omitempty"`
-
-	// UpTo is the number up to which objects to should be retrieved.
-	UpTo *int `form:"upto" json:"upto,omitempty,omitzero"`
 }
 
 // RemoteImage represents an image file.
