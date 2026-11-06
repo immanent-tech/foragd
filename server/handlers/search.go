@@ -99,7 +99,7 @@ func (m *Manager) HandleSearchSuggestions(svc SubscriptionsService, itemSvc Item
 		})
 
 		if err := searchJobs.Wait(); err != nil {
-			log.Warn("Get search suggestions: run background jobs failed.",
+			log.Error("Get search suggestions: run background jobs failed.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusInternalServerError)
@@ -155,6 +155,8 @@ func (p *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 // HandleSearchResults performs a search with the user input and renders a page with the search results.
 func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		log := slogctx.FromCtx(req.Context())
+
 		// Retrieve search params.
 		search := SearchParamsFromCtx(req.Context())
 		if txt := req.FormValue("advanced-search-text"); txt != "" {
@@ -164,9 +166,15 @@ func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 		// Retrieve the user object.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+			log.Error("Get user data failed.",
 				slog.Any("error", models.ErrCtxValueNotFound))
 			http.Redirect(res, req, "/login", http.StatusSeeOther)
+			return
+		}
+
+		// Ignore empty text string.
+		if search.Text == "" {
+			res.WriteHeader(http.StatusNoContent)
 			return
 		}
 
@@ -177,8 +185,7 @@ func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 		)
 
 		// Set up background search jobs.
-		searchJobs, jobCtx := errgroup.WithContext(req.Context())
-		defer jobCtx.Done()
+		searchJobs := new(errgroup.Group)
 
 		// Search for results.
 		searchJobs.Go(func() error {
@@ -186,12 +193,12 @@ func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 				items models.Items
 				err   error
 			)
-			items, pagination, err = itemSvc.RetrieveItems(jobCtx, search)
+			items, pagination, err = itemSvc.RetrieveItems(req.Context(), search)
 			if err != nil {
 				return fmt.Errorf("search articles: %w", err)
 			}
 			if len(items) > 0 {
-				articles, err = service.GenerateArticles(jobCtx, items)
+				articles, err = service.GenerateArticles(req.Context(), items)
 				if err != nil {
 					return fmt.Errorf("generate articles: %w", err)
 				}
@@ -202,7 +209,7 @@ func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 		// Generate top categories for articles.
 		searchJobs.Go(func() error {
 			var err error
-			categories, err = itemSvc.GetTopItemCategoriesForSearchResults(jobCtx, search)
+			categories, err = itemSvc.GetTopItemCategoriesForSearchResults(req.Context(), search)
 			if err != nil {
 				return fmt.Errorf("get top categories: %w", err)
 			}
@@ -212,6 +219,9 @@ func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 
 		// Run background requests in parallel and wait for results.
 		if err := searchJobs.Wait(); err != nil {
+			log.Error("Get search results: run background jobs failed.",
+				slog.Any("error", err),
+			)
 			m.HandleInternalError(http.StatusInternalServerError, fmt.Errorf("search items: %w", err)).
 				ServeHTTP(res, req)
 			return
@@ -222,7 +232,7 @@ func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 		if search.SubscriptionID != nil {
 			allSubscriptions := models.SubscriptionsFromCtx(req.Context())
 			if allSubscriptions == nil {
-				slogctx.Warn(req.Context(), "Unable to retrieve search subscription details.",
+				log.Warn("Unable to retrieve search subscription details.",
 					slog.Any("error", models.ErrCtxValueNotFound))
 			} else {
 				subscription = allSubscriptions.GetByID(*search.SubscriptionID)
