@@ -102,7 +102,7 @@ func (m *Manager) HandleSearchSuggestions(svc SubscriptionsService, itemSvc Item
 			log.Error("Get search suggestions: run background jobs failed.",
 				slog.Any("error", err),
 			)
-			res.WriteHeader(http.StatusInternalServerError)
+			res.WriteHeader(http.StatusNoContent)
 		}
 
 		// Short-circuit: no suggestions to show.

@@ -109,7 +109,7 @@ func TestManager_HandleSearchSuggestions(t *testing.T) {
 					return nil, errors.New("failed!")
 				},
 			},
-			want: http.StatusInternalServerError,
+			want: http.StatusNoContent,
 		},
 	}
 	for _, tt := range tests {
