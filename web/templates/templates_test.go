@@ -88,11 +88,23 @@ func defaultAppCfg() *MoqAppConfig {
 	}
 }
 
-type TestTempl struct{}
+type TestPageTempl struct{}
 
-func (t *TestTempl) Render(ctx context.Context, w io.Writer) error {
+func (t *TestPageTempl) Render(ctx context.Context, w io.Writer) error {
 	w.Write([]byte(`<div id="test-body">Test</div>`))
 	return nil
+}
+
+type TestPartialTempl struct{}
+
+func (m *TestPartialTempl) Render(ctx context.Context, w io.Writer) error {
+	w.Write([]byte{'X'})
+	return nil
+}
+
+// NewTestPartial returns a simple templ.Component for testing.
+func NewTestPartial() templ.Component {
+	return &TestPartialTempl{}
 }
 
 func TestCreatePage(t *testing.T) {
@@ -126,13 +138,13 @@ func TestCreatePage(t *testing.T) {
 					return "https://test.com/page"
 				},
 				GetTemplateFunc: func() templ.Component {
-					return &TestTempl{}
+					return &TestPageTempl{}
 				},
 				ToMetaTagsFunc: func() templ.Component {
-					return &TestTempl{}
+					return &TestPageTempl{}
 				},
 				ToJsonLdFunc: func() templ.Component {
-					return &TestTempl{}
+					return &TestPageTempl{}
 				},
 			},
 			tests: func(t *testing.T, doc *goquery.Document) {

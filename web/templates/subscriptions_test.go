@@ -265,6 +265,8 @@ func TestEditFeedSubscription(t *testing.T) {
 }
 
 func TestAddSearchSubscription(t *testing.T) {
+	assert := assert.New(t)
+
 	tests := []struct {
 		name        string
 		request     *models.SearchSubscriptionRequest
@@ -284,8 +286,8 @@ func TestAddSearchSubscription(t *testing.T) {
 				return models.UserToCtx(t.Context(), &models.User{})
 			},
 			tests: func(t *testing.T, doc *goquery.Document) {
-				assert.True(t, strings.TrimSpace(doc.Find("#page-heading").Text()) == "Add a Search Subscription")
-				assert.Equal(t, doc.Find("form[hx-post^='/subscriptions/add/search']").Length(), 1)
+				assert.True(strings.TrimSpace(doc.Find("#page-heading").Text()) == "Add a Search Subscription")
+				assert.Equal(doc.Find("form[hx-post^='/subscriptions/add/search']").Length(), 1)
 			},
 		},
 		{
@@ -303,10 +305,9 @@ func TestAddSearchSubscription(t *testing.T) {
 				return models.UserToCtx(t.Context(), &models.User{})
 			},
 			tests: func(t *testing.T, doc *goquery.Document) {
-				assert.True(t, strings.TrimSpace(doc.Find("#page-heading").Text()) == "Add a Search Subscription")
-				assert.True(t, strings.TrimSpace(doc.Find("#search-text").Text()) == `-foo "bar baz"`)
-				assert.Equal(t, doc.Find("input[name='count'][value='9']").Length(), 1)
-				assert.Equal(t, doc.Find("form[hx-post^='/subscriptions/add/search']").Length(), 1)
+				assert.True(strings.TrimSpace(doc.Find("#page-heading").Text()) == "Add a Search Subscription")
+				assert.True(strings.TrimSpace(doc.Find("#search-text").Text()) == `-foo "bar baz"`)
+				assert.Equal(doc.Find("form[hx-post^='/subscriptions/add/search']").Length(), 1)
 			},
 		},
 	}
@@ -321,6 +322,8 @@ func TestAddSearchSubscription(t *testing.T) {
 }
 
 func TestEditSearchSubscription(t *testing.T) {
+	assert := assert.New(t)
+
 	tests := []struct {
 		name        string
 		request     *models.SearchSubscriptionRequest
@@ -346,12 +349,11 @@ func TestEditSearchSubscription(t *testing.T) {
 				return models.UserToCtx(t.Context(), &models.User{})
 			},
 			tests: func(t *testing.T, doc *goquery.Document) {
-				assert.True(t, strings.TrimSpace(doc.Find("#page-heading").Text()) == "Editing Test")
-				assert.True(t, strings.TrimSpace(doc.Find("#search-text").Text()) == `-foo "bar baz"`)
-				assert.Equal(t, doc.Find("input[name='count'][value='9']").Length(), 1)
-				assert.Equal(t, doc.Find("input[name='subscription_id'][value='sub_test']").Length(), 1)
-				assert.Equal(t, doc.Find("input[name='subscription_type'][value='search']").Length(), 1)
-				assert.Equal(t, doc.Find("form[hx-post^='/subscriptions/sub_test/edit']").Length(), 1)
+				assert.True(strings.TrimSpace(doc.Find("#page-heading").Text()) == "Editing Test")
+				assert.True(strings.TrimSpace(doc.Find("#search-text").Text()) == `-foo "bar baz"`)
+				assert.Equal(doc.Find("input[name='subscription_id'][value='sub_test']").Length(), 1)
+				assert.Equal(doc.Find("input[name='subscription_type'][value='search']").Length(), 1)
+				assert.Equal(doc.Find("form[hx-post^='/subscriptions/sub_test/edit']").Length(), 1)
 			},
 		},
 	}

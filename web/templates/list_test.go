@@ -8,7 +8,6 @@ package templates_test
 import (
 	"bytes"
 	"context"
-	"io"
 	"strings"
 	"testing"
 
@@ -20,20 +19,9 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-type mockTempl struct{}
-
-func (m *mockTempl) Render(ctx context.Context, w io.Writer) error {
-	w.Write([]byte{'X'})
-	return nil
-}
-
-// mockComponent returns a simple templ.Component for testing.
-func mockComponent() templ.Component {
-	return &mockTempl{}
-}
-
 func TestWithListActions(t *testing.T) {
 	t.Parallel()
+	require := require.New(t)
 
 	tests := []struct {
 		name      string
@@ -47,12 +35,12 @@ func TestWithListActions(t *testing.T) {
 		},
 		{
 			name:      "single action should be added",
-			actions:   []templ.Component{mockComponent()},
+			actions:   []templ.Component{NewTestPartial()},
 			expectLen: 1,
 		},
 		{
 			name:      "multiple actions should all be added",
-			actions:   []templ.Component{mockComponent(), mockComponent(), mockComponent()},
+			actions:   []templ.Component{NewTestPartial(), NewTestPartial(), NewTestPartial()},
 			expectLen: 3,
 		},
 	}
@@ -65,13 +53,14 @@ func TestWithListActions(t *testing.T) {
 			option := templates.WithListActions(tt.actions...)
 			option(lc)
 
-			require.Len(t, lc.ExtraActions, tt.expectLen)
+			require.Len(lc.ExtraActions, tt.expectLen)
 		})
 	}
 }
 
 func TestWithListButtons(t *testing.T) {
 	t.Parallel()
+	require := require.New(t)
 
 	tests := []struct {
 		name      string
@@ -85,12 +74,12 @@ func TestWithListButtons(t *testing.T) {
 		},
 		{
 			name:      "single button should be added",
-			buttons:   []templ.Component{mockComponent()},
+			buttons:   []templ.Component{NewTestPartial()},
 			expectLen: 1,
 		},
 		{
 			name:      "multiple buttons should all be added",
-			buttons:   []templ.Component{mockComponent(), mockComponent()},
+			buttons:   []templ.Component{NewTestPartial(), NewTestPartial()},
 			expectLen: 2,
 		},
 	}
@@ -103,13 +92,14 @@ func TestWithListButtons(t *testing.T) {
 			option := templates.WithListButtons(tt.buttons...)
 			option(lc)
 
-			require.Len(t, lc.ExtraButtons, tt.expectLen)
+			require.Len(lc.ExtraButtons, tt.expectLen)
 		})
 	}
 }
 
 func TestWithListCategories(t *testing.T) {
 	t.Parallel()
+	require := require.New(t)
 
 	tests := []struct {
 		name       string
@@ -151,10 +141,10 @@ func TestWithListCategories(t *testing.T) {
 			templates.WithListCategories(tt.categories)(lc)
 
 			if tt.expectSet {
-				require.NotEmpty(t, lc.Categories)
-				require.Equal(t, tt.expectLen, len(lc.Categories))
+				require.NotEmpty(lc.Categories)
+				require.Equal(tt.expectLen, len(lc.Categories))
 			} else {
-				require.Empty(t, lc.Categories)
+				require.Empty(lc.Categories)
 			}
 		})
 	}
@@ -162,6 +152,7 @@ func TestWithListCategories(t *testing.T) {
 
 func TestWithListLanguages(t *testing.T) {
 	t.Parallel()
+	require := require.New(t)
 
 	tests := []struct {
 		name      string
@@ -203,10 +194,10 @@ func TestWithListLanguages(t *testing.T) {
 			templates.WithListLanguages(tt.languages)(lc)
 
 			if tt.expectSet {
-				require.NotEmpty(t, lc.Languages)
-				require.Equal(t, tt.expectLen, len(lc.Languages))
+				require.NotEmpty(lc.Languages)
+				require.Equal(tt.expectLen, len(lc.Languages))
 			} else {
-				require.Empty(t, lc.Languages)
+				require.Empty(lc.Languages)
 			}
 		})
 	}
@@ -214,119 +205,128 @@ func TestWithListLanguages(t *testing.T) {
 
 func TestWithoutListSorting(t *testing.T) {
 	t.Parallel()
+	require := require.New(t)
 
 	t.Run("sets disableSort to true", func(t *testing.T) {
 		t.Parallel()
 		lc := &templates.ListControls{}
 		templates.WithoutListSorting()(lc)
-		require.True(t, lc.DisableSort)
+		require.True(lc.DisableSort)
 	})
 
 	t.Run("does not modify other fields", func(t *testing.T) {
 		t.Parallel()
+
 		lc := &templates.ListControls{
 			Path:    "/test",
 			Filters: models.ListFilters{Sort: models.SortNewestFirst},
 		}
+
 		templates.WithoutListSorting()(lc)
-		require.Equal(t, "/test", lc.Path)
-		require.Equal(t, models.SortNewestFirst, lc.Filters.Sort)
+		require.Equal("/test", lc.Path)
+		require.Equal(models.SortNewestFirst, lc.Filters.Sort)
 	})
 }
 
 func TestWithoutListView(t *testing.T) {
 	t.Parallel()
+	require := require.New(t)
 
 	t.Run("sets disableView to true", func(t *testing.T) {
 		t.Parallel()
 		lc := &templates.ListControls{}
 		templates.WithoutListView()(lc)
-		require.True(t, lc.DisableView)
+		require.True(lc.DisableView)
 	})
 
 	t.Run("does not modify other fields", func(t *testing.T) {
 		t.Parallel()
+
 		lc := &templates.ListControls{
 			Path:    "/test",
 			Filters: models.ListFilters{View: models.ViewAll},
 		}
+
 		templates.WithoutListView()(lc)
-		require.Equal(t, "/test", lc.Path)
-		require.Equal(t, models.ViewAll, lc.Filters.View)
+		require.Equal("/test", lc.Path)
+		require.Equal(models.ViewAll, lc.Filters.GetView())
 	})
 }
 
 func TestNewListControls_Empty(t *testing.T) {
 	t.Parallel()
+	require := require.New(t)
 
 	t.Run("renders without options", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 		controls := templates.NewListControls("/test", models.ListFilters{})
 
 		var buf bytes.Buffer
 		err := controls.Template().Render(ctx, &buf)
-		require.NoError(t, err)
-		require.NotEmpty(t, buf.String())
+		require.NoError(err)
+		require.NotEmpty(buf.String())
 	})
 
 	t.Run("sets default path and filters", func(t *testing.T) {
 		t.Parallel()
+
 		controls := templates.NewListControls("/my-path", models.ListFilters{
-			Sort:  models.SortNewestFirst,
-			View:  models.ViewUnread,
-			Count: 10,
+			Sort: models.SortNewestFirst,
+			View: models.ViewUnread,
 		})
 
-		require.Equal(t, "/my-path", controls.Path)
-		require.Equal(t, models.SortNewestFirst, controls.Filters.GetSort())
-		require.Equal(t, models.ViewUnread, controls.Filters.GetView())
-		require.Equal(t, 10, controls.Filters.GetCount())
+		require.Equal("/my-path", controls.Path)
+		require.Equal(models.SortNewestFirst, controls.Filters.GetSort())
+		require.Equal(models.ViewUnread, controls.Filters.GetView())
 	})
 
 	t.Run("does not modify filters pagination fields", func(t *testing.T) {
 		t.Parallel()
+
 		originalFilters := models.ListFilters{
-			Sort:  models.SortOldestFirst,
-			View:  models.ViewAll,
-			Count: 20,
+			Sort: models.SortOldestFirst,
+			View: models.ViewAll,
 		}
 
 		controls := templates.NewListControls("/test", originalFilters)
 
-		require.Equal(t, models.SortOldestFirst, controls.Filters.GetSort())
-		require.Equal(t, models.ViewAll, controls.Filters.GetView())
-		require.Equal(t, 20, controls.Filters.GetCount())
+		require.Equal(models.SortOldestFirst, controls.Filters.GetSort())
+		require.Equal(models.ViewAll, controls.Filters.GetView())
 	})
 }
 
 func TestNewListControls_WithOptions(t *testing.T) {
 	t.Parallel()
+	require := require.New(t)
 
 	t.Run("applies multiple options in order", func(t *testing.T) {
 		t.Parallel()
+
 		lc := &templates.ListControls{
 			Path:    "/test",
 			Filters: models.ListFilters{Sort: models.SortNewestFirst},
 		}
 
-		templates.WithListActions(mockComponent())(lc)
-		templates.WithListButtons(mockComponent())(lc)
+		templates.WithListActions(NewTestPartial())(lc)
+		templates.WithListButtons(NewTestPartial())(lc)
 		templates.WithListCategories(models.Categories{"Tech"})(lc)
 		templates.WithListLanguages(map[string]int64{"en": 100})(lc)
 
-		require.Len(t, lc.ExtraActions, 1)
-		require.Len(t, lc.ExtraButtons, 1)
-		require.Len(t, lc.Categories, 1)
-		require.Equal(t, map[string]int64{"en": 100}, lc.Languages)
+		require.Len(lc.ExtraActions, 1)
+		require.Len(lc.ExtraButtons, 1)
+		require.Len(lc.Categories, 1)
+		require.Equal(map[string]int64{"en": 100}, lc.Languages)
 	})
 
 	t.Run("renders with options applied", func(t *testing.T) {
 		t.Parallel()
-		ctx := context.Background()
 
-		actions := []templ.Component{mockComponent()}
-		buttons := []templ.Component{mockComponent()}
+		ctx := t.Context()
+
+		actions := []templ.Component{NewTestPartial()}
+		buttons := []templ.Component{NewTestPartial()}
 
 		controls := templates.NewListControls(
 			"/test",
@@ -339,8 +339,8 @@ func TestNewListControls_WithOptions(t *testing.T) {
 
 		var buf bytes.Buffer
 		err := controls.Template().Render(ctx, &buf)
-		require.NoError(t, err)
-		require.NotZero(t, buf.Len())
+		require.NoError(err)
+		require.NotZero(buf.Len())
 	})
 
 	t.Run("merges with existing values", func(t *testing.T) {
@@ -355,37 +355,36 @@ func TestNewListControls_WithOptions(t *testing.T) {
 		templates.WithListCategories(models.Categories{"New", "Extra"})(original)
 
 		// Categories should be merged
-		require.Len(t, original.Categories, 2)
-		require.Contains(t, original.Categories, "New")
-		require.Contains(t, original.Categories, "Extra")
+		require.Len(original.Categories, 2)
+		require.Contains(original.Categories, "New")
+		require.Contains(original.Categories, "Extra")
 	})
 }
 
 func TestNewListControls_ResetsPagination(t *testing.T) {
 	t.Parallel()
+	require := require.New(t)
 
-	t.Run("resets From, UpTo, and SearchAfter", func(t *testing.T) {
+	t.Run("resets filters", func(t *testing.T) {
 		t.Parallel()
 		paginationFilters := models.ListFilters{
 			View:        models.ViewUnread,
 			Sort:        models.SortNewestFirst,
-			Count:       10,
-			From:        new(1),
-			UpTo:        new(50),
+			From:        0,
 			SearchAfter: new("abc123"),
 		}
 
 		controls := templates.NewListControls("/test", paginationFilters)
 
 		// Verify pagination was reset
-		require.Nil(t, controls.Filters.From)
-		require.Nil(t, controls.Filters.UpTo)
-		require.Nil(t, controls.Filters.SearchAfter)
+		require.Zero(controls.Filters.GetFrom())
+		require.Equal(9, controls.Filters.GetUpTo())
+		require.Nil(controls.Filters.SearchAfter)
+		require.Nil(controls.Filters.SearchAfter)
 
 		// But other fields should remain unchanged
-		require.Equal(t, models.SortNewestFirst, controls.Filters.GetSort())
-		require.Equal(t, models.ViewUnread, controls.Filters.GetView())
-		require.Equal(t, 10, controls.Filters.GetCount())
+		require.Equal(models.SortNewestFirst, controls.Filters.GetSort())
+		require.Equal(models.ViewUnread, controls.Filters.GetView())
 	})
 
 	t.Run("preserves Sort, View, and Count", func(t *testing.T) {
@@ -393,20 +392,19 @@ func TestNewListControls_ResetsPagination(t *testing.T) {
 		controls := templates.NewListControls(
 			"/test",
 			models.ListFilters{
-				View:  models.ViewAll,
-				Sort:  models.SortMostRelevant,
-				Count: 25,
+				View: models.ViewAll,
+				Sort: models.SortMostRelevant,
 			},
 		)
 
-		require.Equal(t, models.ViewAll, controls.Filters.GetView())
-		require.Equal(t, models.SortMostRelevant, controls.Filters.GetSort())
-		require.Equal(t, 25, controls.Filters.GetCount())
+		require.Equal(models.ViewAll, controls.Filters.GetView())
+		require.Equal(models.SortMostRelevant, controls.Filters.GetSort())
 	})
 }
 
 func TestNewListControls_DisabledFeatures(t *testing.T) {
 	t.Parallel()
+	require := require.New(t)
 
 	t.Run("WithoutListSorting sets disableSort", func(t *testing.T) {
 		t.Parallel()
@@ -415,7 +413,7 @@ func TestNewListControls_DisabledFeatures(t *testing.T) {
 			models.ListFilters{},
 			templates.WithoutListSorting(),
 		)
-		require.True(t, controls.DisableSort)
+		require.True(controls.DisableSort)
 	})
 
 	t.Run("WithoutListView sets disableView", func(t *testing.T) {
@@ -425,7 +423,7 @@ func TestNewListControls_DisabledFeatures(t *testing.T) {
 			models.ListFilters{},
 			templates.WithoutListView(),
 		)
-		require.True(t, controls.DisableView)
+		require.True(controls.DisableView)
 	})
 
 	t.Run("Both disabled flags work together", func(t *testing.T) {
@@ -436,20 +434,21 @@ func TestNewListControls_DisabledFeatures(t *testing.T) {
 			templates.WithoutListSorting(),
 			templates.WithoutListView(),
 		)
-		require.True(t, controls.DisableSort)
-		require.True(t, controls.DisableView)
+		require.True(controls.DisableSort)
+		require.True(controls.DisableView)
 	})
 }
 
 func TestNewListControls_AppendsMultipleOptions(t *testing.T) {
 	t.Parallel()
+	require := require.New(t)
 
 	t.Run("WithListActions appends multiple components", func(t *testing.T) {
 		t.Parallel()
 		actions := []templ.Component{
-			mockComponent(),
-			mockComponent(),
-			mockComponent(),
+			NewTestPartial(),
+			NewTestPartial(),
+			NewTestPartial(),
 		}
 
 		controls := templates.NewListControls(
@@ -458,14 +457,14 @@ func TestNewListControls_AppendsMultipleOptions(t *testing.T) {
 			templates.WithListActions(actions...),
 		)
 
-		require.Len(t, controls.ExtraActions, 3)
+		require.Len(controls.ExtraActions, 3)
 	})
 
 	t.Run("WithListButtons appends multiple components", func(t *testing.T) {
 		t.Parallel()
 		buttons := []templ.Component{
-			mockComponent(),
-			mockComponent(),
+			NewTestPartial(),
+			NewTestPartial(),
 		}
 
 		controls := templates.NewListControls(
@@ -473,12 +472,13 @@ func TestNewListControls_AppendsMultipleOptions(t *testing.T) {
 			models.ListFilters{},
 			templates.WithListButtons(buttons...),
 		)
-		require.Len(t, controls.ExtraButtons, 2)
+		require.Len(controls.ExtraButtons, 2)
 	})
 }
 
 func TestNewListControls_RenderBasicStructure(t *testing.T) {
 	t.Parallel()
+	require := require.New(t)
 
 	tests := []struct {
 		name              string
@@ -545,14 +545,15 @@ func TestNewListControls_RenderBasicStructure(t *testing.T) {
 			}
 
 			// Verify rendering didn't error and produced output
-			require.NotZero(t, buf.Len(), "Render should produce output")
+			require.NotZero(buf.Len(), "Render should produce output")
 		})
 	}
 }
 
 func TestNewListControls_Render(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+
+	ctx := t.Context()
 	c := templates.NewListControls("/test/path", models.ListFilters{})
 	doc := render(t, ctx, c.Template())
 
@@ -575,7 +576,7 @@ func TestNewListControls_Render(t *testing.T) {
 
 func TestNewListControls_RenderCategories(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 	c := templates.NewListControls(
 		"/test/path",
 		models.ListFilters{},
