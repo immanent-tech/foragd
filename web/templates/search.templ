@@ -130,13 +130,8 @@ templ Search() {
 
 // SearchSuggestions will render suggestions for a given search.
 templ SearchSuggestions(suggestions *models.SearchResults) {
-	<ul
-		class="w-full p-4"
-		role="listbox"
-	>
+	<ul class="w-full p-4">
 		<li
-			tabindex="-1"
-			role="option"
 			hx-get="/search"
 			hx-target={ ContentID.Target() }
 			hx-include="#search-filters,[id='timezone']"
@@ -151,32 +146,88 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 				"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 				"aria-hidden": "true",
 			})
-			<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
-			<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Search...</span>
+			<span class="ml-3 flex-auto truncate">Search for "{ suggestions.Search.Text }"</span>
+			<span aria-hidden="true" class="ml-3 hidden flex-none group-hover:inline">Search...</span>
 		</li>
 		// Subscription suggestions.
 		if len(suggestions.Subscriptions) > 0 {
-			<li id="subscription-suggestions" class="menu-title" tabindex="-1" role="none">Subscriptions</li>
-			for subscription := range slices.Values(suggestions.Subscriptions) {
-				@suggestSubscription(subscription)
-			}
+			@subscriptionSuggestions(suggestions.Subscriptions)
 		}
 		// Article suggestions.
 		if len(suggestions.Articles)> 0 {
-			<li id="article-suggestions" class="menu-title" role="none" tabindex="-1">
-				Articles
-			</li>
-			for article := range slices.Values(suggestions.Articles) {
-				@suggestArticle(article)
-			}
+			@articleSuggestions(suggestions.Articles)
 		}
 		// Various action suggestions. Triggered by certain substrings in the search text.
-		{{ substr := strings.ToLower(suggestions.Search.Text) }}
-		{{ subStrParts := strings.Split(substr, " ") }}
-		if slices.ContainsFunc(subStrParts,func(s string) bool {
+		@actionSuggestions(suggestions.Search.Text)
+	</ul>
+}
+
+templ subscriptionSuggestions(subscriptions models.Subscriptions) {
+	<ul id="subscription-suggestions">
+		<li class="menu-title">Subscriptions</li>
+		for subscription := range slices.Values(subscriptions) {
+			<li
+				hx-sync="#global-search:drop"
+				_="on htmx:before:request call document.getElementById('search-suggestions-popover').hidePopover()"
+				class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
+				{ generateSubscriptionViewAttributes(ctx,subscription)... }
+			>
+				if img := subscription.GetImage(); img != "" {
+					@partials.Thumbnail(
+						&models.RemoteImage{
+							URL:   img,
+							Title: new(subscription.GetTitle()),
+						},
+						subscription.GetTitle(),
+						"size-6",
+					)
+				} else {
+					@tableroutline.Rss(templ.Attributes{
+						"class":       "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+						"aria-hidden": "true"})
+				}
+				<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
+				<span aria-hidden="true" class="ml-3 hidden group-hover:inline">Jump to...</span>
+			</li>
+		}
+	</ul>
+}
+
+templ articleSuggestions(articles models.Articles) {
+	<ul id="article-suggestions">
+		<li class="menu-title">Articles</li>
+		for article := range slices.Values(articles) {
+			<li
+				hx-get={ "/articles/" + article.GetID() }
+				hx-target={ ContentID.Target() }
+				hx-push-url="true"
+				hx-sync="#global-search:drop"
+				hx-nonce={ templ.GetNonce(ctx) }
+				_="on htmx:before:request call document.getElementById('search-suggestions-popover').hidePopover()"
+				class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
+			>
+				if img := article.GetImage(); img != nil {
+					@partials.Thumbnail(img, article.GetTitle(), "size-6")
+				} else {
+					@tableroutline.FileRss(templ.Attributes{
+						"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+						"aria-hidden": "true"})
+				}
+				<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
+				<span aria-hidden="true" class="ml-3 hidden group-hover:inline">Jump to...</span>
+			</li>
+		}
+	</ul>
+}
+
+templ actionSuggestions(text string) {
+	{{ substr := strings.ToLower(text) }}
+	{{ subStrParts := strings.Split(substr, " ") }}
+	if slices.ContainsFunc(subStrParts,func(s string) bool {
 			return slices.Contains([]string{"add","feed","search","group","discover","explore"},s)
 		}) {
-			<li id="action-suggestions" class="menu-title" tabindex="-1" role="none">Actions</li>
+		<ul id="action-suggestions">
+			<li class="menu-title">Actions</li>
 			// Add feed subscription suggestion.
 			if (strings.Contains(substr,"add") || strings.Contains(substr,"feed"))  && (!strings.Contains(substr,"group") && !strings.Contains(substr,"search")) {
 				@suggestAddFeedSubscription()
@@ -193,69 +244,13 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			if strings.Contains(substr,"discover") || strings.Contains(substr,"explore") {
 				@suggestDiscover()
 			}
-		}
-	</ul>
-}
-
-templ suggestSubscription(subscription *models.Subscription) {
-	<li
-		role="option"
-		tabindex="-1"
-		hx-sync="#global-search:drop"
-		_="on htmx:before:request call document.getElementById('search-suggestions-popover').hidePopover()"
-		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
-		{ generateSubscriptionViewAttributes(ctx,subscription)... }
-	>
-		<div class="group flex items-center">
-			if img := subscription.GetImage(); img != "" {
-				@partials.Thumbnail(
-					&models.RemoteImage{
-						URL:   img,
-						Title: new(subscription.GetTitle()),
-					},
-					subscription.GetTitle(),
-					"size-6",
-				)
-			} else {
-				@tableroutline.Rss(templ.Attributes{
-					"class":       "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
-					"aria-hidden": "true"})
-			}
-			<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
-			<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Jump to...</span>
-		</div>
-	</li>
-}
-
-templ suggestArticle(article *models.Article) {
-	<li
-		role="option"
-		tabindex="-1"
-		hx-get={ "/articles/" + article.GetID() }
-		hx-target={ ContentID.Target() }
-		hx-push-url="true"
-		hx-sync="#global-search:drop"
-		hx-nonce={ templ.GetNonce(ctx) }
-		_="on htmx:before:request call document.getElementById('search-suggestions-popover').hidePopover()"
-		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
-	>
-		if img := article.GetImage(); img != nil {
-			@partials.Thumbnail(img, article.GetTitle(), "size-6")
-		} else {
-			@tableroutline.FileRss(templ.Attributes{
-				"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
-				"aria-hidden": "true"})
-		}
-		<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
-		<span aria-hidden="true" class="ml-3 hidden text-neutral group-hover:inline">Jump to...</span>
-	</li>
+		</ul>
+	}
 }
 
 templ suggestAddFeedSubscription() {
 	// Add feed subscription action.
 	<li
-		role="option"
-		tabindex="-1"
 		hx-get="/subscriptions/add"
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
@@ -267,14 +262,12 @@ templ suggestAddFeedSubscription() {
 			"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 			"aria-hidden": "true"})
 		<span class="ml-3 flex-auto truncate">Add a feed subscription</span>
-		<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Create...</span>
+		<span aria-hidden="true" class="ml-3 hidden group-hover:inline">Create...</span>
 	</li>
 }
 
 templ suggestAddGroupSubscription() {
 	<li
-		role="option"
-		tabindex="-1"
 		hx-get="/subscriptions/add/group"
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
@@ -286,14 +279,12 @@ templ suggestAddGroupSubscription() {
 			"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 			"aria-hidden": "true"})
 		<span class="ml-3 flex-auto truncate">Add a group subscription</span>
-		<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Create...</span>
+		<span aria-hidden="true" class="ml-3 hidden group-hover:inline">Create...</span>
 	</li>
 }
 
 templ suggestAddSearchSubscription() {
 	<li
-		role="option"
-		tabindex="-1"
 		hx-get="/subscriptions/add/search"
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
@@ -305,14 +296,12 @@ templ suggestAddSearchSubscription() {
 			"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 			"aria-hidden": "true"})
 		<span class="ml-3 flex-auto truncate">Add a search subscription</span>
-		<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Create...</span>
+		<span aria-hidden="true" class="ml-3 hidden group-hover:inline">Create...</span>
 	</li>
 }
 
 templ suggestDiscover() {
 	<li
-		role="option"
-		tabindex="-1"
 		hx-get="/discover"
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
@@ -324,7 +313,7 @@ templ suggestDiscover() {
 			"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 			"aria-hidden": "true"})
 		<span class="ml-3 flex-auto truncate">Discover feeds</span>
-		<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Explore...</span>
+		<span aria-hidden="true" class="ml-3 hidden group-hover:inline">Explore...</span>
 	</li>
 }
 
