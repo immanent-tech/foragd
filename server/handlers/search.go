@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
@@ -257,7 +258,13 @@ func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 			),
 			results: results,
 		}
-		page.Handle().ServeHTTP(res, req)
+
+		if strings.HasSuffix(req.URL.Path, "/paginate") {
+			page.fragment = templates.PaginateFragment
+			page.PartialResponse(res, req)
+		} else {
+			page.Handle().ServeHTTP(res, req)
+		}
 	}
 }
 
