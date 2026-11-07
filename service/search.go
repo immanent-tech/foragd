@@ -6,6 +6,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"slices"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
@@ -143,7 +144,7 @@ func (s *ItemService) QueryItems(
 		elastic.WithSize[*search.Search](count),
 	)
 	if err != nil {
-		return nil, "", fmt.Errorf("search items: %w", err)
+		return nil, "", models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("search items: %w", err))
 	}
 	// Parse last search after value into pagination.
 	newPagination, err := elastic.EncodePagination[string](resp.Pagination)
@@ -167,7 +168,10 @@ func (s *ItemService) SuggestItems(
 
 	user := models.UserFromCtx(ctx)
 	if user == nil {
-		return nil, fmt.Errorf("get user details: %w", models.ErrCtxValueNotFound)
+		return nil, models.NewAPIError(
+			http.StatusForbidden,
+			fmt.Errorf("get user details: %w", models.ErrCtxValueNotFound),
+		)
 	}
 
 	clause := buildSearchResultsQuery(ctx, user, request, searchSuggestionsClause(request))

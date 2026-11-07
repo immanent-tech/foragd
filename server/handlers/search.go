@@ -36,7 +36,7 @@ func (h *SearchSuggestions) PartialResponse(res http.ResponseWriter, req *http.R
 }
 
 // HandleSearchSuggestions performs a search with the user input and presents suggestions back to the user.
-func (m *Manager) HandleSearchSuggestions(svc SubscriptionsService, itemSvc ItemService) http.HandlerFunc {
+func (m *Manager) HandleSearchSuggestions(subSvc SubscriptionsService, itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		log := slogctx.FromCtx(req.Context())
 
@@ -71,13 +71,13 @@ func (m *Manager) HandleSearchSuggestions(svc SubscriptionsService, itemSvc Item
 
 		// Generate subscription suggestions.
 		searchJobs.Go(func() error {
-			subscriptions, err = svc.GetSubscriptionSuggestions(
+			subscriptions, err = subSvc.GetSubscriptionSuggestions(
 				req.Context(),
 				search.Text,
 				defaultSubscriptionSuggestionsCount,
 				nil,
 			)
-			if err != nil {
+			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				return fmt.Errorf("get subscription suggestions: %w", err)
 			}
 			return nil

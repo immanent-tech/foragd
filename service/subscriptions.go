@@ -562,7 +562,10 @@ func (s *SubscriptionService) GetSubscriptionSuggestions(
 	// Get subscriptions by ID.
 	user := models.UserFromCtx(ctx)
 	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+		return nil, models.NewAPIError(
+			http.StatusForbidden,
+			fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+		)
 	}
 
 	// Perform search.
@@ -596,7 +599,7 @@ func (s *SubscriptionService) GetSubscriptionSuggestions(
 		elastic.WithSize[*search.Search](count),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("search subscriptions: %w", err)
+		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("search subscriptions: %w", err))
 	}
 	if len(resp.Results) == 0 {
 		return nil, fmt.Errorf("search subscriptions: %w", models.ErrNotFound)
@@ -604,7 +607,7 @@ func (s *SubscriptionService) GetSubscriptionSuggestions(
 
 	subscriptions := resp.Results
 	if err = s.UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
-		return nil, fmt.Errorf("add dynamic info: %w", err)
+		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("add dynamic info: %w", err))
 	}
 
 	return subscriptions, nil
