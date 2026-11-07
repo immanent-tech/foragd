@@ -179,46 +179,47 @@ func (a Article) IsEmail() bool {
 // requested), the "content" field of the item (if not empty), or the description (if any).
 func (a Article) GetContent() string {
 	switch {
-	case a.IsEmail():
-		return a.formatContent(a.Item.GetContent())
-	case a.IsYoutubeVideo():
-		return ""
 	case a.ShowFullContent && a.Content != nil:
-		return a.formatContent(*a.Content)
-	case a.Item.HasContent():
-		return a.formatContent(a.Item.GetContent())
-	default:
-		return a.Item.GetDescription()
-	}
-}
-
-// formatContent performs additional formatting of content from specific sources, such as cleaning up the HTML to make
-// it more presentable in the interface.
-func (a Article) formatContent(content string) string {
-	switch {
-	case strings.Contains(a.Item.GetLink(), "reddit.com"):
-		sanitized, err := htmlx.Lint(
-			content,
-			htmlx.UnwrapLayoutTables,
-			htmlx.StripWhitespaceOnlyNodesOption,
-		)
+		sanitized, err := htmlx.Lint(*a.Content)
 		if err != nil {
-			return content
+			return ""
 		}
 		return sanitized
-	case a.Item.SourceType == SourceTypeEmail:
+	case a.IsEmail():
 		sanitized, err := htmlx.Lint(
-			content,
+			a.Item.GetContent(),
 			htmlx.UnwrapLayoutTables,
 			htmlx.StripAttributesOption,
 			htmlx.StripWhitespaceOnlyNodesOption,
 		)
 		if err != nil {
-			return content
+			return ""
 		}
 		return htmlx.StripEmailPreheaderPadding(sanitized)
+	case a.IsYoutubeVideo():
+		return ""
+	case strings.Contains(a.Item.GetLink(), "reddit.com"):
+		sanitized, err := htmlx.Lint(
+			a.Item.GetContent(),
+			htmlx.UnwrapLayoutTables,
+			htmlx.StripWhitespaceOnlyNodesOption,
+		)
+		if err != nil {
+			return ""
+		}
+		return sanitized
+	case a.Item.HasContent():
+		sanitized, err := htmlx.Lint(a.Item.GetContent())
+		if err != nil {
+			return ""
+		}
+		return sanitized
 	default:
-		return content
+		sanitized, err := htmlx.Lint(a.Item.GetDescription())
+		if err != nil {
+			return ""
+		}
+		return sanitized
 	}
 }
 
