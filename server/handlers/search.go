@@ -106,12 +106,6 @@ func (m *Manager) HandleSearchSuggestions(subSvc SubscriptionsService, itemSvc I
 			res.WriteHeader(http.StatusNoContent)
 		}
 
-		// Short-circuit: no suggestions to show.
-		if len(subscriptions)+len(articles) == 0 {
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
-
 		// Generate search suggestions object.
 		m.NewPartial(templates.SearchSuggestions(&models.SearchResults{
 			Search:        *search,

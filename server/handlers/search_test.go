@@ -68,7 +68,7 @@ func TestManager_HandleSearchSuggestions(t *testing.T) {
 				ctx = models.UserToCtx(ctx, &models.User{})
 				return ctx
 			},
-			want: http.StatusNoContent,
+			want: http.StatusOK,
 		},
 		{
 			name: "no user",
