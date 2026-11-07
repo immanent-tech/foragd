@@ -215,11 +215,7 @@ func (a Article) GetContent() string {
 		}
 		return sanitized
 	default:
-		sanitized, err := htmlx.Lint(a.Item.GetDescription())
-		if err != nil {
-			return ""
-		}
-		return sanitized
+		return a.Item.GetDescription()
 	}
 }
 
