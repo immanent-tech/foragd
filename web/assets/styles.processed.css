@@ -4896,6 +4896,7 @@
     & :is(:where(img):not(:where([class~="not-prose"],[class~="not-prose"] *))) {
       outline-color: var(--color-neutral);
     }
+    font-variant-numeric: oldstyle-nums proportional-nums;
     p {
       text-wrap: pretty;
     }
@@ -10524,9 +10525,6 @@
   --twsa-safe-area-inset-bottom: env(safe-area-inset-bottom);
   --twsa-safe-area-inset-left: env(safe-area-inset-left);
 }
-@view-transition {
-  navigation: auto;
-}
 @layer base {
   @keyframes fadeInUp {
     from {
@@ -10582,27 +10580,40 @@
       background-color: transparent;
     }
   }
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-synthesis: none;
+    -moz-text-size-adjust: none;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+  }
   body {
     font-family: var(--font-sans);
     font-weight: var(--font-weight-normal);
     font-style: normal;
     font-optical-sizing: auto;
     font-variant-numeric: proportional-nums;
-    font-size-adjust: 0.5;
+    font-variant-ligatures: common-ligatures contextual;
+    font-kerning: normal;
+    font-size-adjust: from-font;
   }
-  h1, h2, h3 {
+  :is(h1, h2, h3, h4, h5, h6), blockquote, figcaption {
     font-family: var(--font-display);
-    font-feature-settings: 'liga' 1, 'clig' 1;
-  }
-  body, .prose {
-    font-feature-settings: 'liga' 1, 'clig' 1;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
   }
   table {
     font-variant-numeric: lining-nums tabular-nums;
   }
   pre, code {
     font-family: var(--font-mono);
+    -webkit-hyphens: manual;
+    hyphens: manual;
     font-feature-settings: 'calt' 1, 'ss01' 1, 'ss08' 1;
+  }
+  [contenteditable='true'] {
+    text-wrap: stable;
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -10613,6 +10624,22 @@
     }
     ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) {
       animation: none !important;
+    }
+  }
+  @supports (font-variant-position: sub) {
+    sub, .sub {
+      vertical-align: baseline;
+      font-size: 100%;
+      line-height: inherit;
+      font-variant-position: sub;
+    }
+  }
+  @supports (font-variant-position: super) {
+    sup, .sup {
+      vertical-align: baseline;
+      font-size: 100%;
+      line-height: inherit;
+      font-variant-position: super;
     }
   }
   header#page-header, footer#page-dock, nav#page-sidebar {
@@ -10785,6 +10812,12 @@
   }
   .placeholder-image #mountain {
     fill: var(--color-secondary);
+  }
+  .emoji-color {
+    font-variant-emoji: emoji;
+  }
+  .emoji-mono {
+    font-variant-emoji: text;
   }
 }
 @layer base {

@@ -9,11 +9,6 @@
 @plugin 'daisyui';
 @import './daisyui-custom.css';
 
-/* Use page view transitions. */
-@view-transition {
-  navigation: auto;
-}
-
 /* Global custom theme values. */
 @theme {
   --font-systemui: system-ui, sans-serif;
@@ -154,30 +149,33 @@
     }
   }
 
-  /* Default font settings. */
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-synthesis: none;
+
+    -moz-text-size-adjust: none;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+  }
+
   body {
     font-family: var(--font-sans);
     font-weight: var(--font-weight-normal);
     font-style: normal;
     font-optical-sizing: auto;
     font-variant-numeric: proportional-nums;
-    font-size-adjust: 0.5;
+    font-variant-ligatures: common-ligatures contextual;
+    font-kerning: normal;
+    /* font-size-adjust: 0.5; */
+    font-size-adjust: from-font;
   }
 
-  h1,
-  h2,
-  h3 {
-    @apply font-display;
-    font-feature-settings:
-      'liga' 1,
-      'clig' 1;
-  }
-
-  body,
-  .prose {
-    font-feature-settings:
-      'liga' 1,
-      'clig' 1;
+  :is(h1, h2, h3, h4, h5, h6),
+  blockquote,
+  figcaption {
+    @apply font-display text-balance;
+    letter-spacing: -0.01em;
   }
 
   table {
@@ -186,11 +184,15 @@
 
   pre,
   code {
-    @apply font-mono;
+    @apply font-mono hyphens-manual;
     font-feature-settings:
       'calt' 1,
       'ss01' 1,
       'ss08' 1;
+  }
+
+  [contenteditable='true'] {
+    text-wrap: stable;
   }
 
   /* Don't animate if user has requested reduced motion. */
@@ -207,6 +209,26 @@
     ::view-transition-old(*),
     ::view-transition-new(*) {
       animation: none !important;
+    }
+  }
+
+  /* ---- Native sub and superscripts ---- */
+  @supports (font-variant-position: sub) {
+    sub,
+    .sub {
+      vertical-align: baseline;
+      font-size: 100%;
+      line-height: inherit;
+      font-variant-position: sub;
+    }
+  }
+  @supports (font-variant-position: super) {
+    sup,
+    .sup {
+      vertical-align: baseline;
+      font-size: 100%;
+      line-height: inherit;
+      font-variant-position: super;
     }
   }
 
@@ -323,11 +345,20 @@
       @apply fill-secondary;
     }
   }
+
+  .emoji-color {
+    font-variant-emoji: emoji;
+  }
+
+  .emoji-mono {
+    font-variant-emoji: text;
+  }
 }
 
 /* For formatting article content. */
 @utility prose-article {
   @apply prose mt-4 ugc-remove-trackers max-w-none overflow-x-clip px-2 font-serif wrap-break-word hyphens-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-headings:text-balance prose-table:font-sans prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
+  font-variant-numeric: oldstyle-nums proportional-nums;
 
   p {
     @apply text-pretty;
