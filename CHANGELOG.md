@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.256.0](https://github.com/immanent-tech/foragd/compare/v0.255.3...v0.256.0) (2026-11-09)
+
+
+### Features
+
+* ♻️ rework list and search parameters ([037be4b](https://github.com/immanent-tech/foragd/commit/037be4b1531449ef132dd9a973090a46599484d5))
+* ➕ add functionality to stop updating a feed if it has been disabled ([aefd629](https://github.com/immanent-tech/foragd/commit/aefd629b84dfd07ff1e3b1cfccccfd94830cb4d9))
+* **styles:** 🎨 tweak styles ([08c60a6](https://github.com/immanent-tech/foragd/commit/08c60a6b0c528e78d2cd7c015c1d956e5605dc78))
+
+
+### Bug Fixes
+
+* 🔧 fix show suggestions when no subscriptions found but articles found ([88c610a](https://github.com/immanent-tech/foragd/commit/88c610a451d0fc4eaef700da763d0b0c9c99af5a))
+* **handlers/search:** 🔧 don't return any error for search suggestion failures, just log ([38bfe93](https://github.com/immanent-tech/foragd/commit/38bfe93f5ad3d05c94bc932fd7a2f1f6f8bad4e6))
+* **handlers/search:** 🔧 properly paginate search results ([94495fb](https://github.com/immanent-tech/foragd/commit/94495fb542eb837bca6f5db784743c86ecb15dd1))
+* **handlers/subscriptions:** 🗑️ remove debugging statement ([3ecd83d](https://github.com/immanent-tech/foragd/commit/3ecd83d9b5c0cb03f0767cf1190168b74f119363))
+* **handlers:** 🔧 report plain error when no APIError is found ([2b7d925](https://github.com/immanent-tech/foragd/commit/2b7d925e74cb318145af39704c51ced214b4aac9))
+* **middlewares:** 🔧 fix list filter logic ([5460de2](https://github.com/immanent-tech/foragd/commit/5460de28df782a888f0c6c26c339346619b4e827))
+* **middlewares:** 🔧 fix replace path for search pagination ([b4963dc](https://github.com/immanent-tech/foragd/commit/b4963dcaf6bf2c35580d535ca5add03ab330a690))
+* **models/articles:** 🔧 always lint html article content ([e5cb48d](https://github.com/immanent-tech/foragd/commit/e5cb48d54705abcf68042453079d1ba47468941b))
+* **models:** 🔧 handle paginating subscriptions when number of subscriptions is less than default pagination range ([c77a678](https://github.com/immanent-tech/foragd/commit/c77a6781a341883b402fb79b40aaa3e2ae0dcc34))
+
+
+### Performance Improvements
+
+* **service:** ➕ add tracing to a few more methods ([298c15f](https://github.com/immanent-tech/foragd/commit/298c15f4f8849ec36d456dd32200fc10ea6e4f63))
+
 ## [0.255.3](https://github.com/immanent-tech/foragd/compare/v0.255.2...v0.255.3) (2026-11-05)
 
 
