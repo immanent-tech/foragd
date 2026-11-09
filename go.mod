@@ -20,9 +20,10 @@ require (
 	github.com/PaddleHQ/paddle-go-sdk/v5 v5.2.0
 	github.com/PuerkitoBio/goquery v1.13.0
 	github.com/a-h/templ v0.3.1100
-	github.com/alecthomas/kong v1.16.1
+	github.com/alecthomas/kong v1.17.0
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/auth0/go-auth0/v2 v2.14.0
+	github.com/brianvoe/gofakeit/v7 v7.18.1
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/dimmerz92/go-icons v0.77.0
@@ -38,7 +39,7 @@ require (
 	github.com/immanent-tech/go-base v0.0.0
 	github.com/immanent-tech/go-syndication v0.0.0
 	github.com/indaco/teseo v0.2.5
-	github.com/jferrl/go-githubauth v1.9.1
+	github.com/jferrl/go-githubauth v1.11.0
 	github.com/joho/godotenv v1.5.1
 	github.com/justinas/alice v1.2.0
 	github.com/magefile/mage v1.17.2
@@ -91,7 +92,6 @@ require (
 	github.com/bep/godartsass/v2 v2.5.0 // indirect
 	github.com/bep/golibsass v1.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.24.5 // indirect
-	github.com/brianvoe/gofakeit/v7 v7.18.1
 	github.com/brunoga/deep v1.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
