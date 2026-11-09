@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   version: 1.0.0
   title: Jobs schema for Foragd App
@@ -155,14 +155,6 @@ components:
         deleted:
           description: indicates that the feed associated with this job has been deleted since the last run.
           type: boolean
-        blocked:
-          description: indicates the feed has been manually blocked from being updated.
-          type: boolean
-        blocked_reason:
-          description: is the reason why the job is blocked.
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: "required_if=Blocked true"
     DeleteExpiredSessionsJob:
       description: represents the data needed for a delete expired sessions job.
       type: object

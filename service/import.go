@@ -358,6 +358,15 @@ func (i *ImportService) checkFeeds(
 			)),
 		)
 	case len(existingFeeds) == 1:
+		// If the existing feed has fetching disabled, re-enable fetching.
+		if !feed.FetchAllowed() {
+			feed.SetFetchAllowed(true)
+			if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
+				slogctx.Warn(ctx, "Could not re-enable disabled feed.", slog.Any("error", err))
+			} else {
+				slogctx.Info(ctx, "Re-enabled disabled feed.")
+			}
+		}
 		// There is an existing feed. Return its details but do not set create flag.
 		return feed, false, nil
 	default:

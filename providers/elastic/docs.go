@@ -125,7 +125,7 @@ func CreateDoc[T ~string, O any](
 	return nil
 }
 
-// CreateDoc will create the given document, with given id, in the given index.
+// IndexDoc will index the given document, with given id, in the given index.
 func IndexDoc[T ~string, O any](
 	ctx context.Context,
 	index string,

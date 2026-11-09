@@ -72,16 +72,6 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		return fmt.Errorf("validate job data: %w", err)
 	}
 
-	// Skip if this feed job has been manually blocked.
-	if data.Blocked {
-		reason := "unspecified"
-		if data.BlockedReason != nil {
-			reason = *data.BlockedReason
-		}
-		slogctx.Warn(ctx, "Skipping blocked feed.", slog.String("reason", reason))
-		return nil
-	}
-
 	// Skip if there is an active job for this feed.
 	if _, loaded := feedsInFlight.LoadOrStore(data.FeedID, struct{}{}); loaded {
 		return nil
@@ -117,6 +107,12 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 
 	// Add additional feed details to logs.
 	ctx = slogctx.With(ctx, "feed_name", details.GetTitle())
+
+	// Stop updates if fetching is disabled.
+	if !details.FetchAllowed() {
+		slogctx.Warn(ctx, "Fetching disabled for feed.")
+		return nil
+	}
 
 	slogctx.Info(ctx, "Running update feed job.")
 	// Get new feed data.

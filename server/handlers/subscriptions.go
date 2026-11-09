@@ -829,6 +829,15 @@ func (m *Manager) HandleAddNewFeedSubscription(
 				slog.String("feed_id", feed.GetID()),
 				slog.String("feed_title", feed.GetTitle()),
 			)
+		} else {
+			if !feed.FetchAllowed() {
+				feed.SetFetchAllowed(true)
+				if err := feedSvc.UpdateFeed(req.Context(), feed); err != nil {
+					slogctx.Warn(req.Context(), "Could not re-enable disabled feed.", slog.Any("error", err))
+				} else {
+					slogctx.Info(req.Context(), "Re-enabled disabled feed.")
+				}
+			}
 		}
 
 		// Create a new subscription.

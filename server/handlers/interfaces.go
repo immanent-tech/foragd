@@ -52,9 +52,9 @@ type FeedService interface {
 	SuggestYoutubeFeeds(ctx context.Context, text string) (*models.SuggestFeedsResults, error)
 	SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFeedsResults, error)
 	SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*models.SuggestFeedsResults, error)
-	FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, error)
 	FetchFeed(ctx context.Context, feedURL string, options ...service.FetchOption) (*models.Feed, error)
 	GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error)
+	UpdateFeed(ctx context.Context, feed *models.Feed) error
 }
 
 type SubscriptionsService interface {

@@ -323,6 +323,51 @@ func (f Feed) GetUpdateInterval() time.Duration {
 	return interval
 }
 
+// FetchAllowed returns a boolean indicating whether fetching is allowed for the feed.
+func (f *Feed) FetchAllowed() bool {
+	switch f.FetchMethod {
+	case FeedFetchMethodDirect:
+		opts, err := f.FetchOptions.AsFetchDirectOptions()
+		if err != nil {
+			return false
+		}
+		return opts.Disabled
+	case FeedFetchMethodProxied, FeedFetchMethodZyteArticles:
+		opts, err := f.FetchOptions.AsFetchZyteOptions()
+		if err != nil {
+			return false
+		}
+		return opts.Disabled
+	default:
+		return true
+	}
+}
+
+// SetFetchAllowed sets the fetch status of the Feed. If true, fetching will be disabled.
+func (f *Feed) SetFetchAllowed(value bool) error {
+	switch f.FetchMethod {
+	case FeedFetchMethodDirect:
+		opts, err := f.FetchOptions.AsFetchDirectOptions()
+		if err != nil {
+			return fmt.Errorf("get fetch options: %w", err)
+		}
+		opts.Disabled = value
+		if err := f.FetchOptions.FromFetchDirectOptions(opts); err != nil {
+			return fmt.Errorf("set fetch options: %w", err)
+		}
+	case FeedFetchMethodProxied, FeedFetchMethodZyteArticles:
+		opts, err := f.FetchOptions.AsFetchZyteOptions()
+		if err != nil {
+			return fmt.Errorf("get fetch options: %w", err)
+		}
+		opts.Disabled = value
+		if err := f.FetchOptions.FromFetchZyteOptions(opts); err != nil {
+			return fmt.Errorf("set fetch options: %w", err)
+		}
+	}
+	return nil
+}
+
 // SetDirectFetchOptions will set the given options for direct fetching on the feed.
 func (f *Feed) SetDirectFetchOptions(options ...DirectFetchOption) {
 	for option := range slices.Values(options) {

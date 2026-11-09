@@ -33,21 +33,11 @@ import (
 )
 
 type FeedArgs struct {
-	DirectFetchArgs `embed:""`
-	ZyteFetchArgs   `embed:""`
-
 	Name           *string `help:"Optional name of the feed"                   optional:""`
 	Description    *string `help:"Optional description of the feed"            optional:""`
 	Categories     *string `help:"Optional comma-separated list of categories" optional:""`
 	UpdateInterval *string `help:"update interval for feed"                    optional:""`
-}
-
-type DirectFetchArgs struct {
-	models.FetchDirectOptions
-}
-
-type ZyteFetchArgs struct {
-	models.FetchZyteOptions `embed:""`
+	Disable        *bool   `help:"disable fetching"                            optional:""`
 }
 
 // FeedCmd contains subcommands for interacting with feeds.
@@ -211,9 +201,9 @@ func (c *EditFeedCmd) Run() error {
 		return fmt.Errorf("edit display: %w", err)
 	}
 
-	// Apply any fetch method change.
-	if err := editFetchMethod(c.FeedArgs, feed); err != nil {
-		return fmt.Errorf("edit fetch method: %w", err)
+	// Apply any fetch change.
+	if err := editFetch(c.FeedArgs, feed); err != nil {
+		return fmt.Errorf("edit fetch: %w", err)
 	}
 
 	// Update feed.
@@ -257,52 +247,13 @@ func editDisplay(edits FeedArgs, feed *models.Feed) error {
 	return nil
 }
 
-func editFetchMethod(edits FeedArgs, feed *models.Feed) error {
-	// Edit fetch method.
-	switch feed.FetchMethod {
-	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
-		if feed.FetchOptions != nil {
-			// Compare and update fetch options if needed.
-			currentFetchOptions, err := feed.FetchOptions.AsFetchDirectOptions()
-			if err != nil {
-				return fmt.Errorf("extract fetch options: %w", err)
+func editFetch(edits FeedArgs, feed *models.Feed) error {
+	if edits.Disable != nil {
+		disable := *edits.Disable
+		if feed.FetchAllowed() != disable {
+			if err := feed.SetFetchAllowed(disable); err != nil {
+				return fmt.Errorf("update disabled: %w", err)
 			}
-			if edits.DirectFetchArgs.FetchItemSummaries != currentFetchOptions.FetchItemSummaries {
-				newFetchOptions := models.Feed_FetchOptions{}
-				if err := newFetchOptions.FromFetchDirectOptions(edits.DirectFetchArgs.FetchDirectOptions); err != nil {
-					return fmt.Errorf("update direct fetch options: %w", err)
-				}
-				feed.FetchOptions = &newFetchOptions
-			}
-		} else {
-			// Add new fetch options.
-			newFetchOptions := models.Feed_FetchOptions{}
-			if err := newFetchOptions.FromFetchDirectOptions(edits.DirectFetchArgs.FetchDirectOptions); err != nil {
-				return fmt.Errorf("update direct fetch options: %w", err)
-			}
-			feed.FetchOptions = &newFetchOptions
-		}
-	case models.FeedFetchMethodZyteArticles:
-		currentFetchOptions, err := feed.FetchOptions.AsFetchZyteOptions()
-		if err != nil {
-			return fmt.Errorf("extract fetch options: %w", err)
-		}
-		var changed bool
-		if currentFetchOptions.ExtractFrom != nil && edits.ZyteFetchArgs.ExtractFrom != nil {
-			if *currentFetchOptions.ExtractFrom != *edits.ZyteFetchArgs.ExtractFrom {
-				currentFetchOptions.ExtractFrom = edits.ZyteFetchArgs.ExtractFrom
-				changed = true
-			}
-		} else if edits.ZyteFetchArgs.ExtractFrom != nil {
-			currentFetchOptions = edits.ZyteFetchArgs.FetchZyteOptions
-			changed = true
-		}
-		if changed {
-			newFetchOptions := models.Feed_FetchOptions{}
-			if err := newFetchOptions.FromFetchZyteOptions(currentFetchOptions); err != nil {
-				return fmt.Errorf("update zyte fetch options: %w", err)
-			}
-			feed.FetchOptions = &newFetchOptions
 		}
 	}
 	return nil
@@ -470,9 +421,6 @@ func (c *AddFeedCmd) Run() error {
 	case models.FeedFetchMethodZyteArticles:
 		// Parse the extraction options.
 		extractFrom := zyte.ExtractFromHttpResponseBody
-		if c.ZyteFetchArgs.ExtractFrom != nil {
-			extractFrom = *c.ZyteFetchArgs.ExtractFrom
-		}
 		// Fetch the details with Zyte.
 		resp, err := zyte.Proxy(
 			ctx,

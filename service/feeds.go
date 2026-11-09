@@ -836,64 +836,6 @@ func (s *FeedService) SuggestFeeds(
 	return suggestions, nil
 }
 
-// FindOrCreateFeed will either generate a new feed or return the existing feed for the given URL. If the feed is new,
-// the boolean return value will be true.
-func (s *FeedService) FindOrCreateFeed(
-	ctx context.Context,
-	feedURL string,
-) (*models.Feed, bool, error) {
-	// Fetch from URL as feed.
-	newFeed, err := s.FetchFeed(ctx, feedURL)
-	if err != nil {
-		return nil, false, fmt.Errorf("fetch new feed: %w", err)
-	}
-	// Create terms queries to match the new feed to an existing feed.
-	var terms []query.Option
-	for url := range slices.Values(newFeed.GetSourceURLs()) {
-		terms = append(terms, query.Term("source_urls", url))
-		// Also match url with trailing slash.
-		if !strings.HasSuffix(url, "/") {
-			terms = append(terms, query.Term("source_urls", url+"/"))
-		}
-	}
-	terms = append(terms, query.Term("url", newFeed.GetLink()))
-	// Also match url with trailing slash.
-	if !strings.HasSuffix(newFeed.GetLink(), "/") {
-		terms = append(terms, query.Term("source_urls", newFeed.GetLink()+"/"))
-	}
-	// Find any existing feed.
-	resp, err := elastic.Search[*models.Feed](ctx,
-		s.store.GetIndexRO(FeedsIndex),
-		elastic.WithQuery[*search.Search](
-			query.Bool(
-				query.Filter(
-					query.Bool(
-						query.Should(terms...),
-					),
-				),
-			),
-		),
-		elastic.WithSize[*search.Search](1),
-	)
-	if err != nil {
-		return nil, false, fmt.Errorf("search existing feeds: %w", err)
-	}
-	if len(resp.Results) == 1 {
-		// If an existing feed is found, use that feed.
-		return resp.Results[0], false, nil
-	}
-	if len(resp.Results) > 1 {
-		matches := make([]string, 0, len(resp.Results))
-		for result := range slices.Values(resp.Results) {
-			matches = append(matches, result.GetID())
-		}
-		slogctx.Warn(ctx, "Multiple feeds match new URL.",
-			slog.String("matches", strings.Join(matches, ",")))
-	}
-	// Otherwise use the new feed.
-	return newFeed, true, nil
-}
-
 // GenerateOPML generates an OPML file of the feeds listed by the given IDs.
 func (s *FeedService) GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error) {
 	feeds, err := s.GetFeeds(ctx, feedIDs...)
@@ -1610,10 +1552,10 @@ func (s *FeedService) FetchFeedUpdatesAsArticles(
 	}
 
 	// Get any extraction options from the feed.
-	var extractOptions zyte.ExtractOptions
+	var fetchOptions models.FetchZyteOptions
 	if details.FetchOptions != nil {
 		var err error
-		extractOptions, err = details.FetchOptions.AsFetchZyteOptions()
+		fetchOptions, err = details.FetchOptions.AsFetchZyteOptions()
 		if err != nil {
 			return nil, "", fmt.Errorf("extract fetch options: %w", err)
 		}
@@ -1621,8 +1563,8 @@ func (s *FeedService) FetchFeedUpdatesAsArticles(
 
 	// Set from where the list will be extracted.
 	extractFrom := zyte.ExtractFromHttpResponseBody
-	if extractOptions.ExtractFrom != nil {
-		extractFrom = *extractOptions.ExtractFrom
+	if fetchOptions.ExtractFrom != nil {
+		extractFrom = *fetchOptions.ExtractFrom
 	}
 
 	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
@@ -1633,7 +1575,9 @@ func (s *FeedService) FetchFeedUpdatesAsArticles(
 			ctx,
 			feedURL,
 			zyte.WithExtractFrom(extractFrom),
-			zyte.AsArticleList(&extractOptions),
+			zyte.AsArticleList(&zyte.ExtractOptions{
+				ExtractFrom: &extractFrom,
+			}),
 			zyte.WithTag("feed_id", details.GetID()),
 			zyte.WithTag("action", "update_feed"),
 		)

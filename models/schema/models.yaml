@@ -742,19 +742,31 @@ components:
               $ref: "#/components/schemas/FeedCustomisation"
       x-oapi-codegen-extra-tags:
         validate: "validateFn"
+    FetchCommonOptions:
+      description: contains fetch options common across all fetch methods.
+      type: object
+      properties:
+        disabled:
+          description: indicates that fetching has been disabled.
+          type: boolean
+          x-go-type-skip-optional-pointer: true
     FetchDirectOptions:
       description: contains information to assist with direct feed fetching.
       type: object
-      properties:
-        fetch_item_summaries:
-          description: >
-            when set to true, indicates that item summaries should be fetched separately when updating the feed. Useful
-            to set for feeds known to have no item summaries (i.e., Hacker News, Lobste.rs).
-          type: boolean
-          x-go-type-skip-optional-pointer: true
+      allOf:
+        - $ref: "#/components/schemas/FetchCommonOptions"
+        - type: object
+          properties:
+            fetch_item_summaries:
+              description: >
+                when set to true, indicates that item summaries should be fetched separately when updating the feed. Useful
+                to set for feeds known to have no item summaries (i.e., Hacker News, Lobste.rs).
+              type: boolean
+              x-go-type-skip-optional-pointer: true
     FetchZyteOptions:
       description: contains information to assist with Zyte feed fetching.
       allOf:
+        - $ref: "#/components/schemas/FetchCommonOptions"
         - $ref: "../../base/pkg/zyte/zyte.yaml#/components/schemas/ExtractOptions"
     YoutubeFeedData:
       description: >
