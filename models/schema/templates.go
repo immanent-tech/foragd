@@ -235,6 +235,7 @@ var (
 						templates.WithDatetimeMapping("created_at"),
 						templates.WithDatetimeMapping("last_fetched"),
 						templates.WithInt64Mapping("update_interval"),
+						templates.WithBooleanMapping("updates_disabled"),
 						templates.WithKeywordMapping("source_urls"),
 						templates.WithKeywordMapping("fetch_method"),
 						templates.WithFlattenedMapping("fetch_options"),
