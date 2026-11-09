@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.256.1](https://github.com/immanent-tech/foragd/compare/v0.256.0...v0.256.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* 🔧 expose disabled field on feed directly ([e79896f](https://github.com/immanent-tech/foragd/commit/e79896f455caa40f2a1a3357c537e1f107c37ebc))
+
 ## [0.256.0](https://github.com/immanent-tech/foragd/compare/v0.255.3...v0.256.0) (2026-11-09)
 
 
