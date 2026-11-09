@@ -249,11 +249,8 @@ func editDisplay(edits FeedArgs, feed *models.Feed) error {
 
 func editFetch(edits FeedArgs, feed *models.Feed) error {
 	if edits.Disable != nil {
-		disable := *edits.Disable
-		if feed.FetchAllowed() != disable {
-			if err := feed.SetFetchAllowed(disable); err != nil {
-				return fmt.Errorf("update disabled: %w", err)
-			}
+		if feed.IsDisabled() != *edits.Disable {
+			feed.SetDisabled(*edits.Disable)
 		}
 	}
 	return nil

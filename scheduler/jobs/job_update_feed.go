@@ -109,7 +109,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	ctx = slogctx.With(ctx, "feed_name", details.GetTitle())
 
 	// Stop updates if fetching is disabled.
-	if !details.FetchAllowed() {
+	if details.IsDisabled() {
 		slogctx.Warn(ctx, "Fetching disabled for feed.")
 		return nil
 	}

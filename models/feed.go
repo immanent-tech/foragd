@@ -59,6 +59,15 @@ func (f Feeds) ExcludeIDs(ids ...FeedID) Feeds {
 	)
 }
 
+// FilterDisabled returns a new slice containing only the feeds which ARE NOT disabled.
+func (f Feeds) FilterDisabled() Feeds {
+	return slices.Collect(
+		FilterSlice(f, func(e *Feed) bool {
+			return !e.IsDisabled()
+		}),
+	)
+}
+
 // GetCategories returns all categories across all the subscriptions. Duplicates are removed.
 func (f Feeds) GetCategories() Categories {
 	categories := make(Categories, 0)
@@ -323,49 +332,14 @@ func (f Feed) GetUpdateInterval() time.Duration {
 	return interval
 }
 
-// FetchAllowed returns a boolean indicating whether fetching is allowed for the feed.
-func (f *Feed) FetchAllowed() bool {
-	switch f.FetchMethod {
-	case FeedFetchMethodDirect:
-		opts, err := f.FetchOptions.AsFetchDirectOptions()
-		if err != nil {
-			return false
-		}
-		return opts.Disabled
-	case FeedFetchMethodProxied, FeedFetchMethodZyteArticles:
-		opts, err := f.FetchOptions.AsFetchZyteOptions()
-		if err != nil {
-			return false
-		}
-		return opts.Disabled
-	default:
-		return true
-	}
+// IsDisabled returns a boolean indicating whether fetching is allowed for the feed.
+func (f Feed) IsDisabled() bool {
+	return f.UpdatesDisabled
 }
 
-// SetFetchAllowed sets the fetch status of the Feed. If true, fetching will be disabled.
-func (f *Feed) SetFetchAllowed(value bool) error {
-	switch f.FetchMethod {
-	case FeedFetchMethodDirect:
-		opts, err := f.FetchOptions.AsFetchDirectOptions()
-		if err != nil {
-			return fmt.Errorf("get fetch options: %w", err)
-		}
-		opts.Disabled = value
-		if err := f.FetchOptions.FromFetchDirectOptions(opts); err != nil {
-			return fmt.Errorf("set fetch options: %w", err)
-		}
-	case FeedFetchMethodProxied, FeedFetchMethodZyteArticles:
-		opts, err := f.FetchOptions.AsFetchZyteOptions()
-		if err != nil {
-			return fmt.Errorf("get fetch options: %w", err)
-		}
-		opts.Disabled = value
-		if err := f.FetchOptions.FromFetchZyteOptions(opts); err != nil {
-			return fmt.Errorf("set fetch options: %w", err)
-		}
-	}
-	return nil
+// SetDisabled sets the fetch status of the Feed. If true, fetching will be disabled.
+func (f *Feed) SetDisabled(value bool) {
+	f.UpdatesDisabled = value
 }
 
 // SetDirectFetchOptions will set the given options for direct fetching on the feed.

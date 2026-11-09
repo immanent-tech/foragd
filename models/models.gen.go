@@ -658,6 +658,9 @@ type Feed struct {
 	// Updated is the datetime at which the feed or item was updated.
 	Updated *time.Time `json:"updated,omitempty"`
 
+	// UpdatesDisabled indicates whether updating this feed has been disabled
+	UpdatesDisabled bool `json:"updates_disabled,omitempty"`
+
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url,omitempty" validate:"omitempty,url"`
 }
@@ -726,33 +729,14 @@ type FeedSubscription struct {
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 }
 
-// FetchCommonOptions contains fetch options common across all fetch methods.
-type FetchCommonOptions struct {
-	// Disabled indicates that fetching has been disabled.
-	Disabled bool `json:"disabled,omitempty"`
-}
-
 // FetchDirectOptions contains information to assist with direct feed fetching.
 type FetchDirectOptions struct {
-	// Disabled indicates that fetching has been disabled.
-	Disabled bool `json:"disabled,omitempty"`
-
 	// FetchItemSummaries when set to true, indicates that item summaries should be fetched separately when updating the feed. Useful to set for feeds known to have no item summaries (i.e., Hacker News, Lobste.rs).
 	FetchItemSummaries bool `json:"fetch_item_summaries,omitempty"`
 }
 
 // FetchZyteOptions contains information to assist with Zyte feed fetching.
-type FetchZyteOptions struct {
-	// Disabled indicates that fetching has been disabled.
-	Disabled bool `json:"disabled,omitempty"`
-
-	// ExtractFrom is the extraction source.
-	// httpResponseBody extracts from httpResponseBody. It is usually faster and cheaper.
-	// browserHtmlOnly extracts from browserHtml. It typically improves quality over httpResponseBody on JavaScript-heavy web pages.
-	// browserHtml extracts from both browserHtml and visual features of the rendered web page. It typically improves quality over browserHtmlOnly, but is not as robust in case of rendering issues.
-	// If not specified, browserHtml is currently used by default for AI extraction, while httpResponseBody is used by default for non-AI extraction. In the future, the default value may depend on the target website.
-	ExtractFrom *externalRef0.ExtractFrom `json:"extractFrom" validate:"omitempty,oneof=httpResponseBody browserHtml browserHtmlOnly"`
-}
+type FetchZyteOptions = externalRef0.ExtractOptions
 
 // GetSubscriptionsSuggestionRequest contains the data for finding matching subscriptions as suggestion results.
 type GetSubscriptionsSuggestionRequest struct {
