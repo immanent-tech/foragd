@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.256.2](https://github.com/immanent-tech/foragd/compare/v0.256.1...v0.256.2) (2026-11-09)
+
+
+### Bug Fixes
+
+* **assets:** 🔧 add processed styles ([293551a](https://github.com/immanent-tech/foragd/commit/293551a9190bb0a14febc436e65d38ecf3b8a974))
+
 ## [0.256.1](https://github.com/immanent-tech/foragd/compare/v0.256.0...v0.256.1) (2026-11-09)
 
 
