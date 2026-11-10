@@ -46,6 +46,7 @@ require (
 	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/maypok86/otter/v2 v2.4.0
 	github.com/oapi-codegen/runtime v1.8.0
+	github.com/opensearch-project/opensearch-go/v5 v5.2.0
 	github.com/resend/resend-go/v3 v3.17.0
 	github.com/reugn/go-quartz v0.15.2
 	github.com/riandyrn/otelchi v0.12.3
@@ -177,6 +178,7 @@ require (
 	github.com/prometheus/common v0.72.0 // indirect
 	github.com/prometheus/otlptranslator v1.0.0 // indirect
 	github.com/prometheus/procfs v0.22.0 // indirect
+	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529 // indirect
 	github.com/rs/zerolog v1.34.0 // indirect
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/slog-common v0.22.0 // indirect
