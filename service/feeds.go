@@ -488,15 +488,20 @@ func (s *FeedService) updateFeedData(ctx context.Context, oldData, newData *mode
 	if len(newData.Categories) > 0 {
 		slices.Sort(newData.Categories)
 		if !slices.Equal(newData.Categories, oldData.Categories) {
+			// Combine the old and new categories.
 			newData.Categories = append(newData.Categories, oldData.Categories...)
 			newData.Categories = slices.Compact(newData.Categories)
+			// Truncate long feed category lists.
+			if len(newData.Categories) > 100 {
+				newData.Categories = newData.Categories[:100]
+			}
 			changes["categories"] = Change{Old: oldData.GetCategories(), New: newData.GetCategories()}
 		}
 	} else {
 		newData.Categories = oldData.Categories
 	}
 	if len(newData.Categories) == 0 {
-		slogctx.Info(ctx, "Feed has no categories. Categorizing...")
+		slogctx.Debug(ctx, "Feed has no categories. Needs categorizing.")
 	}
 	// // If the feed does not have categories, use the classifier to generate some.
 	// if len(oldData.GetCategories()) == 0 {
