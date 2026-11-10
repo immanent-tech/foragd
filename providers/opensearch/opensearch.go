@@ -30,7 +30,7 @@ func NewRequestHeaders(ctx context.Context) http.Header {
 type Client struct {
 	*opensearchapi.Client
 
-	appCfg *config.AppConfig
+	environment string
 }
 
 var GetClient = sync.OnceValues(func() (*Client, error) {
@@ -39,7 +39,8 @@ var GetClient = sync.OnceValues(func() (*Client, error) {
 		return nil, fmt.Errorf("load app config: %w", err)
 	}
 
-	if err := loadConfigOnce(); err != nil {
+	cfg, err := loadConfigOnce()
+	if err != nil {
 		return nil, fmt.Errorf("load config: %w", err)
 	}
 
@@ -55,5 +56,5 @@ var GetClient = sync.OnceValues(func() (*Client, error) {
 		return nil, fmt.Errorf("create client: %w", err)
 	}
 
-	return &Client{Client: client, appCfg: appCfg}, nil
+	return &Client{Client: client, environment: appCfg.GetAppEnvironment().String()}, nil
 })

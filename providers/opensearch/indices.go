@@ -33,25 +33,28 @@ func (i Index) String() string {
 
 // IndexReadAlias returns the read alias for the given [Index].
 func (c *Client) IndexReadAlias(name Index) string {
-	return name.String() + "_" + c.appCfg.GetAppEnvironment().String() + "_" + indexReadSuffix
+	return name.String() + "_" + c.environment + "_" + indexReadSuffix
 }
 
 // IndexWriteAlias returns the write alias for the given [Index].
 func (c *Client) IndexWriteAlias(name Index) string {
-	return name.String() + "_" + c.appCfg.GetAppEnvironment().String() + "_" + indexWriteSuffix
+	return name.String() + "_" + c.environment + "_" + indexWriteSuffix
 }
 
 // IndexCanonicalName returns a unique, time-stamped [Index] name that should be used for all underlying index management
 // requests.
 func (c *Client) IndexCanonicalName(name Index) string {
 	return strings.Join(
-		[]string{name.String(), c.appCfg.GetAppEnvironment().String(), time.Now().Format("20060102150405"), "000000"},
+		[]string{name.String(), c.environment, time.Now().Format("20060102150405"), "000000"},
 		"-",
 	)
 }
 
 // CreateIndexTemplate creates the given index template. If it already exists, it will be overridden.
 func (c *Client) CreateIndexTemplate(ctx context.Context, req opensearchapi.IndicesPutIndexTemplateReq) error {
+	if req.Header == nil {
+		req.Header = NewRequestHeaders(ctx)
+	}
 	if resp, err := c.Indices.PutIndexTemplate(ctx, req); err != nil {
 		return HandleError("put index template", resp, err)
 	}
@@ -60,6 +63,9 @@ func (c *Client) CreateIndexTemplate(ctx context.Context, req opensearchapi.Indi
 
 // CreateComponentTemplate creates the given component template. If it already exists, it will be overridden.
 func (c *Client) CreateComponentTemplate(ctx context.Context, req opensearchapi.ClusterPutComponentTemplateReq) error {
+	if req.Header == nil {
+		req.Header = NewRequestHeaders(ctx)
+	}
 	if resp, err := c.Cluster.PutComponentTemplate(ctx, req); err != nil {
 		return HandleError("put component template", resp, err)
 	}
@@ -70,7 +76,7 @@ func (c *Client) CreateComponentTemplate(ctx context.Context, req opensearchapi.
 // and recreated. Otherwise, it is created.
 func (c *Client) UpdateIndexAlias(ctx context.Context, alias, index string, asWriteIndex bool) error {
 	// Get all existing aliases.
-	getAliasResp, err := c.Indices.GetAlias(ctx, &opensearchapi.IndicesGetAliasReq{})
+	getAliasResp, err := c.Indices.GetAlias(ctx, &opensearchapi.IndicesGetAliasReq{Header: NewRequestHeaders(ctx)})
 	if err != nil {
 		return HandleError("get alias", getAliasResp, err)
 	}
@@ -106,7 +112,7 @@ func (c *Client) UpdateIndexAlias(ctx context.Context, alias, index string, asWr
 // error is returned if this cannot be determined.
 func (c *Client) AliasExists(ctx context.Context, alias string) (bool, error) {
 	// Get the existing alias details.
-	getAliasResp, err := c.Indices.GetAlias(ctx, &opensearchapi.IndicesGetAliasReq{})
+	getAliasResp, err := c.Indices.GetAlias(ctx, &opensearchapi.IndicesGetAliasReq{Header: NewRequestHeaders(ctx)})
 	if err != nil {
 		return false, HandleError("get alias", getAliasResp, err)
 	}
@@ -122,7 +128,10 @@ func (c *Client) AliasExists(ctx context.Context, alias string) (bool, error) {
 // CreateIndexIfNotExists will create the given index if it does not exist. If the index exists, the request will be a
 // no-op.
 func (c *Client) CreateIndexIfNotExists(ctx context.Context, index string) error {
-	getIndexResp, err := c.Indices.Get(ctx, &opensearchapi.IndicesGetReq{Indices: []string{index}})
+	getIndexResp, err := c.Indices.Get(ctx, &opensearchapi.IndicesGetReq{
+		Indices: []string{index},
+		Header:  NewRequestHeaders(ctx),
+	})
 	if err != nil {
 		if getIndexResp.Inspect().Response != nil {
 			if getIndexResp.Inspect().Response.StatusCode != http.StatusNotFound {
@@ -137,7 +146,10 @@ func (c *Client) CreateIndexIfNotExists(ctx context.Context, index string) error
 		return nil
 	}
 
-	createIndexResp, err := c.Indices.Create(ctx, opensearchapi.IndicesCreateReq{Index: index})
+	createIndexResp, err := c.Indices.Create(ctx, opensearchapi.IndicesCreateReq{
+		Header: NewRequestHeaders(ctx),
+		Index:  index,
+	})
 	if err != nil {
 		return HandleError("create index", createIndexResp, err)
 	}

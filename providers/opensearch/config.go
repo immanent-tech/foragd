@@ -18,16 +18,10 @@ const (
 	opensearchConfigEnvPrefix = "OPENSEARCH_"
 )
 
-// cfg is the server config with default values.
-var cfg = Config{
-	DialTimeout: config.NewDuration(10 * time.Second),
-	ReadTimeout: config.NewDuration(30 * time.Second),
-}
-
 type Config struct {
-	User                string          `koanf:"user" validate:"required"`
-	Password            string          `koanf:"password" validate:"required"`
-	Hosts               []string        `koanf:"hosts" validate:"required,unique"`
+	User                string          `koanf:"user"                validate:"required"`
+	Password            string          `koanf:"password"            validate:"required"`
+	Hosts               []string        `koanf:"hosts"               validate:"required,unique"`
 	DialTimeout         config.Duration `koanf:"dialtimeout"`
 	ReadTimeout         config.Duration `koanf:"readtimeout"`
 	SkipTLSVerification bool            `koanf:"skiptlsverification"`
@@ -35,14 +29,18 @@ type Config struct {
 
 // loadConfigOnce loads the server configuration and ensures this is only done one time, no matter how many times it is
 // called.
-var loadConfigOnce = sync.OnceValue(func() error {
+var loadConfigOnce = sync.OnceValues(func() (*Config, error) {
+	var cfg = Config{
+		DialTimeout: config.NewDuration(10 * time.Second),
+		ReadTimeout: config.NewDuration(30 * time.Second),
+	}
 	// Load server configuration from environment, overwriting any defaults.
 	if err := config.Load(opensearchConfigEnvPrefix, &cfg); err != nil {
-		return fmt.Errorf("load server environment: %w", err)
+		return nil, fmt.Errorf("load server environment: %w", err)
 	}
 
 	if err := validation.Validate.Struct(cfg); err != nil {
-		return fmt.Errorf("validate config: %w", err)
+		return nil, fmt.Errorf("validate config: %w", err)
 	}
-	return nil
+	return &cfg, nil
 })
