@@ -121,15 +121,12 @@ services:
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:${OPENSEARCH_VERSION}
     container_name: foragd-opensearch-dashboards
+    volumes:
+      - ./data/opensearch_dashboards.yml:/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml
     ports:
       - 5601:5601
     expose:
       - 5601
-    environment:
-      OPENSEARCH_HOSTS: '["https://foragd-opensearch-node1:9200","https://foragd-opensearch-node2:9200"]'
-      DATA_SOURCE_ENABLED: "true"
-      WORKSPACE_ENABLE: "true"
-      EXPLORE_ENABLED: "true"
 
 volumes:
   foragd-opensearch-data1:
