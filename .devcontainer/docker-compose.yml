@@ -69,7 +69,71 @@ services:
         hard: 65535
       nproc: 65535
 
+  opensearch-node1:
+    env_file:
+      - .env
+    image: opensearchproject/opensearch:${OPENSEARCH_VERSION}
+    container_name: opensearch-node1
+    environment:
+      - cluster.name=foragd
+      - node.name=opensearch-node1
+      - discovery.seed_hosts=opensearch-node2,opensearch-node2
+      - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g"
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+    ulimits:
+      memlock:
+        soft: -1 # Set memlock to unlimited (no soft or hard limit)
+        hard: -1
+      nofile:
+        soft: 65536 # Maximum number of open files for the opensearch user - set to at least 65536
+        hard: 65536
+    volumes:
+      - opensearch-data1:/usr/share/opensearch/data
+    ports:
+      - 9200:9200 # REST API
+      - 9600:9600 # Performance Analyzer
+
+  opensearch-node2:
+    env_file:
+      - .env
+    image: opensearchproject/opensearch:${OPENSEARCH_VERSION}
+    container_name: opensearch-node2
+    environment:
+      - cluster.name=foragd
+      - node.name=opensearch-node2
+      - discovery.seed_hosts=opensearch-node2,opensearch-node2
+      - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g"
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+    ulimits:
+      memlock:
+        soft: -1 # Set memlock to unlimited (no soft or hard limit)
+        hard: -1
+      nofile:
+        soft: 65536 # Maximum number of open files for the opensearch user - set to at least 65536
+        hard: 65536
+    volumes:
+      - opensearch-data2:/usr/share/opensearch/data
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:${OPENSEARCH_VERSION}
+    container_name: opensearch-dashboards
+    ports:
+      - 5601:5601
+    expose:
+      - 5601
+    environment:
+      OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
+      DATA_SOURCE_ENABLED: "true"
+      WORKSPACE_ENABLE: "true"
+      EXPLORE_ENABLED: "true"
+
 volumes:
+  opensearch-data1:
+  opensearch-data2:
   foragd-datahome:
   foragd-node_modules:
   foragd-go-mod-cache:
