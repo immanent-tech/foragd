@@ -9,7 +9,7 @@ import (
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 )
 
-// Mappings is an index mapping definition
+// Mappings is an index mapping definition.
 type Mappings map[string]opensearchapi.CommonMappingProperty
 
 // MappingOption is a functional option applied to Mappings.

@@ -9,13 +9,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"slices"
 
 	"github.com/goforj/godump"
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/opensearch"
 )
 
@@ -23,18 +21,18 @@ const (
 	defaultPaginationSize = 5000
 )
 
+type Client interface {
+	Search(ctx context.Context, req *opensearchapi.SearchReq) (*opensearchapi.SearchResp, error)
+	Count(ctx context.Context, req *opensearchapi.CountReq) (*opensearchapi.CountResp, error)
+}
+
 // Search performs a _search request to find documents matching the given query.
 func Search(
 	ctx context.Context,
+	client Client,
 	index string,
 	options ...SearchOption,
 ) (*SearchResponse, error) {
-	// Connect to elasticsearch (if not already connected).
-	client, err := opensearch.GetClient()
-	if err != nil {
-		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("connect: %w", err))
-	}
-
 	req := &opensearchapi.SearchReq{
 		Indices: []string{index},
 		Header:  opensearch.NewRequestHeaders(ctx),
@@ -121,10 +119,10 @@ func (r *SearchResponse) Error() string {
 	return opensearch.GenerateAPIError("search", r).Error()
 }
 
-// ExtractSourceFromHits loops through the given hits array and extracts the `_source` field of each document as type
-// `T`, returning the document sources as an array `[]T`. If there was an issue extracting any source, it will also
-// return a non-nil error containing details. The sort value of the last hit will also be returned, which can be used
-// for pagination if needed.
+// ExtractHits loops through the given hits array and extracts the `_source` field of each document as type `T`,
+// returning the document sources as an array `[]T`. If there was an issue extracting any source, it will also return a
+// non-nil error containing details. The sort value of the last hit will also be returned, which can be used for
+// pagination if needed.
 func (r *SearchResponse) ExtractHits[T any]() ([]T, []opensearchapi.FieldValue, error) {
 	if r.IsError() {
 		return nil, nil, fmt.Errorf("extract hits: %w", r)
@@ -156,19 +154,15 @@ func (r *SearchResponse) ExtractHits[T any]() ([]T, []opensearchapi.FieldValue, 
 	return sources, lastSortValue, warnings
 }
 
-// Search performs a _search request to find documents matching the given query.
+// SearchAll performs a _search request to find documents matching the given query.
 func SearchAll(
 	ctx context.Context,
+	client Client,
 	index string,
 	paginationSize int,
 	queries []QueryOption,
 	options ...SearchOption,
 ) (*SearchAllResponse, error) {
-	client, err := opensearch.GetClient()
-	if err != nil {
-		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("connect: %w", err))
-	}
-
 	if paginationSize <= 0 {
 		paginationSize = defaultPaginationSize
 	}
@@ -285,13 +279,7 @@ func (r *SearchAllResponse) ExtractHits[T any]() ([]T, error) {
 	return allHits, warnings
 }
 
-func Count(ctx context.Context, index string, options ...CountOption) (int64, error) {
-	// Connect to elasticsearch (if not already connected).
-	client, err := opensearch.GetClient()
-	if err != nil {
-		return 0, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("connect: %w", err))
-	}
-
+func Count(ctx context.Context, client Client, index string, options ...CountOption) (int64, error) {
 	// Apply specified options.
 	body := &opensearchapi.CountBody{}
 	for option := range slices.Values(options) {

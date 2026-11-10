@@ -15,7 +15,6 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/goforj/godump"
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 
 	"github.com/immanent-tech/foragd/models"
@@ -29,20 +28,19 @@ var bufPool = sync.Pool{
 	},
 }
 
+type Client interface {
+	DeleteByQuery(ctx context.Context, req *opensearchapi.DeleteByQueryReq) (*opensearchapi.DeleteByQueryResp, error)
+}
+
 type Doc[T ~string] interface {
 	GetID() T
 }
 
 // Create will create the given document, with given id, in the given index.
-func Create[T ~string, O Doc[T]](ctx context.Context, index string, doc O) error {
-	client, err := opensearch.GetClient()
-	if err != nil {
-		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("connect: %w", err))
-	}
-
+func Create[T ~string, O Doc[T]](ctx context.Context, client opensearchapi.DocumentClient, index string, doc O) error {
 	bodyBuf, ok := bufPool.Get().(*bytes.Buffer)
 	if !ok {
-		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get buffer: %w", err))
+		return models.NewAPIError(http.StatusInternalServerError, errors.New("get buffer failed"))
 	}
 	bodyBuf.Reset()
 	defer bufPool.Put(bodyBuf)
@@ -58,7 +56,7 @@ func Create[T ~string, O Doc[T]](ctx context.Context, index string, doc O) error
 		Header: opensearch.NewRequestHeaders(ctx),
 	}
 
-	resp, err := client.Doc.Create(ctx, req)
+	resp, err := client.Create(ctx, req)
 	if err != nil {
 		return opensearch.HandleError("create doc", resp, err)
 	}
@@ -66,20 +64,15 @@ func Create[T ~string, O Doc[T]](ctx context.Context, index string, doc O) error
 }
 
 // Get will retrieve the document with the given ID from the given index.
-func Get[T ~string, O Doc[T]](ctx context.Context, index string, id T) (O, error) {
+func Get[T ~string, O Doc[T]](ctx context.Context, client opensearchapi.DocumentClient, index string, id T) (O, error) {
 	var doc O
-	client, err := opensearch.GetClient()
-	if err != nil {
-		return doc, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("connect: %w", err))
-	}
-
 	req := opensearchapi.GetReq{
 		Index:  index,
 		ID:     string(id),
 		Header: opensearch.NewRequestHeaders(ctx),
 	}
 
-	resp, err := client.Doc.Get(ctx, req)
+	resp, err := client.Get(ctx, req)
 	if !resp.Found {
 		return doc, errors.Join(models.ErrNotFound, err)
 	}
@@ -96,12 +89,14 @@ func Get[T ~string, O Doc[T]](ctx context.Context, index string, id T) (O, error
 }
 
 // Update will apply the updates to the doc with the given id.
-func Update[T ~string](ctx context.Context, index string, id T, doc any, options ...UpdateOption) error {
-	client, err := opensearch.GetClient()
-	if err != nil {
-		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("connect: %w", err))
-	}
-
+func Update[T ~string](
+	ctx context.Context,
+	client opensearchapi.DocumentClient,
+	index string,
+	id T,
+	doc any,
+	options ...UpdateOption,
+) error {
 	// Set any specified options for the request.
 	body := &opensearchapi.UpdateBody{}
 	for option := range slices.Values(options) {
@@ -111,7 +106,7 @@ func Update[T ~string](ctx context.Context, index string, id T, doc any, options
 	// Encode the updates.
 	bodyBuf, ok := bufPool.Get().(*bytes.Buffer)
 	if !ok {
-		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get buffer: %w", err))
+		return models.NewAPIError(http.StatusInternalServerError, errors.New("get buffer failed"))
 	}
 	bodyBuf.Reset()
 	defer bufPool.Put(bodyBuf)
@@ -129,10 +124,8 @@ func Update[T ~string](ctx context.Context, index string, id T, doc any, options
 		ID:     string(id),
 	}
 
-	godump.Dump(req.GetRequest("GET"))
-
 	// Perform the update.
-	_, err = client.Update(ctx, req)
+	_, err := client.Update(ctx, req)
 	if err != nil {
 		return fmt.Errorf("update doc: %w", err)
 	}
@@ -151,12 +144,13 @@ func WithDocAsUpsert(value bool) UpdateOption {
 }
 
 // Delete performs a document deletion request.
-func Delete[T ~string](ctx context.Context, index string, id T, options ...DeleteOption) error {
-	client, err := opensearch.GetClient()
-	if err != nil {
-		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("connect: %w", err))
-	}
-
+func Delete[T ~string](
+	ctx context.Context,
+	client opensearchapi.DocumentClient,
+	index string,
+	id T,
+	options ...DeleteOption,
+) error {
 	req := opensearchapi.DeleteReq{
 		Index:  index,
 		ID:     string(id),
@@ -168,7 +162,7 @@ func Delete[T ~string](ctx context.Context, index string, id T, options ...Delet
 		option(req.Params)
 	}
 
-	resp, err := client.Doc.Delete(ctx, req)
+	resp, err := client.Delete(ctx, req)
 	if err != nil {
 		return opensearch.GenerateAPIError("delete", resp)
 	}
@@ -194,12 +188,7 @@ func WithDeletePrimaryTerm(term int) DeleteOption {
 }
 
 // DeleteByQuery performs a delete by query request on the given index with the given options.
-func DeleteByQuery(ctx context.Context, index string, options ...DeleteByQueryOption) error {
-	client, err := opensearch.GetClient()
-	if err != nil {
-		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("connect: %w", err))
-	}
-
+func DeleteByQuery(ctx context.Context, client Client, index string, options ...DeleteByQueryOption) error {
 	// Set any specified options for the request.
 	body := &opensearchapi.DeleteByQueryBody{}
 	for option := range slices.Values(options) {

@@ -16,7 +16,10 @@ type ComponentTemplate struct {
 }
 
 // NewComponentTemplateRequest creates a new component template request with the given name and options.
-func NewComponentTemplateRequest(name string, options ...ComponentTemplateOption) opensearchapi.ClusterPutComponentTemplateReq {
+func NewComponentTemplateRequest(
+	name string,
+	options ...ComponentTemplateOption,
+) opensearchapi.ClusterPutComponentTemplateReq {
 	template := &ComponentTemplate{ClusterPutComponentTemplateBody: &opensearchapi.ClusterPutComponentTemplateBody{}}
 	for option := range slices.Values(options) {
 		option(template)
@@ -86,7 +89,7 @@ func WithAnalyzer(name string, definition opensearchapi.CommonAnalysisAnalyzer) 
 	}
 }
 
-// WithMappings option assigns the given mappings definition to the settings.
+// WithMappingProperties option assigns the given mappings definition to the settings.
 func WithMappingProperties(props ...MappingOption) IndexSettingsOption {
 	return func(s *IndexSettings) {
 		s.mu.Lock()
