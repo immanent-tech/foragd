@@ -110,24 +110,13 @@ func AliasExists(ctx context.Context, client opensearchapi.IndicesClient, alias 
 // CreateIndexIfNotExists will create the given index if it does not exist. If the index exists, the request will be a
 // no-op.
 func CreateIndexIfNotExists(ctx context.Context, client opensearchapi.IndicesClient, index string) error {
-	getIndexResp, err := client.Get(ctx, &opensearchapi.IndicesGetReq{
-		Indices: []string{index},
-		Header:  opensearch.NewRequestHeaders(ctx),
-	})
+	exists, err := IndexExists(ctx, client, index)
 	if err != nil {
-		if getIndexResp.Inspect().Response != nil {
-			if getIndexResp.Inspect().Response.StatusCode != http.StatusNotFound {
-				return opensearch.GenerateAPIError("get index", getIndexResp)
-			}
-		} else {
-			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get index %s: %w", index, err))
-		}
+		return models.NewAPIError(http.StatusInternalServerError, err)
 	}
-
-	if _, found := getIndexResp.Entries[index]; found {
+	if exists {
 		return nil
 	}
-
 	createIndexResp, err := client.Create(ctx, opensearchapi.IndicesCreateReq{
 		Header: opensearch.NewRequestHeaders(ctx),
 		Index:  index,
@@ -137,4 +126,46 @@ func CreateIndexIfNotExists(ctx context.Context, client opensearchapi.IndicesCli
 	}
 
 	return nil
+}
+
+// DeleteIndex removes the index with the given name.
+func DeleteIndex(ctx context.Context, client opensearchapi.IndicesClient, index string) error {
+	exists, err := IndexExists(ctx, client, index)
+	if err != nil {
+		return models.NewAPIError(http.StatusInternalServerError, err)
+	}
+	if !exists {
+		return nil
+	}
+	deleteIndexResp, err := client.Delete(ctx, &opensearchapi.IndicesDeleteReq{
+		Indices: []string{index},
+		Header:  opensearch.NewRequestHeaders(ctx),
+	})
+	if err != nil {
+		return opensearch.HandleError("delete index", deleteIndexResp, err)
+	}
+	return nil
+}
+
+// IndexExists returns a boolean indicating whether an index with the given name exists. A non-nill error is returned if
+// there was a problem determining existence.
+func IndexExists(ctx context.Context, client opensearchapi.IndicesClient, index string) (bool, error) {
+	getIndexResp, err := client.Get(ctx, &opensearchapi.IndicesGetReq{
+		Indices: []string{index},
+		Header:  opensearch.NewRequestHeaders(ctx),
+	})
+	if err != nil {
+		if getIndexResp.Inspect().Response != nil {
+			if getIndexResp.Inspect().Response.StatusCode != http.StatusNotFound {
+				return false, opensearch.GenerateAPIError("get index", getIndexResp)
+			}
+		} else {
+			return false, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get index %s: %w", index, err))
+		}
+	}
+
+	if _, found := getIndexResp.Entries[index]; found {
+		return true, nil
+	}
+	return false, nil
 }
