@@ -20,6 +20,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/providers/auth0"
+	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/server/otel"
@@ -47,6 +48,20 @@ type services struct {
 }
 
 func loadServices(ctx context.Context, appCfg *config.AppConfig) (*services, error) {
+	// Load services that other services depend on or have dependencies.
+	osc, err := opensearch.GetClient()
+	if err != nil {
+		return nil, fmt.Errorf("load opensearch client: %w", err)
+	}
+	sessionMgr, err := session.New(osc)
+	if err != nil {
+		return nil, fmt.Errorf("load session manager: %w", err)
+	}
+	authMgr, err := auth0.LoadAuthenticator(sessionMgr)
+	if err != nil {
+		return nil, fmt.Errorf("load authenticator: %w", err)
+	}
+
 	// Load all independent components concurrently. Many of these do network I/O (OIDC discovery, management tokens,
 	// Elasticsearch, etc.), so doing them serially is the main startup cost.
 	g, _ := errgroup.WithContext(ctx)
@@ -67,9 +82,9 @@ func loadServices(ctx context.Context, appCfg *config.AppConfig) (*services, err
 	importSvcF := loadAsync(g, "import service", service.NewImportService)
 	resendVerifierF := loadAsync(g, "resend verifier", resend.NewVerifier)
 	emailSenderF := loadAsync(g, "email sender", resend.NewSender)
-	sessionManagerF := loadAsync(g, "session manager", session.Load)
+	// sessionManagerF := loadAsync(g, "session manager", session.Load)
 	// Authenticator, used to exchange authentication with the backend service.
-	authF := loadAsync(g, "authenticator", auth0.LoadAuthenticator)
+	// authF := loadAsync(g, "authenticator")
 	// Authentication manager, used for managing user accounts and authentication settings.
 	authMgrF := loadAsync(g, "user manager", auth0.LoadManager)
 
@@ -98,8 +113,8 @@ func loadServices(ctx context.Context, appCfg *config.AppConfig) (*services, err
 		imports:       importSvcF(),
 		emailVerifier: resendVerifierF(),
 		emailSender:   emailSenderF(),
-		session:       sessionManagerF(),
-		auth:          authF(),
+		session:       sessionMgr,
+		auth:          authMgr,
 		authMgr:       authMgrF(),
 		otelShutdown:  otelShutdownF(),
 		httpClient: client.New().SetHeader(

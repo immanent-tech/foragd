@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"sync"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -49,23 +49,24 @@ type UserSession struct {
 
 // Store satisfies the session store interface for storing sessions in Elastic.
 type Store struct {
-	backend *service.ElasticService
+	esc *service.ElasticService
+	osc *opensearch.Client
 }
 
-var New = sync.OnceValues(func() (*Store, error) {
-	backend, err := service.LoadElasticService()
+func New(osc *opensearch.Client) (*Store, error) {
+	esc, err := service.LoadElasticService()
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
-	return &Store{backend: backend}, nil
-})
+	return &Store{esc: esc, osc: osc}, nil
+}
 
 // DeleteCtx should remove the session token and corresponding data from the session store. If the token does not exist
 // then Delete should be a no-op and return nil (not an error).
 func (s *Store) DeleteCtx(ctx context.Context, token string) error {
 	if err := elastic.DeleteDoc(
 		ctx,
-		s.backend.GetIndexRW(service.SessionsIndex),
+		s.esc.GetIndexRW(service.SessionsIndex),
 		token,
 	); err != nil {
 		return fmt.Errorf("could not delete session: %w", err)
@@ -87,7 +88,7 @@ func (s *Store) FindCtx(ctx context.Context, token string) ([]byte, bool, error)
 	spanCtx, span := tracer.Start(ctx, "session-find")
 	defer span.End()
 
-	session, err := elastic.GetDoc[string, UserSession](spanCtx, s.backend.GetIndexRO(service.SessionsIndex), token)
+	session, err := elastic.GetDoc[string, UserSession](spanCtx, s.esc.GetIndexRO(service.SessionsIndex), token)
 	if err != nil {
 		if errors.Is(err, elastic.ErrNotFound) {
 			return nil, false, nil
@@ -115,7 +116,7 @@ func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry
 	spanCtx, span := tracer.Start(ctx, "session-commit")
 	defer span.End()
 
-	if err := elastic.IndexDoc(spanCtx, s.backend.GetIndexRW(service.SessionsIndex),
+	if err := elastic.IndexDoc(spanCtx, s.esc.GetIndexRW(service.SessionsIndex),
 		token,
 		&UserSession{
 			UpdatedAt: time.Now().UTC(),
@@ -142,7 +143,7 @@ func (s *Store) AllCtx(ctx context.Context) (map[string][]byte, error) {
 	const defaultPaginationSize = 500
 	sessions, err := elastic.SearchAll[UserSession](
 		ctx,
-		s.backend.GetIndexRO(service.SessionsIndex),
+		s.esc.GetIndexRO(service.SessionsIndex),
 		query.Since("expiry", time.Now().UTC()),
 		defaultPaginationSize,
 	)

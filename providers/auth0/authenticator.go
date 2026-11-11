@@ -24,7 +24,6 @@ import (
 	"golang.org/x/sync/singleflight"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/session"
 )
 
 // Session key constants used to store values in the SCS session.
@@ -93,14 +92,14 @@ var (
 // LoadAuthenticator performs setup and initialisation of the Auth0 tenant. It can be called repeatedly and lazily:
 // only a successful initialisation is cached, so a transient discovery failure is retried on the next call rather than
 // being stuck until restart.
-func LoadAuthenticator() (*Authenticator, error) {
+func LoadAuthenticator(sessionMgr SessionManager) (*Authenticator, error) {
 	loadMu.Lock()
 	defer loadMu.Unlock()
 
 	if loaded != nil {
 		return loaded, nil
 	}
-	a, err := newAuthenticator()
+	a, err := newAuthenticator(sessionMgr)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +107,7 @@ func LoadAuthenticator() (*Authenticator, error) {
 	return a, nil
 }
 
-func newAuthenticator() (*Authenticator, error) {
+func newAuthenticator(sessionMgr SessionManager) (*Authenticator, error) {
 	cfg, err := loadConfigOnce()
 	if err != nil {
 		return nil, fmt.Errorf("load config: %w", err)
@@ -130,11 +129,6 @@ func newAuthenticator() (*Authenticator, error) {
 	provider, err := oidc.NewProvider(ctx, "https://"+cfg.Domain+"/")
 	if err != nil {
 		return nil, fmt.Errorf("create provider: %w", err)
-	}
-
-	sessionMgr, err := session.Load()
-	if err != nil {
-		return nil, fmt.Errorf("load session manager: %w", err)
 	}
 
 	return &Authenticator{

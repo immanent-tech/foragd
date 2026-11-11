@@ -7,11 +7,11 @@ package session
 import (
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
 
+	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/server/session/store"
 )
 
@@ -23,8 +23,8 @@ type Manager struct {
 	*scs.SessionManager
 }
 
-var Load = sync.OnceValues(func() (*Manager, error) {
-	store, err := store.New()
+func New(osc *opensearch.Client) (*Manager, error) {
+	store, err := store.New(osc)
 	if err != nil {
 		return nil, fmt.Errorf("load store: %w", err)
 	}
@@ -39,4 +39,4 @@ var Load = sync.OnceValues(func() (*Manager, error) {
 	return &Manager{
 		SessionManager: manager,
 	}, nil
-})
+}
