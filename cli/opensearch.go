@@ -75,7 +75,18 @@ func (c *OSCreateIndicesCmd) Run() error {
 			componentTemplate = schema.FeedsComponentTemplate
 			readAlias = osc.IndexReadAlias(index)
 			writeAlias = osc.IndexWriteAlias(index)
-
+		case schema.SessionsIndex:
+			indexName = osc.IndexCanonicalName(index)
+			indexTemplate = schema.SessionsIndexTemplate
+			componentTemplate = schema.SessionsComponentTemplate
+			readAlias = osc.IndexReadAlias(index)
+			writeAlias = osc.IndexWriteAlias(index)
+		case schema.SchedulerIndex:
+			indexName = osc.IndexCanonicalName(index)
+			indexTemplate = schema.SchedulerIndexTemplate
+			componentTemplate = schema.SchedulerComponentTemplate
+			readAlias = osc.IndexReadAlias(index)
+			writeAlias = osc.IndexWriteAlias(index)
 		default:
 			return fmt.Errorf("unknown index: %s", index)
 		}
