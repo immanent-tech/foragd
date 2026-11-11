@@ -51,7 +51,8 @@ func loadServices(ctx context.Context, appCfg *config.AppConfig) (*services, err
 	// Load services that other services depend on or have dependencies.
 	osc, err := opensearch.GetClient()
 	if err != nil {
-		return nil, fmt.Errorf("load opensearch client: %w", err)
+		slogctx.Warn(ctx, "Failed to load opensearch client", slog.Any("error", err))
+		// return nil, fmt.Errorf("load opensearch client: %w", err)
 	}
 	sessionMgr, err := session.New(osc)
 	if err != nil {
