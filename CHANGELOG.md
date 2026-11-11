@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.257.0](https://github.com/immanent-tech/foragd/compare/v0.256.2...v0.257.0) (2026-11-10)
+
+
+### Features
+
+* **providers/opensearch:** ➕ add an opensearch provider ([4a8a046](https://github.com/immanent-tech/foragd/commit/4a8a04670c5ce0cb444970cbcf164f8b4b561153))
+
+
+### Bug Fixes
+
+* **service/feeds:** 🔧 truncate long feed category lists ([8b1bad4](https://github.com/immanent-tech/foragd/commit/8b1bad46d90431bb1d89b608aa7c8cdb05e39481))
+
 ## [0.256.2](https://github.com/immanent-tech/foragd/compare/v0.256.1...v0.256.2) (2026-11-09)
 
 
