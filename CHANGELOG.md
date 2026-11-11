@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.258.0](https://github.com/immanent-tech/foragd/compare/v0.257.0...v0.258.0) (2026-11-11)
+
+
+### Features
+
+* **cli:** ➕ add cli for opensearch ([6dc5bd4](https://github.com/immanent-tech/foragd/commit/6dc5bd4518b3e667b4b407054f99d06a8ea2a5a2))
+* **providers/opensearch:** ✨ adjust indices method ([83c2394](https://github.com/immanent-tech/foragd/commit/83c23942c7af338221e4ece82863414aca6c5c11))
+* **providers/opensearch:** ✨ mappings improvements ([d0a2ff0](https://github.com/immanent-tech/foragd/commit/d0a2ff057ede53cbadb5f84213a230d482499c91))
+* **providers/opensearch:** ➕ add a bulk indexer ([6009a75](https://github.com/immanent-tech/foragd/commit/6009a7563097180cf1b8859e2117c9ef2b7288f2))
+* **schema:** ➕ add opensearch schemas for common and feeds ([b053d68](https://github.com/immanent-tech/foragd/commit/b053d687afec5a8017c9bda53981be18db24b28a))
+* **schema:** ➕ add schemas for sessions/scheduler ([ea4618f](https://github.com/immanent-tech/foragd/commit/ea4618fe675a786d5169edd93c9dedc4b3bc79b3))
+
+
+### Bug Fixes
+
+* **cli:** ➕ add opensearch cli to main ([593b202](https://github.com/immanent-tech/foragd/commit/593b202d5567fc05a6e2f18cac9e1faac7d88f8c))
+* **providers/auth0:** 🔧 increase discovery timeout ([df92a1f](https://github.com/immanent-tech/foragd/commit/df92a1fe4f675c4931804adf64b59ae28532b038))
+* **providers/opensearch:** 🔧 fix logic in template creation ([8102af7](https://github.com/immanent-tech/foragd/commit/8102af75211a7a8ed575254c66028d7fa57326b3))
+* **server:** 🔧 don't consider failure to load opensearch an error for now ([8401984](https://github.com/immanent-tech/foragd/commit/84019843b1c15ba11e92dd7700f1a59a65ee862b))
+
 ## [0.257.0](https://github.com/immanent-tech/foragd/compare/v0.256.2...v0.257.0) (2026-11-10)
 
 
