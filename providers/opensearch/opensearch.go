@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sync"
 
@@ -60,6 +61,8 @@ var GetClient = sync.OnceValues(func() (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create client: %w", err)
 	}
+
+	slog.Debug("Loaded Opensearch client")
 
 	return &Client{Client: client, environment: appCfg.GetAppEnvironment().String()}, nil
 })
