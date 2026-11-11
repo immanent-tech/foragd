@@ -7,6 +7,7 @@ package opensearch
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -16,6 +17,10 @@ import (
 	"github.com/opensearch-project/opensearch-go/v5"
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 )
+
+type Doc[T ~string] interface {
+	GetID() T
+}
 
 // NewRequestHeaders creates a [http.Header] object with headers that associate the OpenSearch request with any HTTP
 // request that triggered it.
@@ -58,3 +63,12 @@ var GetClient = sync.OnceValues(func() (*Client, error) {
 
 	return &Client{Client: client, environment: appCfg.GetAppEnvironment().String()}, nil
 })
+
+// ExtractSource extracts the `_source` field from the raw response.
+func ExtractSource[T any](doc json.RawMessage) (T, error) {
+	var source T
+	if err := json.Unmarshal(doc, &source); err != nil {
+		return source, fmt.Errorf("%w: %w", ErrExtractSource, err)
+	}
+	return source, nil
+}

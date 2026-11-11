@@ -32,12 +32,13 @@ type Client interface {
 	DeleteByQuery(ctx context.Context, req *opensearchapi.DeleteByQueryReq) (*opensearchapi.DeleteByQueryResp, error)
 }
 
-type Doc[T ~string] interface {
-	GetID() T
-}
-
 // Create will create the given document, with given id, in the given index.
-func Create[T ~string, O Doc[T]](ctx context.Context, client opensearchapi.DocumentClient, index string, doc O) error {
+func Create[T ~string, O opensearch.Doc[T]](
+	ctx context.Context,
+	client opensearchapi.DocumentClient,
+	index string,
+	doc O,
+) error {
 	bodyBuf, ok := bufPool.Get().(*bytes.Buffer)
 	if !ok {
 		return models.NewAPIError(http.StatusInternalServerError, errors.New("get buffer failed"))
@@ -64,7 +65,12 @@ func Create[T ~string, O Doc[T]](ctx context.Context, client opensearchapi.Docum
 }
 
 // Get will retrieve the document with the given ID from the given index.
-func Get[T ~string, O Doc[T]](ctx context.Context, client opensearchapi.DocumentClient, index string, id T) (O, error) {
+func Get[T ~string, O opensearch.Doc[T]](
+	ctx context.Context,
+	client opensearchapi.DocumentClient,
+	index string,
+	id T,
+) (O, error) {
 	var doc O
 	req := opensearchapi.GetReq{
 		Index:  index,
