@@ -33,6 +33,13 @@ func NewComponentTemplateRequest(
 // ComponentTemplateOption is a functional option that applies to a component template.
 type ComponentTemplateOption func(*ComponentTemplate)
 
+// WithAllowAutoCreate option specifies whether indexes are auto-created with this template.
+func WithAllowAutoCreate(value bool) ComponentTemplateOption {
+	return func(t *ComponentTemplate) {
+		t.AllowAutoCreate = &value
+	}
+}
+
 // WithIndexSettings option applies the given index settings to the component template.
 func WithIndexSettings(options ...IndexSettingsOption) ComponentTemplateOption {
 	return func(t *ComponentTemplate) {
@@ -52,6 +59,12 @@ type IndexSettings struct {
 	*opensearchapi.IndicesIndexState
 
 	mu sync.Mutex
+}
+
+func (s *IndexSettings) enableAnalysis() {
+	if s.Settings.Analysis == nil {
+		s.Settings.Analysis = &opensearchapi.IndicesIndexSettingsAnalysis{}
+	}
 }
 
 // IndexSettingsOption is a functional option applied to IndexSettings.
@@ -75,17 +88,41 @@ func WithAlias(name string, settings *opensearchapi.IndicesAlias) IndexSettingsO
 }
 
 // WithAnalyzer option assigns the given analyzer definition to the settings.
-func WithAnalyzer(name string, definition opensearchapi.CommonAnalysisAnalyzer) IndexSettingsOption {
+func WithAnalyzer(analyzer CustomAnalyzer) IndexSettingsOption {
 	return func(s *IndexSettings) {
 		s.mu.Lock()
 		defer s.mu.Unlock()
-
-		if s.Settings.Analysis == nil {
-			s.Settings.Analysis = &opensearchapi.IndicesIndexSettingsAnalysis{
-				Analyzer: make(map[string]opensearchapi.CommonAnalysisAnalyzer),
-			}
+		s.enableAnalysis()
+		if s.Settings.Analysis.Analyzer == nil {
+			s.Settings.Analysis.Analyzer = make(map[string]opensearchapi.CommonAnalysisAnalyzer)
 		}
-		s.Settings.Analysis.Analyzer[name] = definition
+		s.Settings.Analysis.Analyzer[analyzer.Name] = analyzer.Definition
+	}
+}
+
+// WithTokenizer option assigns the given tokenizer definition to the settings.
+func WithTokenizer(tokenizer CustomTokenizer) IndexSettingsOption {
+	return func(s *IndexSettings) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		s.enableAnalysis()
+		if s.Settings.Analysis.Tokenizer == nil {
+			s.Settings.Analysis.Tokenizer = make(map[string]opensearchapi.CommonAnalysisTokenizer)
+		}
+		s.Settings.Analysis.Tokenizer[tokenizer.Name] = tokenizer.Definition
+	}
+}
+
+// WithNormalizer option assigns the given normalizer definition to the settings.
+func WithNormalizer(normalizer CustomNormalizer) IndexSettingsOption {
+	return func(s *IndexSettings) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		s.enableAnalysis()
+		if s.Settings.Analysis.Normalizer == nil {
+			s.Settings.Analysis.Normalizer = make(map[string]opensearchapi.CommonAnalysisNormalizer)
+		}
+		s.Settings.Analysis.Normalizer[normalizer.Name] = normalizer.Definition
 	}
 }
 
@@ -99,6 +136,15 @@ func WithMappingProperties(props ...MappingOption) IndexSettingsOption {
 		for prop := range slices.Values(props) {
 			prop(mappings)
 		}
+		s.Mappings.Properties = mappings
+	}
+}
+
+// WithMappings option assigns the given mappings to the settings.
+func WithMappings(mappings Mappings) IndexSettingsOption {
+	return func(s *IndexSettings) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.Mappings.Properties = mappings
 	}
 }
@@ -133,7 +179,7 @@ func WithComponentTemplates(templates ...string) IndexTemplateOption {
 // WithIndexPatterns option assigns the given patterns to the index template.
 func WithIndexPatterns(patterns ...string) IndexTemplateOption {
 	return func(t *IndexTemplate) {
-		t.IndexPatterns = append(t.ComposedOf, patterns...)
+		t.IndexPatterns = append(t.IndexPatterns, patterns...)
 	}
 }
 
