@@ -70,15 +70,14 @@ var CommonMappings = indices.NewMappings(
 	),
 )
 
-func CommonComponentTemplate() opensearchapi.ClusterPutComponentTemplateReq {
-	return indices.NewComponentTemplateRequest("common",
-		indices.WithIndexSettings(
-			indices.WithMappings(CommonMappings),
-			indices.WithAnalyzer(englishExactAnalyzer),
-			indices.WithAnalyzer(personAnalyzer),
-			indices.WithAnalyzer(htmlAnalyzer),
-			indices.WithTokenizer(emailTokenizer),
-			indices.WithNormalizer(lowercaseNormalizer),
-		),
-	)
-}
+// CommonComponentTemplate is a component template containing the common mappings.
+var CommonComponentTemplate = indices.NewComponentTemplateRequest("common",
+	indices.WithIndexSettings(
+		indices.WithMappings(CommonMappings),
+		indices.WithAnalyzer(englishExactAnalyzer),
+		indices.WithAnalyzer(personAnalyzer),
+		indices.WithAnalyzer(htmlAnalyzer),
+		indices.WithTokenizer(emailTokenizer),
+		indices.WithNormalizer(lowercaseNormalizer),
+	),
+)

@@ -46,23 +46,21 @@ var FeedsMappings = indices.NewMappings(
 	),
 )
 
-func FeedsComponentTemplate() opensearchapi.ClusterPutComponentTemplateReq {
-	return indices.NewComponentTemplateRequest(FeedsIndex.String(),
-		indices.WithIndexSettings(
-			indices.WithMappings(FeedsMappings),
-			indices.WithAnalyzer(englishExactAnalyzer),
-			indices.WithAnalyzer(domainNameAnalyzer),
-			indices.WithTokenizer(domainTokenizer),
-			indices.WithAnalyzer(htmlAnalyzer),
-			indices.WithTokenizer(emailTokenizer),
-		),
-	)
-}
+// FeedsComponentTemplate is a component template containing [FeedMappings].
+var FeedsComponentTemplate = indices.NewComponentTemplateRequest(FeedsIndex.String(),
+	indices.WithIndexSettings(
+		indices.WithMappings(FeedsMappings),
+		indices.WithAnalyzer(englishExactAnalyzer),
+		indices.WithAnalyzer(domainNameAnalyzer),
+		indices.WithTokenizer(domainTokenizer),
+		indices.WithAnalyzer(htmlAnalyzer),
+		indices.WithTokenizer(emailTokenizer),
+	),
+)
 
-func FeedsIndexTemplate() opensearchapi.IndicesPutIndexTemplateReq {
-	return indices.NewIndexTemplateRequest(FeedsIndex.String(),
-		indices.WithComponentTemplates("common", FeedsIndex.String()),
-		indices.WithIndexPatterns(FeedsIndex.String()+"-*"),
-		indices.WithIndexTemplatePriority(999),
-	)
-}
+// FeedsIndexTemplate is a index template for [models.Feed].
+var FeedsIndexTemplate = indices.NewIndexTemplateRequest(FeedsIndex.String(),
+	indices.WithComponentTemplates("common", FeedsIndex.String()),
+	indices.WithIndexPatterns(FeedsIndex.String()+"-*"),
+	indices.WithIndexTemplatePriority(999),
+)

@@ -56,7 +56,7 @@ func (c *OSCreateIndicesCmd) Run() error {
 	}
 
 	// Create the common component template.
-	if err := indices.CreateComponentTemplate(ctx, osc.Cluster, schema.CommonComponentTemplate()); err != nil {
+	if err := indices.CreateComponentTemplate(ctx, osc.Cluster, schema.CommonComponentTemplate); err != nil {
 		return fmt.Errorf("create common component template: %w", err)
 	}
 
@@ -71,8 +71,8 @@ func (c *OSCreateIndicesCmd) Run() error {
 		switch index {
 		case schema.FeedsIndex:
 			indexName = osc.IndexCanonicalName(index)
-			indexTemplate = schema.FeedsIndexTemplate()
-			componentTemplate = schema.FeedsComponentTemplate()
+			indexTemplate = schema.FeedsIndexTemplate
+			componentTemplate = schema.FeedsComponentTemplate
 			readAlias = osc.IndexReadAlias(index)
 			writeAlias = osc.IndexWriteAlias(index)
 
