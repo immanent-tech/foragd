@@ -43,10 +43,9 @@ const (
 	expiryLeeway = 30 * time.Second
 	// defaultTokenLifetime is used only if the token response carries no expiry at all.
 	defaultTokenLifetime = 10 * time.Minute
-	discoveryTimeout     = 30 * time.Second
+	discoveryTimeout     = time.Minute
 	refreshTimeout       = 15 * time.Second
 	randomBytes          = 32
-	loginPath            = "/login"
 )
 
 // SessionManager is the subset of the SCS session manager used by the authenticator.
