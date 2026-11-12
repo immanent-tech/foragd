@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.258.3](https://github.com/immanent-tech/foragd/compare/v0.258.2...v0.258.3) (2026-11-12)
+
+
+### Performance Improvements
+
+* **handlers:** ⚡ adjust code for performance ([2ce0cb5](https://github.com/immanent-tech/foragd/commit/2ce0cb5be90386e5de24a95b9ef5f41c3bddccb6))
+* **handlers:** ⚡ adjust timeouts for image proxy client ([75a0d75](https://github.com/immanent-tech/foragd/commit/75a0d752785882557822fd36a6309492ad45fa78))
+* **server:** ⚡ don't validate subscription limits all the time, just on login ([8825b76](https://github.com/immanent-tech/foragd/commit/8825b76ed5161c32ca882d6bba281ecf415aa513))
+
 ## [0.258.2](https://github.com/immanent-tech/foragd/compare/v0.258.1...v0.258.2) (2026-11-12)
 
 
