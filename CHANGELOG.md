@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.258.1](https://github.com/immanent-tech/foragd/compare/v0.258.0...v0.258.1) (2026-11-12)
+
+
+### Performance Improvements
+
+* **providers/auth0:** 🔧 increase timeouts even further ([c247d5c](https://github.com/immanent-tech/foragd/commit/c247d5cb6f628e51e109355baffcf8b07ac7da2d))
+
 ## [0.258.0](https://github.com/immanent-tech/foragd/compare/v0.257.0...v0.258.0) (2026-11-11)
 
 
