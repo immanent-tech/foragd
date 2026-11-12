@@ -14,7 +14,11 @@ type Discover struct {
 	*Page
 }
 
-func (m *Manager) HandleDiscover() http.HandlerFunc {
+func (m *Manager) HandleDiscover(
+	subSvc SubscriptionsService,
+	userSvc UserService,
+	emailSender EmailSender,
+) http.HandlerFunc {
 	page := &Discover{
 		Page: m.NewPage("/discover",
 			WithSummary("Discover feeds"),
@@ -22,16 +26,18 @@ func (m *Manager) HandleDiscover() http.HandlerFunc {
 			WithNavigation(templates.NavDiscover),
 		),
 	}
-	return func(res http.ResponseWriter, req *http.Request) {
-		request, err := parseForm[*models.SuggestFeedsRequest](req)
-		if err != nil {
-			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
-			return
-		}
+	return m.ValidateSubscriptionLimits(userSvc, subSvc, emailSender)(
+		http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			request, err := parseForm[*models.SuggestFeedsRequest](req)
+			if err != nil {
+				m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+				return
+			}
 
-		page.template = templates.Discover(request)
-		page.Handle().ServeHTTP(res, req)
-	}
+			page.template = templates.Discover(request)
+			page.Handle().ServeHTTP(res, req)
+		}),
+	).ServeHTTP
 }
 
 func (m *Manager) HandleDiscoverSuggestions(feedSvc FeedService) http.HandlerFunc {

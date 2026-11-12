@@ -775,102 +775,105 @@ func (m *Manager) HandleAddNewFeedSubscription(
 	subSvc SubscriptionsService,
 	userSvc UserService,
 	feedSvc FeedService,
+	emailSender EmailSender,
 ) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		request, err := parseMultipartForm[*models.AddFeedSubscriptionRequest](req)
-		if err != nil {
-			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
-			return
-		}
-
-		if user := models.UserFromCtx(req.Context()); user == nil {
-			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-				slog.Any("error", models.ErrCtxValueNotFound))
-			http.Redirect(res, req, "/login", http.StatusSeeOther)
-			return
-		}
-
-		slogctx.FromCtx(req.Context()).Debug("Processing add feed subscription.",
-			slog.String("feed_url", request.URL),
-		)
-
-		// Fetch the feed details from the database.
-		feed, err := feedSvc.GetFeed(req.Context(), request.FeedID)
-		if err != nil || feed == nil {
-			// Fetch the feed details from the URL.
-			slogctx.FromCtx(req.Context()).Debug("Fetching new feed details.",
-				slog.String("feed_url", request.URL),
-			)
-			feed, err = feedSvc.FetchFeed(
-				req.Context(),
-				request.URL,
-			)
+	return m.ValidateSubscriptionLimits(userSvc, subSvc, emailSender)(
+		http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			request, err := parseMultipartForm[*models.AddFeedSubscriptionRequest](req)
 			if err != nil {
-				m.HandleInternalError(
-					http.StatusUnprocessableEntity,
-					fmt.Errorf("new feed from URL: %w", err),
-				).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 				return
 			}
-			// Set the FeedID to ensure consistency.
-			if request.FeedID != "" {
-				feed.FeedID = request.FeedID
-			}
-			// Add the feed to the database.
-			if err := feedSvc.AddFeed(req.Context(), feed); err != nil {
-				m.HandleInternalError(
-					http.StatusInternalServerError,
-					fmt.Errorf("create feed: %w", err),
-				).ServeHTTP(res, req)
+
+			if user := models.UserFromCtx(req.Context()); user == nil {
+				slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+					slog.Any("error", models.ErrCtxValueNotFound))
+				http.Redirect(res, req, "/login", http.StatusSeeOther)
 				return
 			}
-			slogctx.Info(req.Context(), "Added new feed.",
+
+			slogctx.FromCtx(req.Context()).Debug("Processing add feed subscription.",
 				slog.String("feed_url", request.URL),
-				slog.String("feed_id", feed.GetID()),
-				slog.String("feed_title", feed.GetTitle()),
 			)
-		} else {
-			// For existing feeds, if it is disabled, re-enable it.
-			if feed.IsDisabled() {
-				feed.SetDisabled(true)
-				if err := feedSvc.UpdateFeed(req.Context(), feed); err != nil {
-					slogctx.Warn(req.Context(), "Could not re-enable disabled feed.", slog.Any("error", err))
-				} else {
-					slogctx.Info(req.Context(), "Re-enabled disabled feed.")
+
+			// Fetch the feed details from the database.
+			feed, err := feedSvc.GetFeed(req.Context(), request.FeedID)
+			if err != nil || feed == nil {
+				// Fetch the feed details from the URL.
+				slogctx.FromCtx(req.Context()).Debug("Fetching new feed details.",
+					slog.String("feed_url", request.URL),
+				)
+				feed, err = feedSvc.FetchFeed(
+					req.Context(),
+					request.URL,
+				)
+				if err != nil {
+					m.HandleInternalError(
+						http.StatusUnprocessableEntity,
+						fmt.Errorf("new feed from URL: %w", err),
+					).ServeHTTP(res, req)
+					return
+				}
+				// Set the FeedID to ensure consistency.
+				if request.FeedID != "" {
+					feed.FeedID = request.FeedID
+				}
+				// Add the feed to the database.
+				if err := feedSvc.AddFeed(req.Context(), feed); err != nil {
+					m.HandleInternalError(
+						http.StatusInternalServerError,
+						fmt.Errorf("create feed: %w", err),
+					).ServeHTTP(res, req)
+					return
+				}
+				slogctx.Info(req.Context(), "Added new feed.",
+					slog.String("feed_url", request.URL),
+					slog.String("feed_id", feed.GetID()),
+					slog.String("feed_title", feed.GetTitle()),
+				)
+			} else {
+				// For existing feeds, if it is disabled, re-enable it.
+				if feed.IsDisabled() {
+					feed.SetDisabled(true)
+					if err := feedSvc.UpdateFeed(req.Context(), feed); err != nil {
+						slogctx.Warn(req.Context(), "Could not re-enable disabled feed.", slog.Any("error", err))
+					} else {
+						slogctx.Info(req.Context(), "Re-enabled disabled feed.")
+					}
 				}
 			}
-		}
 
-		// Create a new subscription.
-		subscription, err := service.NewFeedSubscription(req.Context(), feed, nil)
-		if err != nil {
-			m.HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("create subscription: %w", err),
-			).ServeHTTP(res, req)
-			return
-		}
+			// Create a new subscription.
+			subscription, err := service.NewFeedSubscription(req.Context(), feed, nil)
+			if err != nil {
+				m.HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("create subscription: %w", err),
+				).ServeHTTP(res, req)
+				return
+			}
 
-		// Add subscription to user.
-		if err := subSvc.AddSubscriptions(req.Context(), subscription); err != nil {
-			m.HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("add subscription: %w", err),
-			).ServeHTTP(res, req)
-			return
-		}
-		slogctx.FromCtx(req.Context()).Info("Added user subscription.",
-			slog.String("feed_id", subscription.GetFeedID()),
-			slog.String("subscription_id", subscription.GetID()),
-			slog.String("subscription_title", subscription.GetTitle()),
-		)
-		m.HandleNotification(res, req,
-			models.NewSuccessMessage(
-				"Subscription Created!",
-				subscription.GetTitle(),
-			),
-		)
-	}
+			// Add subscription to user.
+			if err := subSvc.AddSubscriptions(req.Context(), subscription); err != nil {
+				m.HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("add subscription: %w", err),
+				).ServeHTTP(res, req)
+				return
+			}
+			slogctx.FromCtx(req.Context()).Info("Added user subscription.",
+				slog.String("feed_id", subscription.GetFeedID()),
+				slog.String("subscription_id", subscription.GetID()),
+				slog.String("subscription_title", subscription.GetTitle()),
+			)
+			m.HandleNotification(res, req,
+				models.NewSuccessMessage(
+					"Subscription Created!",
+					subscription.GetTitle(),
+				),
+			)
+		}),
+	).ServeHTTP
 }
 
 func (m *Manager) HandleSuggestFeeds(feeds FeedService) http.HandlerFunc {

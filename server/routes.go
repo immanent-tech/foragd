@@ -213,7 +213,7 @@ func buildRouter(services *services, appCfg *config.AppConfig) *chi.Mux {
 		})
 		r.Route("/discover", func(r chi.Router) {
 			r.Use(handlerMgr.CheckUserLimits)
-			r.Get("/", handlerMgr.HandleDiscover())
+			r.Get("/", handlerMgr.HandleDiscover(services.subscriptions, services.users, services.emailSender))
 			r.With(htmx.RequireHTMX).Post("/suggest", handlerMgr.HandleDiscoverSuggestions(services.feeds))
 		})
 		// Subscription specific.
@@ -241,7 +241,12 @@ func buildRouter(services *services, appCfg *config.AppConfig) *chi.Mux {
 					r.Post("/suggestions", handlerMgr.HandleSuggestFeeds(services.feeds))
 					r.Post(
 						"/feed",
-						handlerMgr.HandleAddNewFeedSubscription(services.subscriptions, services.users, services.feeds),
+						handlerMgr.HandleAddNewFeedSubscription(
+							services.subscriptions,
+							services.users,
+							services.feeds,
+							services.emailSender,
+						),
 					)
 					// Add search subscription.
 					r.Get("/search", handlerMgr.HandleAddSearchSubscription(services.subscriptions, services.users))
