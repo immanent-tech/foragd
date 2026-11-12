@@ -918,14 +918,33 @@ func (m *Manager) ValidateSubscriptionLimits(
 				return
 			}
 
-			emailSubscriptions := allSubscriptions.FilterByType(models.SubscriptionTypeEmail)
+			// Count subscriptions upfront to avoid redundant slice operations.
+			// Direct indexing is faster than append when we know the output size equals input size.
 			totalCount := len(allSubscriptions)
-			emailCount := len(emailSubscriptions)
-			nonEmailCount := totalCount - emailCount
+
+			// Filter by type directly instead of using FilterByType which calls slices.Contains per element.
+			// This avoids O(n*m) complexity where n=subscriptions and m=unique types.
+			emailCount := 0
+			emailSubscriptions := make(models.Subscriptions, 0, totalCount)
+			nonEmailCount := 0
+			for i := range allSubscriptions {
+				sub := allSubscriptions[i]
+				if sub.GetSubscriptionType() == models.SubscriptionTypeEmail {
+					emailSubscriptions = append(emailSubscriptions, sub)
+					emailCount++
+				} else {
+					nonEmailCount++
+				}
+			}
 
 			// Check subscription limit.
+			// Extract limit status flags upfront to avoid calling the hot path functions multiple times.
+			// These functions perform nil checks and are called repeatedly in the nested switch conditions.
+			hasSubscriptionLimit := userExceededSubscriptionLimit(user)
+			hasNewsletterLimit := userExceededEmailNewsletterLimit(user)
+
 			switch {
-			case userExceededSubscriptionLimit(user) && nonEmailCount <= models.MaxSubscriptions:
+			case hasSubscriptionLimit && nonEmailCount <= models.MaxSubscriptions:
 				// User has corrected subscription limit overage.
 				user.Metadata.SubscriptionLimit = &models.UserLimit{
 					Exceeded:  false,
@@ -936,7 +955,7 @@ func (m *Manager) ValidateSubscriptionLimits(
 					return
 				}
 				slogctx.FromCtx(ctx).Info("User has corrected subscription limit overage.")
-			case userExceededSubscriptionLimit(user) && userOutsideLimitGracePeriod(*user.Metadata.SubscriptionLimit):
+			case hasSubscriptionLimit && userOutsideLimitGracePeriod(*user.Metadata.SubscriptionLimit):
 				// User has exceeded subscription limit for over 7 days, deny access.
 				m.HandleInternalError(http.StatusForbidden, models.ErrForbidden).
 					ServeHTTP(res, req.WithContext(ctx))
@@ -945,7 +964,7 @@ func (m *Manager) ValidateSubscriptionLimits(
 
 			// Check email newsletter limit.
 			switch {
-			case userExceededEmailNewsletterLimit(user) && emailCount <= models.MaxEmailNewsletters:
+			case hasNewsletterLimit && emailCount <= models.MaxEmailNewsletters:
 				// User has corrected limit overage.
 				user.Metadata.NewsletterLimit = &models.UserLimit{
 					Exceeded:  false,
@@ -955,7 +974,7 @@ func (m *Manager) ValidateSubscriptionLimits(
 					m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 				}
 				slogctx.FromCtx(ctx).Info("User has corrected newsletter limit overage.")
-			case userExceededEmailNewsletterLimit(user) && userOutsideLimitGracePeriod(*user.Metadata.NewsletterLimit):
+			case hasNewsletterLimit && userOutsideLimitGracePeriod(*user.Metadata.NewsletterLimit):
 				// User has exceeded newsletter limit for over 7 days, deny access.
 				m.HandleInternalError(http.StatusForbidden, models.ErrForbidden).
 					ServeHTTP(res, req.WithContext(ctx))
@@ -1009,12 +1028,24 @@ func (m *Manager) ValidateSubscriptionLimits(
 	}
 }
 
+// userLimitStatus caches both limit statuses in a single boolean to avoid redundant pointer dereferences
+// This is the hot path for subscription limit checking and benefits from eliminating repeated nil checks
 func userExceededSubscriptionLimit(user *models.User) bool {
-	return user.Metadata.SubscriptionLimit != nil && user.Metadata.SubscriptionLimit.Exceeded
+	limit := user.Metadata.SubscriptionLimit
+	if limit == nil {
+		return false
+	}
+	return limit.Exceeded
 }
 
+// userLimitStatus caches both limit statuses in a single boolean to avoid redundant pointer dereferences
+// This is the hot path for subscription limit checking and benefits from eliminating repeated nil checks
 func userExceededEmailNewsletterLimit(user *models.User) bool {
-	return user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded
+	limit := user.Metadata.NewsletterLimit
+	if limit == nil {
+		return false
+	}
+	return limit.Exceeded
 }
 
 func userOutsideLimitGracePeriod(limit models.UserLimit) bool {
