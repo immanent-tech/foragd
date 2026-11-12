@@ -11,10 +11,30 @@
 # - patch
 
 [[releases]]
+version = "v0.258"
+date = "Nov 13, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+General speed up for all pages after some more profiling and code refactoring.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Minor style tweaks. Fonts should be more crisp!
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Feeds with excessive categories now have those categories truncated to a reasonable amount.
+"""
+
+[[releases]]
 version = "v0.255"
 date = "Nov 4, 2026"
 type = "minor"
-is_latest = true
 [[releases.changes]]
 type = "improved"
 description = """
