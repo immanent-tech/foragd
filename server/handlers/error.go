@@ -10,6 +10,8 @@ import (
 	"slices"
 
 	slogctx "github.com/veqryn/slog-context"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
@@ -86,6 +88,9 @@ func (m *Manager) HandleInternalError(status int, err error, options ...ErrorOpt
 		}
 		page.err = apiErr
 		page.referer = req.URL.Path
+		span := trace.SpanFromContext(req.Context())
+		span.RecordError(apiErr)
+		span.SetStatus(codes.Error, apiErr.Error())
 		res.WriteHeader(apiErr.HTTPStatus())
 		// Don't cache errors.
 		res.Header().Set("Cache-Control", "no-store")
@@ -113,6 +118,10 @@ type ExternalError struct {
 // HandleExternalError handles display errors on external pages.
 func (m *Manager) HandleExternalError(err error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		span := trace.SpanFromContext(req.Context())
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+
 		page := &ExternalError{
 			Page: m.NewPage(req.URL.Path,
 				WithSummary("Whoops! Something went wrong"),
