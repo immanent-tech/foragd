@@ -65,16 +65,14 @@ func generateState() (string, error) {
 func newHTTPClient() *http.Client {
 	return httpclient.New().
 		SetTransport(&http.Transport{
-			Proxy:                 http.ProxyFromEnvironment,
-			DialContext:           httpclient.SecureDialer.DialContext,
-			ForceAttemptHTTP2:     true,
-			TLSHandshakeTimeout:   10 * time.Second,
-			ResponseHeaderTimeout: 15 * time.Second,
-			IdleConnTimeout:       90 * time.Second,
-			MaxIdleConns:          100,
-			MaxIdleConnsPerHost:   20,
+			Proxy:               http.ProxyFromEnvironment,
+			DialContext:         httpclient.SecureDialer.DialContext,
+			ForceAttemptHTTP2:   true,
+			IdleConnTimeout:     90 * time.Second,
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 20,
 		}).
-		SetTimeout(30 * time.Second).
+		SetTimeout(time.Minute).
 		SetDebug(false).
 		GetClient()
 }
