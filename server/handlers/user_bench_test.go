@@ -7,41 +7,49 @@ package handlers_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
 	"github.com/immanent-tech/foragd/models"
 )
 
-func BenchmarkValidateSubscriptionLimits_HighSubscriptionCount(b *testing.B) {
+func BenchmarkValidateSubscriptionLimits(b *testing.B) {
 	mgr := setupManager(b)
 
 	// Set up context.
 	ctx := b.Context()
 	ctx = models.UserToCtx(ctx, &models.User{})
-	subSvc := &MoqSubscriptionsService{
-		GetAllSubscriptionsFunc: func(ctx context.Context) (models.Subscriptions, error) {
-			subscriptions := make(models.Subscriptions, 0)
-			for range models.MaxSubscriptions - 1 {
-				subscriptions = append(subscriptions, &models.Subscription{
-					Type: models.SubscriptionTypeFeed,
-				})
-			}
-			return subscriptions, nil
-		},
-	}
 	userSvc := &MoqUserService{}
 	senderSvc := &MoqEmailSender{}
-	mw := mgr.ValidateSubscriptionLimits(userSvc, subSvc, senderSvc)
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+	for size := range slices.Values([]int{10, 100, 250, 1000, models.MaxSubscriptions - 1}) {
+		subSvc := &MoqSubscriptionsService{
+			GetAllSubscriptionsFunc: func(ctx context.Context) (models.Subscriptions, error) {
+				subscriptions := make(models.Subscriptions, 0)
+				for range size {
+					subscriptions = append(subscriptions, &models.Subscription{
+						Type: models.SubscriptionTypeFeed,
+					})
+				}
+				return subscriptions, nil
+			},
+		}
 
-	b.ReportAllocs()
-	for b.Loop() {
-		req := httptest.NewRequest(http.MethodGet, "/articles?sort=NewestFirst&view=Unread&count=10", nil)
-		rec := httptest.NewRecorder()
+		mw := mgr.ValidateSubscriptionLimits(userSvc, subSvc, senderSvc)
 
-		mw(handler).ServeHTTP(rec, req.WithContext(ctx))
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+
+		b.Run(fmt.Sprintf("subscriptions-%d", size), func(b *testing.B) {
+			b.ReportAllocs()
+			for b.Loop() {
+				req := httptest.NewRequest(http.MethodGet, "/articles?sort=NewestFirst&view=Unread&count=10", nil)
+				rec := httptest.NewRecorder()
+
+				mw(handler).ServeHTTP(rec, req.WithContext(ctx))
+			}
+		})
 	}
 }
