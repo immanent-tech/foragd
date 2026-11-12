@@ -4,6 +4,7 @@ const ALLOWED_SCRIPT_ORIGINS = new Set([
   'https://foragd.app',
   'https://foragd-dev.astralcars.com',
   'https://cloud.umami.is',
+  'https://gateway.umami.is',
   'https://cdn.paddle.com',
   'https://challenges.cloudflare.com',
   'https://www.youtube.com',
