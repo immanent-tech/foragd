@@ -147,7 +147,8 @@ func buildRouter(services *services, appCfg *config.AppConfig) *chi.Mux {
 		r.Group(func(r chi.Router) {
 			r.Get("/signup", handlerMgr.HandleLogin(services.auth))
 			r.Route("/login", func(r chi.Router) {
-				r.Get("/", handlerMgr.HandleLogin(services.auth))
+				r.With(handlerMgr.ValidateSubscriptionLimits(services.users, services.subscriptions, services.emailSender)).
+					Get("/", handlerMgr.HandleLogin(services.auth))
 				r.Get(
 					"/callback",
 					handlerMgr.HandleLoginCallback(
@@ -186,7 +187,6 @@ func buildRouter(services *services, appCfg *config.AppConfig) *chi.Mux {
 			services.breadcrumbs.Recorder,
 			middlewares.ExtractUserFromSession(services.users, services.auth, services.session),
 			middlewares.RequireValidUser,
-			handlerMgr.ValidateSubscriptionLimits(services.users, services.subscriptions, services.emailSender),
 			middlewares.NoCache,
 			handlerMgr.CustomisationCtx,
 		)
