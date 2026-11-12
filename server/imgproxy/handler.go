@@ -30,9 +30,10 @@ import (
 
 	"github.com/immanent-tech/go-base/client"
 
+	"github.com/immanent-tech/go-base/pkg/zyte"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web"
-	"github.com/immanent-tech/go-base/pkg/zyte"
 )
 
 const (
@@ -478,18 +479,15 @@ func putBuf(buf *bytes.Buffer) {
 // to loopback, private, link-local and similar addresses are refused (SSRF protection).
 func newClient(blockInternal bool) *resty.Client {
 	dialer := &net.Dialer{
-		Timeout:   5 * time.Second,
 		KeepAlive: 30 * time.Second,
 	}
 	transport := &http.Transport{
-		DialContext:           dialer.DialContext,
-		ForceAttemptHTTP2:     true, // required when you supply a custom transport
-		MaxIdleConns:          200,
-		MaxIdleConnsPerHost:   80, // match your per-host concurrency
-		MaxConnsPerHost:       80, // hard cap so you don't hammer one origin
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   5 * time.Second,
-		ResponseHeaderTimeout: 10 * time.Second,
+		DialContext:         dialer.DialContext,
+		ForceAttemptHTTP2:   true, // required when you supply a custom transport
+		MaxIdleConns:        200,
+		MaxIdleConnsPerHost: 80, // match your per-host concurrency
+		MaxConnsPerHost:     80, // hard cap so you don't hammer one origin
+		IdleConnTimeout:     90 * time.Second,
 	}
 	if blockInternal {
 		// Control runs against the resolved IP on every dial, which also covers redirects and DNS rebinding.
