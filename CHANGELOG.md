@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.258.2](https://github.com/immanent-tech/foragd/compare/v0.258.1...v0.258.2) (2026-11-12)
+
+
+### Bug Fixes
+
+* **assets:** 🔧 allow additional umami domain for trusted-types script html ([f5a2507](https://github.com/immanent-tech/foragd/commit/f5a250743f497718c2a3e5d634733a6fe06f46c5))
+* **templates:** 🔧 fix size mention for avatar ([50ad083](https://github.com/immanent-tech/foragd/commit/50ad0836eae48602e3a275eb0bcebbe9326d8746))
+
+
+### Performance Improvements
+
+* **service/items:** ⚡ generate date range query clauses with rounding ([7f8ad95](https://github.com/immanent-tech/foragd/commit/7f8ad9566f9ba7a38bf554afb292add5d3a184ef))
+
 ## [0.258.1](https://github.com/immanent-tech/foragd/compare/v0.258.0...v0.258.1) (2026-11-12)
 
 
