@@ -41,6 +41,8 @@ import (
 	"github.com/immanent-tech/foragd/server/cache"
 )
 
+const dateRangeRounding = "||/m"
+
 // itemCacheExpiryCalculator is a custom expiry calculator for the feed cache.
 type itemCacheexpiryCalculator struct{}
 
@@ -612,8 +614,14 @@ func unReadSubscriptionFilters(
 					query.Bool(
 						query.WithBoolShouldMinimumMatch(1),
 						query.Should(
-							query.Since("published", mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")),
-							query.Since("updated", mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")),
+							query.Since(
+								"published",
+								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")+dateRangeRounding,
+							),
+							query.Since(
+								"updated",
+								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")+dateRangeRounding,
+							),
 						),
 					),
 				),
@@ -638,11 +646,19 @@ func unreadItemsForSubscriptionClause(subscription *models.Subscription, maxHist
 				query.Should(
 					query.Since(
 						"published",
-						mostRecent(subscription.GetMarkedReadAt(), maxHistory).Format("2006-01-02T15:04:05Z"),
+						mostRecent(
+							subscription.GetMarkedReadAt(),
+							maxHistory,
+						).Format("2006-01-02T15:04:05Z")+
+							dateRangeRounding,
 					),
 					query.Since(
 						"updated",
-						mostRecent(subscription.GetMarkedReadAt(), maxHistory).Format("2006-01-02T15:04:05Z"),
+						mostRecent(
+							subscription.GetMarkedReadAt(),
+							maxHistory,
+						).Format("2006-01-02T15:04:05Z")+
+							dateRangeRounding,
 					),
 				),
 			),
@@ -671,8 +687,14 @@ func readSubscriptionFilters(
 					query.Bool(
 						query.WithBoolShouldMinimumMatch(1),
 						query.Should(
-							query.Before("published", mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")),
-							query.Before("updated", mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")),
+							query.Before(
+								"published",
+								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")+dateRangeRounding,
+							),
+							query.Before(
+								"updated",
+								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")+dateRangeRounding,
+							),
 						),
 					),
 				),
@@ -696,11 +718,19 @@ func readItemsForSubscriptionClause(subscription *models.Subscription, maxHistor
 				query.Should(
 					query.Before(
 						"published",
-						mostRecent(subscription.GetMarkedReadAt(), maxHistory).Format("2006-01-02T15:04:05Z"),
+						mostRecent(
+							subscription.GetMarkedReadAt(),
+							maxHistory,
+						).Format("2006-01-02T15:04:05Z")+
+							dateRangeRounding,
 					),
 					query.Before(
 						"updated",
-						mostRecent(subscription.GetMarkedReadAt(), maxHistory).Format("2006-01-02T15:04:05Z"),
+						mostRecent(
+							subscription.GetMarkedReadAt(),
+							maxHistory,
+						).Format("2006-01-02T15:04:05Z")+
+							dateRangeRounding,
 					),
 				),
 			),
