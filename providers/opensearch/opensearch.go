@@ -6,6 +6,7 @@
 package opensearch
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -36,6 +37,7 @@ func NewRequestHeaders(ctx context.Context) http.Header {
 type Client struct {
 	*opensearchapi.Client
 
+	settings    Settings
 	environment string
 }
 
@@ -64,8 +66,30 @@ var GetClient = sync.OnceValues(func() (*Client, error) {
 
 	slog.Debug("Loaded Opensearch client")
 
-	return &Client{Client: client, environment: appCfg.GetAppEnvironment().String()}, nil
+	return &Client{
+		Client: client, environment: appCfg.GetAppEnvironment().String(),
+		settings: cfg.Settings,
+	}, nil
 })
+
+// ApplyClusterSettings applies any cluster settings read from the config to the cluster. Generally, this should only be
+// called when a new cluster is used or when the settings have changed.
+func (c *Client) ApplyClusterSettings(ctx context.Context) error {
+	var body bytes.Buffer
+	if err := json.NewEncoder(&body).Encode(map[string]any{
+		"persistent": c.settings,
+	}); err != nil {
+		return fmt.Errorf("encode cluster settings: %w", err)
+	}
+	resp, err := c.Cluster.PutSettings(ctx, &opensearchapi.ClusterPutSettingsReq{
+		BodyReader: &body,
+		Header:     NewRequestHeaders(ctx),
+	})
+	if err != nil {
+		HandleError("put cluster settings", resp, err)
+	}
+	return nil
+}
 
 // ExtractSource extracts the `_source` field from the raw response.
 func ExtractSource[T any](doc json.RawMessage) (T, error) {

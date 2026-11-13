@@ -26,8 +26,11 @@ import (
 // OpenSearchCmd contains subcommands for interacting with OpenSearch.
 type OpenSearchCmd struct {
 	CreateIndices OSCreateIndicesCmd `cmd:"" help:"create indices"`
+	Configure     OSConfigureCmd     `cmd:"" help:"configure opensearch"`
 }
 
+// OSCreateIndicesCmd creates the specified indices, their index and component templates and assigns read/write aliases
+// for the indices.
 type OSCreateIndicesCmd struct {
 	Indices []opensearch.Index `help:"list of indices" validate:"omitempty,unique"`
 }
@@ -130,6 +133,29 @@ func (c *OSCreateIndicesCmd) Run() error {
 			slog.String("alias", readAlias),
 			slog.String("target", indexName),
 		)
+	}
+
+	return nil
+}
+
+// OSConfigureCmd performs one-off configuration of OpenSearch, such as applying persistent cluster settings.
+type OSConfigureCmd struct{}
+
+func (c *OSConfigureCmd) Run() error {
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancelFunc()
+
+	if err := validation.Validate.Struct(c); err != nil {
+		return fmt.Errorf("validate options: %w", err)
+	}
+
+	osc, err := opensearch.GetClient()
+	if err != nil {
+		return fmt.Errorf("get opensearch client: %w", err)
+	}
+
+	if err := osc.ApplyClusterSettings(ctx); err != nil {
+		return fmt.Errorf("configure opensearch: %w", err)
 	}
 
 	return nil
