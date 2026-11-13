@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	opensearchConfigEnvPrefix = "OPENSEARCH_"
+	configEnvPrefix = "OPENSEARCH_"
 )
 
 type Config struct {
@@ -36,7 +36,7 @@ var loadConfigOnce = sync.OnceValues(func() (*Config, error) {
 		ReadTimeout: config.NewDuration(30 * time.Second),
 	}
 	// Load server configuration from environment, overwriting any defaults.
-	if err := config.Load(opensearchConfigEnvPrefix, &cfg); err != nil {
+	if err := config.Load(configEnvPrefix, &cfg); err != nil {
 		return nil, fmt.Errorf("load server environment: %w", err)
 	}
 

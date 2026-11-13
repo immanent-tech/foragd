@@ -20,13 +20,15 @@ import (
 
 	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/providers/opensearch/indices"
+	"github.com/immanent-tech/foragd/providers/opensearch/ml"
 	"github.com/immanent-tech/foragd/schema"
 )
 
 // OpenSearchCmd contains subcommands for interacting with OpenSearch.
 type OpenSearchCmd struct {
-	CreateIndices OSCreateIndicesCmd `cmd:"" help:"create indices"`
-	Configure     OSConfigureCmd     `cmd:"" help:"configure opensearch"`
+	CreateIndices   OSCreateIndicesCmd `cmd:"" help:"create indices"`
+	Configure       OSConfigureCmd     `cmd:"" help:"configure opensearch"`
+	MachineLearning OSMLCmd            `cmd:"" help:"machine learning commands"`
 }
 
 // OSCreateIndicesCmd creates the specified indices, their index and component templates and assigns read/write aliases
@@ -157,6 +159,43 @@ func (c *OSConfigureCmd) Run() error {
 	if err := osc.ApplyClusterSettings(ctx); err != nil {
 		return fmt.Errorf("configure opensearch: %w", err)
 	}
+
+	slogctx.Info(ctx, "Cluster settings applied.")
+
+	return nil
+}
+
+// OSMLCmd performs one-off configuration of the ML plugin.
+type OSMLCmd struct {
+	Init OSMLInitCmd `cmd:"" help:"init ML"`
+}
+
+type OSMLInitCmd struct{}
+
+func (c *OSMLInitCmd) Run() error {
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancelFunc()
+
+	if err := validation.Validate.Struct(c); err != nil {
+		return fmt.Errorf("validate options: %w", err)
+	}
+
+	osc, err := opensearch.GetClient()
+	if err != nil {
+		return fmt.Errorf("get opensearch client: %w", err)
+	}
+
+	mlc, err := ml.NewClient(osc)
+	if err != nil {
+		return fmt.Errorf("create ml client: %w", err)
+	}
+
+	connectorID, modelID, err := mlc.Configure(ctx)
+	if err != nil {
+		return fmt.Errorf("configure connector: %w", err)
+	}
+
+	slogctx.Info(ctx, "ML Configured", slog.String("connector_id", connectorID), slog.String("model_id", modelID))
 
 	return nil
 }
