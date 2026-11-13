@@ -94,14 +94,10 @@ func (c *Client) Configure(ctx context.Context) (string, string, error) {
 
 // Connector contains the configuration details for a model connector.
 type Connector struct {
-	ID          string                     `json:"connector_id"`
-	Name        string                     `json:"name"`
-	Description string                     `json:"description"`
-	Version     int                        `json:"version"`
-	Protocol    string                     `json:"protocol"`
-	Parameters  ConnectorParameters        `json:"parameters"`
-	Credential  opensearchapi.MLCredential `json:"credential"`
-	Actions     []opensearchapi.MLAction   `json:"actions"`
+	ml.MLCreateConnectorBody
+
+	ID         string              `json:"connector_id"`
+	Parameters ConnectorParameters `json:"parameters"`
 }
 
 type ConnectorParameters struct {
@@ -124,14 +120,14 @@ func (c *Client) ConfigureMLConnector(ctx context.Context) (string, error) {
 		credentials.SessionToken = c.cfg.SessionToken
 	}
 
-	// Generate URL.
+	// Generate model specific configuration settings.
 	var (
-		url     string
+		reqURL  string
 		reqBody string
 	)
 	switch c.cfg.Protocol {
 	case "http":
-		url = `http://${parameters.endpoint}/v1/embeddings`
+		reqURL = `http://${parameters.endpoint}/v1/embeddings`
 		reqBody = `{ "model": "${parameters.model}", "input": ${parameters.input} }`
 	}
 
@@ -151,7 +147,7 @@ func (c *Client) ConfigureMLConnector(ctx context.Context) (string, error) {
 			{
 				ActionType:          new("predict"),
 				Method:              new(http.MethodPost),
-				URL:                 &url,
+				URL:                 &reqURL,
 				RequestBody:         &reqBody,
 				PreProcessFunction:  new("connector.pre_process.openai.embedding"),
 				PostProcessFunction: new("connector.post_process.openai.embedding"),
@@ -227,7 +223,7 @@ func (c *Client) ConfigureModel(ctx context.Context, connectorID string) (string
 		resp, err := c.Model.UpdateModel(ctx, ml.UpdateModelReq{
 			ModelID:    modelID,
 			Header:     opensearch.NewRequestHeaders(ctx),
-			BodyReader: bytes.NewBuffer(body),
+			BodyReader: bytes.NewReader(body),
 		})
 		if err != nil {
 			return "", opensearch.HandleError("update model", resp, err)
