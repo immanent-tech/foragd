@@ -92,6 +92,16 @@ func (c *Client) Configure(ctx context.Context) (string, string, error) {
 	return connectorID, modelID, nil
 }
 
+// GetConnectorID returns the connector ID configured in the cluster.
+func (c *Client) GetConnectorID() string {
+	return c.cfg.ConnectorID
+}
+
+// GetModelID returns the model ID configured in the cluster.
+func (c *Client) GetModelID() string {
+	return c.cfg.ModelID
+}
+
 // Connector contains the configuration details for a model connector.
 type Connector struct {
 	ml.MLCreateConnectorBody
