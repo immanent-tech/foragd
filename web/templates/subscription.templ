@@ -129,7 +129,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				</section>
 			}
 			// Watch for updates.
-			@partials.UpdatesPoller(string(routeSubscriptionsUpdates), &response.Filters)
+			// @partials.UpdatesPoller(string(routeSubscriptionsUpdates), &response.Filters)
 		}
 	}
 }

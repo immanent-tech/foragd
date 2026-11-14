@@ -554,7 +554,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				</section>
 			}
 			// Watch for updates.
-			@partials.UpdatesPoller(string(routeArticlesUpdates), &response.Filters)
+			// @partials.UpdatesPoller(string(routeArticlesUpdates), &response.Filters)
 		}
 	}
 }

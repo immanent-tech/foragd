@@ -78,16 +78,16 @@ templ UserHome(data *HomeData) {
 				}
 			}
 			// Updates Toast.
-			{{ filters := models.NewListFilters() }}
-			<div
-				id="updates"
-				class="toast toast-center z-10"
-				hx-post={ routeArticlesUpdates.String() }
-				hx-vals={ templ.JSONString(filters) }
-				hx-trigger="every 5m"
-				hx-target="#updates"
-				hx-nonce={ templ.GetNonce(ctx) }
-			></div>
+			// {{ filters := models.NewListFilters() }}
+			// <div
+			// 	id="updates"
+			// 	class="toast toast-center z-10"
+			// 	hx-post={ routeArticlesUpdates.String() }
+			// 	hx-vals={ templ.JSONString(filters) }
+			// 	hx-trigger="every 5m"
+			// 	hx-target="#updates"
+			// 	hx-nonce={ templ.GetNonce(ctx) }
+			// ></div>
 		}
 	}
 }

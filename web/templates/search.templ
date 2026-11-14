@@ -342,15 +342,15 @@ templ SearchResults(results *models.SearchResults) {
 					</div>
 				} else {
 					// Watch for updates.
-					<div
-						id="updates"
-						class="toast toast-center"
-						hx-post="/search/updates"
-						hx-vals={ templ.JSONString(results.Search) }
-						hx-trigger="every 5m"
-						hx-target="#updates"
-						hx-nonce={ templ.GetNonce(ctx) }
-					></div>
+					// <div
+					// 	id="updates"
+					// 	class="toast toast-center"
+					// 	hx-post="/search/updates"
+					// 	hx-vals={ templ.JSONString(results.Search) }
+					// 	hx-trigger="every 5m"
+					// 	hx-target="#updates"
+					// 	hx-nonce={ templ.GetNonce(ctx) }
+					// ></div>
 					@SearchControls(results)
 					if len(results.Articles) > 1 {
 						<div class="m-2 flex justify-center gap-2 p-2">

@@ -77,15 +77,15 @@ templ MapArticles(response *models.ListArticlesResponse) {
 				</section>
 			}
 			// Watch for updates.
-			<div
-				id="updates"
-				class="toast toast-center"
-				hx-post="/map/updates"
-				hx-vals={ templ.JSONString(response.Filters) }
-				hx-trigger="every 5m"
-				hx-target="#updates"
-				hx-nonce={ templ.GetNonce(ctx) }
-			></div>
+			// <div
+			// 	id="updates"
+			// 	class="toast toast-center"
+			// 	hx-post="/map/updates"
+			// 	hx-vals={ templ.JSONString(response.Filters) }
+			// 	hx-trigger="every 5m"
+			// 	hx-target="#updates"
+			// 	hx-nonce={ templ.GetNonce(ctx) }
+			// ></div>
 		}
 	}
 }
