@@ -142,6 +142,7 @@ func TestManager_HandleLoginCallback(t *testing.T) {
 		authFunc    func(t *testing.T) *MoqAuthenticator
 		authMgrFunc func(t *testing.T) *MoqAuthManager
 		userSvc     *MoqUserService
+		subSvc      *MoqSubscriptionsService
 		mgrFunc     func(t *testing.T) *handlers.Manager
 		sendFunc    func(t *testing.T) *MoqEmailSender
 		wantCode    int
@@ -383,6 +384,11 @@ func TestManager_HandleLoginCallback(t *testing.T) {
 			if tt.sendFunc != nil {
 				sender = tt.sendFunc(t)
 			}
+			subSvc := &MoqSubscriptionsService{
+				GetAllSubscriptionsFunc: func(ctx context.Context) (models.Subscriptions, error) {
+					return nil, nil
+				},
+			}
 
 			rec := httptest.NewRecorder()
 			req := httptest.NewRequest(http.MethodGet, "/login/callback", nil)
@@ -391,7 +397,7 @@ func TestManager_HandleLoginCallback(t *testing.T) {
 				req.Form.Add(k, v)
 			}
 
-			mgr.HandleLoginCallback(userSvc, authMgr, auth, sender)(rec, req)
+			mgr.HandleLoginCallback(userSvc, subSvc, authMgr, auth, sender)(rec, req)
 
 			if rec.Code != tt.wantCode {
 				t.Fatalf("HandleLoginCallback got status %d, want %d", rec.Code, tt.wantCode)
