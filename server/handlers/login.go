@@ -97,6 +97,7 @@ func (m *Manager) HandleLogin(authenticator Authenticator) http.HandlerFunc {
 // HandleLoginCallback handles processing the response from the login provider.
 func (m *Manager) HandleLoginCallback(
 	userSvc UserService,
+	subSvc SubscriptionsService,
 	authMgr AuthManager,
 	auth Authenticator,
 	emailSender EmailSender,
@@ -182,7 +183,15 @@ func (m *Manager) HandleLoginCallback(
 			}
 		}
 
-		m.redirectAfterLogin(res, req, auth, user)
+		m.ValidateSubscriptionLimits(
+			userSvc,
+			subSvc,
+			emailSender,
+		)(
+			http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+				m.redirectAfterLogin(res, req, auth, user)
+			}),
+		).ServeHTTP(res, req)
 	}
 }
 
