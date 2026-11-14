@@ -70,6 +70,27 @@ func (s *IndexSettings) enableAnalysis() {
 // IndexSettingsOption is a functional option applied to IndexSettings.
 type IndexSettingsOption func(*IndexSettings)
 
+// WithReplicas option sets the number of replica shards for the index.
+func WithReplicas(count string) IndexSettingsOption {
+	return func(s *IndexSettings) {
+		s.Settings.NumberOfReplicas = &count
+	}
+}
+
+// WithKNN option sets the KNN index setting to "true".
+func WithKNN() IndexSettingsOption {
+	return func(s *IndexSettings) {
+		s.Settings.KNN = new("true")
+	}
+}
+
+// WithDefaultPipeline option sets a default ingest pipeline for the index.
+func WithDefaultPipeline(pipeline string) IndexSettingsOption {
+	return func(s *IndexSettings) {
+		s.Settings.DefaultPipeline = &pipeline
+	}
+}
+
 // WithAlias option assigns an alias with the given name and settings to the settings.
 func WithAlias(name string, settings *opensearchapi.IndicesAlias) IndexSettingsOption {
 	return func(s *IndexSettings) {
