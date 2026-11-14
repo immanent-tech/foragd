@@ -132,13 +132,13 @@ templ ImportStatus(status *models.ImportStatus, results []*models.ImportResult, 
 				if status != nil {
 					// Generate seperate lists of successful/failed/warning imports.
 					{{
-						successfulResults := slices.Collect(models.FilterSlice(results, func(result *models.ImportResult) bool {
+						successfulResults := slices.Collect(models.Filter(slices.Values(results), func(result *models.ImportResult) bool {
 							return result.Error == nil && result.SubscriptionID != nil
 						}))
-						warningResults := slices.Collect(models.FilterSlice(results, func(result *models.ImportResult) bool {
+						warningResults := slices.Collect(models.Filter(slices.Values(results), func(result *models.ImportResult) bool {
 							return result.Error != nil && result.Error.IsWarning()
 						}))
-						failedResults := slices.Collect(models.FilterSlice(results, func(result *models.ImportResult) bool {
+						failedResults := slices.Collect(models.Filter(slices.Values(results), func(result *models.ImportResult) bool {
 							return result.Error != nil && result.Error.IsError()
 						}))
 						allSubscriptions := models.SubscriptionsFromCtx(ctx)
