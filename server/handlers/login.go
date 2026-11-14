@@ -183,6 +183,8 @@ func (m *Manager) HandleLoginCallback(
 			}
 		}
 
+		ctx = models.UserToCtx(ctx, user)
+
 		m.ValidateSubscriptionLimits(
 			userSvc,
 			subSvc,
@@ -191,7 +193,7 @@ func (m *Manager) HandleLoginCallback(
 			http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 				m.redirectAfterLogin(res, req, auth, user)
 			}),
-		).ServeHTTP(res, req)
+		).ServeHTTP(res, req.WithContext(ctx))
 	}
 }
 
