@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.260.1](https://github.com/immanent-tech/foragd/compare/v0.260.0...v0.260.1) (2026-11-14)
+
+
+### Reverts
+
+* **services/items:** ♻️ revert date range rounding ([e555ca3](https://github.com/immanent-tech/foragd/commit/e555ca35b7a2805913c9398a978c72d65619b27e))
+
 ## [0.260.0](https://github.com/immanent-tech/foragd/compare/v0.259.0...v0.260.0) (2026-11-14)
 
 
