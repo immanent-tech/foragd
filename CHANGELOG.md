@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.260.0](https://github.com/immanent-tech/foragd/compare/v0.259.0...v0.260.0) (2026-11-14)
+
+
+### Features
+
+* **providers/opensearch:** ➕ add additional configurable index settings ([e47774b](https://github.com/immanent-tech/foragd/commit/e47774bfd9b2966c258b84c51fa1af53e58176b7))
+* **providers/opensearch:** ➕ add method for configuring an ingest pipeline in the cluster ([5b4c46a](https://github.com/immanent-tech/foragd/commit/5b4c46a802267759841ea06fc34f70138a725615))
+* **providers/opensearch:** ➕ add methods for the ml client to retrieve the connector and model ids ([e8d7dca](https://github.com/immanent-tech/foragd/commit/e8d7dca33bbd7327dfeceec75c850b6301a5d6f6))
+* **schema:** ➕ add schema for items ([1233794](https://github.com/immanent-tech/foragd/commit/123379465571da8bfbe469aa16b4ea8079aeb5b2))
+
+
+### Performance Improvements
+
+* **templates:** ⚡ temporarily disable polling for updates ([a06c67d](https://github.com/immanent-tech/foragd/commit/a06c67ddf9dce951885e29c9bc106e4a2da1da09))
+
 ## [0.259.0](https://github.com/immanent-tech/foragd/compare/v0.258.3...v0.259.0) (2026-11-14)
 
 
