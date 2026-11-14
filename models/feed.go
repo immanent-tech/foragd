@@ -53,7 +53,7 @@ func (f Feeds) ExcludeIDs(ids ...FeedID) Feeds {
 		return f
 	}
 	return slices.Collect(
-		FilterSlice(f, func(e *Feed) bool {
+		Filter(slices.Values(f), func(e *Feed) bool {
 			return !slices.Contains(ids, e.GetID())
 		}),
 	)
@@ -62,7 +62,7 @@ func (f Feeds) ExcludeIDs(ids ...FeedID) Feeds {
 // FilterDisabled returns a new slice containing only the feeds which ARE NOT disabled.
 func (f Feeds) FilterDisabled() Feeds {
 	return slices.Collect(
-		FilterSlice(f, func(e *Feed) bool {
+		Filter(slices.Values(f), func(e *Feed) bool {
 			return !e.IsDisabled()
 		}),
 	)

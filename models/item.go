@@ -40,7 +40,7 @@ func (i Items) ExcludeIDs(ids ...ItemID) Items {
 		return i
 	}
 	return slices.Collect(
-		FilterSlice(i, func(e *Item) bool {
+		Filter(slices.Values(i), func(e *Item) bool {
 			return !slices.Contains(ids, e.GetID())
 		}),
 	)
@@ -51,21 +51,21 @@ func (i Items) FilterByIDs(ids ...ItemID) Items {
 	if len(ids) == 0 {
 		return i
 	}
-	return slices.Collect(FilterSlice(i, func(item *Item) bool {
+	return slices.Collect(Filter(slices.Values(i), func(item *Item) bool {
 		return slices.Contains(ids, item.GetID())
 	}))
 }
 
 // FilterSince filters [Items] to ones which are newer than the given timestamp.
 func (i Items) FilterSince(since time.Time) Items {
-	return slices.Collect(FilterSlice(i, func(item *Item) bool {
+	return slices.Collect(Filter(slices.Values(i), func(item *Item) bool {
 		return item.IsNewer(since)
 	}))
 }
 
 // FilterByFeed filters [Items] to ones which match the given feed ID.
 func (i Items) FilterByFeed(feedID FeedID) Items {
-	return slices.Collect(FilterSlice(i, func(v *Item) bool {
+	return slices.Collect(Filter(slices.Values(i), func(v *Item) bool {
 		return v.GetFeedID() == feedID
 	}))
 }

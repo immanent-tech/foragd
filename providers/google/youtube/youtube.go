@@ -118,11 +118,11 @@ func Find(ctx context.Context, query string, count int64) ([]SearchResult, error
 
 func CreateFeeds(ctx context.Context, results ...SearchResult) (models.Feeds, error) {
 	// Filter channel results.
-	channels := slices.Collect(models.FilterSlice(results, func(e SearchResult) bool {
+	channels := slices.Collect(models.Filter(slices.Values(results), func(e SearchResult) bool {
 		return e.Type == TypeChannel
 	}))
 	// Filter playlist results.
-	playlists := slices.Collect(models.FilterSlice(results, func(e SearchResult) bool {
+	playlists := slices.Collect(models.Filter(slices.Values(results), func(e SearchResult) bool {
 		return e.Type == TypeChannel
 	}))
 

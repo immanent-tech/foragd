@@ -10,9 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"iter"
-	"maps"
 	"net/mail"
-	"slices"
 	"time"
 )
 
@@ -29,45 +27,24 @@ var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
 // UnixEpoch is the time.Time value of Unix epoch.
 var UnixEpoch = time.Unix(0, 0)
 
-// SliceToMap generates a map from slice content by mapping key-value pairs from the slice with the given map function.
-func SliceToMap[K comparable, V any, S any](s []S, mapFn func(S) (K, V)) map[K]V {
-	m := make(map[K]V)
-	for _, k := range s {
-		key, val := mapFn(k)
-		m[key] = val
-	}
-	return m
-}
-
-// FilterSlice will filter a slice returning an iter with elements that return true for the given filter function.
-func FilterSlice[E any](s []E, fn func(E) bool) iter.Seq[E] {
-	return func(yield func(s E) bool) {
-		for _, v := range s {
-			if fn(v) {
-				if !yield(v) {
-					return
-				}
+func Filter[T any](seq iter.Seq[T], pred func(T) bool) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for v := range seq {
+			if pred(v) && !yield(v) {
+				return
 			}
 		}
 	}
 }
 
-// FilterMap will filter a map by the given function.
-func FilterMap[K comparable, V any](m map[K]V, fn func(K, V) bool) iter.Seq2[K, V] {
-	return func(yield func(k K, v V) bool) {
-		for k, v := range m {
-			if fn(k, v) {
-				if !yield(k, v) {
-					return
-				}
-			}
+func Find[T any](seq iter.Seq[T], pred func(T) bool) (T, bool) {
+	for v := range seq {
+		if pred(v) {
+			return v, true
 		}
 	}
-}
-
-// FilterMapValues will filter map values by the given function.
-func FilterMapValues[K comparable, V any](s map[K]V, fn func(V) bool) iter.Seq[V] {
-	return FilterSlice(slices.Collect(maps.Values(s)), fn)
+	var zero T
+	return zero, false
 }
 
 // ValidateDatetime will check whether a time.Time is not either the zero value or equal to the Unix epoch.

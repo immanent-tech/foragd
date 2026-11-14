@@ -84,11 +84,11 @@ func (a Articles) GetLanguageCounts() map[string]int64 {
 func (a Articles) FilterByView(view View) Articles {
 	switch view {
 	case ViewRead:
-		return slices.Collect(FilterSlice(a, func(article *Article) bool {
+		return slices.Collect(Filter(slices.Values(a), func(article *Article) bool {
 			return !article.IsUnread()
 		}))
 	case ViewUnread:
-		return slices.Collect(FilterSlice(a, func(article *Article) bool {
+		return slices.Collect(Filter(slices.Values(a), func(article *Article) bool {
 			return article.IsUnread()
 		}))
 	default:

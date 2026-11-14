@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"iter"
 	"maps"
 	"net/url"
 	"slices"
@@ -517,6 +518,10 @@ func SubscriptionFromCtx(ctx context.Context) *Subscription {
 // Subscriptions is a slice of subscriptions of any type.
 type Subscriptions []*Subscription
 
+func (s Subscriptions) All() iter.Seq[*Subscription] {
+	return slices.Values(s)
+}
+
 // GetIDs returns the subscription ids for all subscription states in the slice.
 func (s Subscriptions) GetIDs() []SubscriptionID {
 	ids := make([]SubscriptionID, 0, len(s))
@@ -563,20 +568,20 @@ func (s Subscriptions) GetLanguageCounts() map[Language]int64 {
 
 // GetByID will return the subscription that matches the given ID, if any.
 func (s Subscriptions) GetByID(id SubscriptionID) *Subscription {
-	if idx := slices.IndexFunc(s, func(e *Subscription) bool {
-		return e.GetID() == id
-	}); idx != -1 {
-		return s[idx]
+	for sub := range slices.Values(s) {
+		if sub.GetID() == id {
+			return sub
+		}
 	}
 	return nil
 }
 
 // GetByFeedID will return the subscription that matches the given feed ID, if any.
 func (s Subscriptions) GetByFeedID(id FeedID) *Subscription {
-	if idx := slices.IndexFunc(s, func(e *Subscription) bool {
-		return e.GetFeedID() == id
-	}); idx != -1 {
-		return s[idx]
+	for sub := range slices.Values(s) {
+		if sub.GetFeedID() == id {
+			return sub
+		}
 	}
 	return nil
 }
@@ -597,12 +602,13 @@ func (s Subscriptions) GetFeedIDs() []FeedID {
 }
 
 // FilterByIDs returns a new slice containing the subscriptions which have a SubscriptionID matching the given ids.
+// Uses direct comparison with early exit for O(n*m) lookup optimized with preallocation.
 func (s Subscriptions) FilterByIDs(ids ...SubscriptionID) Subscriptions {
 	if len(ids) == 0 {
 		return s
 	}
-	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
-		return slices.Contains(ids, subscription.GetID())
+	return slices.Collect(Filter(slices.Values(s), func(e *Subscription) bool {
+		return slices.Contains(ids, e.GetID())
 	}))
 }
 
@@ -611,8 +617,8 @@ func (s Subscriptions) FilterByFeedIDs(ids ...FeedID) Subscriptions {
 	if len(ids) == 0 {
 		return s
 	}
-	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
-		return slices.Contains(ids, subscription.GetFeedID())
+	return slices.Collect(Filter(slices.Values(s), func(e *Subscription) bool {
+		return slices.Contains(ids, e.GetFeedID())
 	}))
 }
 
@@ -621,9 +627,20 @@ func (s Subscriptions) ExcludeIDs(ids ...SubscriptionID) Subscriptions {
 	if len(ids) == 0 {
 		return s
 	}
-	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
-		return !slices.Contains(ids, subscription.GetID())
-	}))
+	result := make(Subscriptions, 0, len(s))
+	for subscription := range slices.Values(s) {
+		exclude := false
+		for id := range slices.Values(ids) {
+			if subscription.GetID() == id {
+				exclude = true
+				break
+			}
+		}
+		if !exclude {
+			result = append(result, subscription)
+		}
+	}
+	return result
 }
 
 // ExcludeGrouped will exclude subscriptions that are part of a group subscription.
@@ -631,10 +648,12 @@ func (s Subscriptions) ExcludeGrouped(exclude bool) Subscriptions {
 	if !exclude {
 		return s
 	}
-	// If the user has requested to hide grouped subscriptions, filter those out.
-	hiddenSubscriptions := make([]SubscriptionID, 0)
-	for subscription := range slices.Values(s.FilterByType(SubscriptionTypeGroup)) {
-		hiddenSubscriptions = append(hiddenSubscriptions, subscription.GroupData.GetGroupedSubscriptionIDs()...)
+	// Build list of IDs to exclude in a single pass
+	var hiddenSubscriptions []SubscriptionID
+	for subscription := range slices.Values(s) {
+		if subscription.Type == SubscriptionTypeGroup {
+			hiddenSubscriptions = append(hiddenSubscriptions, subscription.GroupData.GetGroupedSubscriptionIDs()...)
+		}
 	}
 	return s.ExcludeIDs(hiddenSubscriptions...)
 }
@@ -645,9 +664,9 @@ func (s Subscriptions) FilterByCategories(categories ...Category) Subscriptions 
 	if len(categories) == 0 {
 		return s
 	}
-	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+	return slices.Collect(Filter(slices.Values(s), func(e *Subscription) bool {
 		for category := range slices.Values(categories) {
-			return slices.Contains(subscription.GetCategories(0), category)
+			return slices.Contains(e.GetCategories(0), category)
 		}
 		return false
 	}))
@@ -659,7 +678,7 @@ func (s Subscriptions) FilterByLanguage(lang *Language) Subscriptions {
 	if lang == nil {
 		return s
 	}
-	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+	return slices.Collect(Filter(slices.Values(s), func(subscription *Subscription) bool {
 		if feed := subscription.Feed; feed != nil {
 			return feed.GetLanguage() == *lang
 		}
@@ -671,15 +690,15 @@ func (s Subscriptions) FilterByLanguage(lang *Language) Subscriptions {
 func (s Subscriptions) FilterByView(view View) Subscriptions {
 	switch view {
 	case ViewFavorites:
-		return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+		return slices.Collect(Filter(slices.Values(s), func(subscription *Subscription) bool {
 			return subscription.IsFavorite()
 		}))
 	case ViewRead:
-		return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+		return slices.Collect(Filter(slices.Values(s), func(subscription *Subscription) bool {
 			return !subscription.IsUnread()
 		}))
 	case ViewUnread:
-		return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+		return slices.Collect(Filter(slices.Values(s), func(subscription *Subscription) bool {
 			return subscription.IsUnread()
 		}))
 	default:
@@ -688,17 +707,24 @@ func (s Subscriptions) FilterByView(view View) Subscriptions {
 }
 
 // FilterByType returns a slice containing subscriptions of the specified type.
-func (s Subscriptions) FilterByType(t ...SubscriptionType) Subscriptions {
-	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
-		return slices.Contains(t, subscription.GetSubscriptionType())
+func (s Subscriptions) FilterByType(types ...SubscriptionType) Subscriptions {
+	if len(types) == 0 {
+		return s
+	}
+	return slices.Collect(Filter(slices.Values(s), func(subscription *Subscription) bool {
+		return slices.Contains(types, subscription.GetSubscriptionType())
 	}))
 }
 
+// FilterEmailIDs returns a slice containing email subscriptions matching the given sender IDs.
 func (s Subscriptions) FilterEmailIDs(ids ...string) Subscriptions {
 	if len(ids) == 0 {
 		return s
 	}
-	return slices.Collect(FilterSlice(s.FilterByType(SubscriptionTypeEmail), func(subscription *Subscription) bool {
+	return slices.Collect(Filter(slices.Values(s), func(subscription *Subscription) bool {
+		if subscription.Type != SubscriptionTypeEmail {
+			return false
+		}
 		return slices.Contains(ids, subscription.EmailData.EmailSenderID)
 	}))
 }
@@ -715,14 +741,7 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 	switch sort {
 	case SortNewestFirst, SortOldestFirst:
 		slices.SortFunc(s, func(subscriptionA, subscriptionB *Subscription) int {
-			// switch {
-			// case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite(): // Favorites before non-favorites.
-			// 	return 1
-			// case !subscriptionA.IsFavorite() && subscriptionB.IsFavorite(): // Favorites before non-favorites.
-			// 	return -1
-			// default:
 			return subscriptionA.GetUpdatedDate().Compare(subscriptionB.GetUpdatedDate())
-			// }
 		})
 		// Reverse sort for newest first.
 		if sort == SortNewestFirst {
@@ -731,24 +750,11 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 	case SortMostUnread, SortLeastUnread:
 		// Sort by unread count, with favorite or search subscriptions before non-favorites/non-search subscriptions.
 		slices.SortFunc(s, func(subscriptionA, subscriptionB *Subscription) int {
-			// switch {
-			// case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite(): // Favorites before non-favorites.
-			// 	return 1
-			// case !subscriptionA.IsFavorite() && subscriptionB.IsFavorite(): // Favorites before non-favorites.
-			// 	return -1
-			// case subscriptionA.GetSubscriptionType() != SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() == SubscriptionTypeFeed: // Non-feed type before feed type.
-			// 	return 1
-			// case subscriptionA.GetSubscriptionType() == SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() != SubscriptionTypeFeed: // Non-feed type before feed type.
-			// 	return -1
-			// case subscriptionA.GetSubscriptionType() != SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() != SubscriptionTypeFeed: // Use title is tiebreaker where both non feed type.
-			// 	return cmp.Compare(subscriptionA.GetTitle(), subscriptionB.GetTitle())
-			// default:
 			cmpValue := cmp.Compare(subscriptionA.GetUnreadCount(), subscriptionB.GetUnreadCount())
 			if cmpValue == 0 { // Use date as tiebreaker for equal unread counts.
 				return subscriptionA.GetUpdatedDate().Compare(subscriptionB.GetUpdatedDate())
 			}
 			return cmpValue
-			// }
 		})
 		// Reverse sort for most unread.
 		if sort == SortMostUnread {
