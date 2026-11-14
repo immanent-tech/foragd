@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.259.0](https://github.com/immanent-tech/foragd/compare/v0.258.3...v0.259.0) (2026-11-14)
+
+
+### Features
+
+* **providers/opensearch:** ➕ add ability to apply persistent cluster settings ([3fe6ca1](https://github.com/immanent-tech/foragd/commit/3fe6ca1a9eb609feb2c59e1c6b8523403e92db05))
+* **providers/opensearch:** ➕ add support for configuring ML connectors and models for Foragd use ([00a5cc4](https://github.com/immanent-tech/foragd/commit/00a5cc44f90e213f00806ad4fbfb4a527841dbed))
+
+
+### Bug Fixes
+
+* **handlers:** 🔧 fix when validate subscription limits should be called ([852dc6d](https://github.com/immanent-tech/foragd/commit/852dc6d42b40ead0b15b4e944f479c1dfbf268e4))
+* **handlers:** 🔧 make sure context has all required values ([356c7f2](https://github.com/immanent-tech/foragd/commit/356c7f2d20da9f83381b490ebbcc9174c89dbbcb))
+
+
+### Performance Improvements
+
+* **modles:** ⚡ improve filter methods ([d25b54f](https://github.com/immanent-tech/foragd/commit/d25b54fd105125de3ca8ddb78f8e7c411e7f1d96))
+
 ## [0.258.3](https://github.com/immanent-tech/foragd/compare/v0.258.2...v0.258.3) (2026-11-12)
 
 
