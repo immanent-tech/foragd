@@ -20,6 +20,7 @@ import (
 
 	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/providers/opensearch/indices"
+	"github.com/immanent-tech/foragd/providers/opensearch/ingest"
 	"github.com/immanent-tech/foragd/providers/opensearch/ml"
 	"github.com/immanent-tech/foragd/schema"
 )
@@ -60,6 +61,11 @@ func (c *OSCreateIndicesCmd) Run() error {
 		return fmt.Errorf("get opensearch client: %w", err)
 	}
 
+	mlc, err := ml.NewClient(osc)
+	if err != nil {
+		return fmt.Errorf("get opensearch ml client: %w", err)
+	}
+
 	// Create the common component template.
 	if err := indices.CreateComponentTemplate(ctx, osc.Cluster, schema.CommonComponentTemplate); err != nil {
 		return fmt.Errorf("create common component template: %w", err)
@@ -80,6 +86,20 @@ func (c *OSCreateIndicesCmd) Run() error {
 			componentTemplate = schema.FeedsComponentTemplate
 			readAlias = osc.IndexReadAlias(index)
 			writeAlias = osc.IndexWriteAlias(index)
+		case schema.ItemsIndex:
+			indexName = osc.IndexCanonicalName(index)
+			indexTemplate = schema.ItemsIndexTemplate
+			componentTemplate = schema.ItemsComponentTemplate
+			readAlias = osc.IndexReadAlias(index)
+			writeAlias = osc.IndexWriteAlias(index)
+			// Additional steps for items index.
+			if err := ingest.NewIngestPipeline(
+				ctx,
+				&osc.Ingest,
+				schema.ItemsIngestPipeline(mlc.GetModelID()),
+			); err != nil {
+				return fmt.Errorf("configure items ingest pipeline: %w", err)
+			}
 		case schema.SessionsIndex:
 			indexName = osc.IndexCanonicalName(index)
 			indexTemplate = schema.SessionsIndexTemplate

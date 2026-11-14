@@ -13,14 +13,22 @@ import (
 )
 
 const (
-	FeedsIndex         opensearch.Index = "feeds"
-	ItemsIndex         opensearch.Index = "items"
-	FavoritesIndex     opensearch.Index = "favorites"
-	UsersIndex         opensearch.Index = "users"
+	// FeedsIndex is the index containing [model.Feed] documents.
+	FeedsIndex opensearch.Index = "feeds"
+	// ItemsIndex is the index containing [models.Item] documents.
+	ItemsIndex opensearch.Index = "items"
+	// FavoritesIndex is the index containing [models.Article] that a user has favorited.
+	FavoritesIndex opensearch.Index = "favorites"
+	// UsersIndex is the index containing [model.User] documents.
+	UsersIndex opensearch.Index = "users"
+	// SubscriptionsIndex is the index containing [models.Subscription] documents.
 	SubscriptionsIndex opensearch.Index = "subscriptions"
-	SchedulerIndex     opensearch.Index = "scheduler"
-	SessionsIndex      opensearch.Index = "sessions"
-	ImportsIndex       opensearch.Index = "imports"
+	// SchedulerIndex is the index containing data for scheduled jobs and job data.
+	SchedulerIndex opensearch.Index = "scheduler"
+	// SessionsIndex is the index containing user session data.
+	SessionsIndex opensearch.Index = "sessions"
+	// ImportsIndex is the index containing user import jobs data.
+	ImportsIndex opensearch.Index = "imports"
 )
 
 var AllIndices = []opensearch.Index{
