@@ -616,11 +616,11 @@ func unReadSubscriptionFilters(
 						query.Should(
 							query.Since(
 								"published",
-								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")+dateRangeRounding,
+								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z"),
 							),
 							query.Since(
 								"updated",
-								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")+dateRangeRounding,
+								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z"),
 							),
 						),
 					),
@@ -649,16 +649,14 @@ func unreadItemsForSubscriptionClause(subscription *models.Subscription, maxHist
 						mostRecent(
 							subscription.GetMarkedReadAt(),
 							maxHistory,
-						).Format("2006-01-02T15:04:05Z")+
-							dateRangeRounding,
+						).Format("2006-01-02T15:04:05Z"),
 					),
 					query.Since(
 						"updated",
 						mostRecent(
 							subscription.GetMarkedReadAt(),
 							maxHistory,
-						).Format("2006-01-02T15:04:05Z")+
-							dateRangeRounding,
+						).Format("2006-01-02T15:04:05Z"),
 					),
 				),
 			),
@@ -689,11 +687,11 @@ func readSubscriptionFilters(
 						query.Should(
 							query.Before(
 								"published",
-								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")+dateRangeRounding,
+								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z"),
 							),
 							query.Before(
 								"updated",
-								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")+dateRangeRounding,
+								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z"),
 							),
 						),
 					),
@@ -721,16 +719,14 @@ func readItemsForSubscriptionClause(subscription *models.Subscription, maxHistor
 						mostRecent(
 							subscription.GetMarkedReadAt(),
 							maxHistory,
-						).Format("2006-01-02T15:04:05Z")+
-							dateRangeRounding,
+						).Format("2006-01-02T15:04:05Z"),
 					),
 					query.Before(
 						"updated",
 						mostRecent(
 							subscription.GetMarkedReadAt(),
 							maxHistory,
-						).Format("2006-01-02T15:04:05Z")+
-							dateRangeRounding,
+						).Format("2006-01-02T15:04:05Z"),
 					),
 				),
 			),
