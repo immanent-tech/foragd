@@ -23,6 +23,7 @@ var SessionsMappings = indices.NewMappings(
 var SessionsComponentTemplate = indices.NewComponentTemplateRequest(SessionsIndex.String(),
 	indices.WithIndexSettings(
 		indices.WithMappings(SessionsMappings),
+		indices.WithReplicas("2"),
 	),
 )
 
