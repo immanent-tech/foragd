@@ -6,10 +6,17 @@
 package schema
 
 import (
+	"context"
+	"fmt"
+	"log/slog"
+
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/providers/opensearch/indices"
+	"github.com/immanent-tech/foragd/providers/opensearch/ingest"
+	"github.com/immanent-tech/foragd/providers/opensearch/ml"
 )
 
 const (
@@ -42,86 +49,181 @@ var AllIndices = []opensearch.Index{
 	ImportsIndex,
 }
 
-var (
-	// englishExactAnalyzer provides exact (case-sensitive) matching.
-	englishExactAnalyzer = indices.CustomAnalyzer{
-		Name: "english_exact",
-		Definition: opensearchapi.NewCommonAnalysisAnalyzerFromCustomAnalyzer(
-			opensearchapi.CommonAnalysisCustomAnalyzer{
-				Type:      "custom",
-				Tokenizer: "standard",
-				Filter:    []string{"lowercase"},
-			},
-		),
+type IndexConfig struct {
+	index opensearch.Index
+	// Name is the canonical name of the index.
+	Name string
+	// IndexTemplate is an index template for the index.
+	IndexTemplate opensearchapi.IndicesPutIndexTemplateReq
+	// ComponentTemplate is a component template for the index.
+	ComponentTemplate opensearchapi.ClusterPutComponentTemplateReq
+	// ReadAlias is the read-only index alias.
+	ReadAlias string
+	// WriteAlias is the read-write index alias.
+	WriteAlias string
+}
+
+// NewIndexConfig generates an [IndexConfig] for the given [opensearch.Index]. This includes the appropriate
+// canonical index name, index/component templates and read/write aliases for the index.
+func NewIndexConfig(osc *opensearch.Client, index opensearch.Index) (IndexConfig, error) {
+	var (
+		indexName         string
+		indexTemplate     opensearchapi.IndicesPutIndexTemplateReq
+		componentTemplate opensearchapi.ClusterPutComponentTemplateReq
+		readAlias         string
+		writeAlias        string
+	)
+	switch index {
+	case FeedsIndex:
+		indexName = osc.IndexCanonicalName(index)
+		indexTemplate = FeedsIndexTemplate
+		componentTemplate = FeedsComponentTemplate
+		readAlias = osc.IndexReadAlias(index)
+		writeAlias = osc.IndexWriteAlias(index)
+	case ItemsIndex:
+		indexName = osc.IndexCanonicalName(index)
+		indexTemplate = ItemsIndexTemplate
+		componentTemplate = ItemsComponentTemplate
+		readAlias = osc.IndexReadAlias(index)
+		writeAlias = osc.IndexWriteAlias(index)
+	case FavoritesIndex:
+		indexName = osc.IndexCanonicalName(index)
+		indexTemplate = FavoritesIndexTemplate
+		componentTemplate = FavoritesComponentTemplate
+		readAlias = osc.IndexReadAlias(index)
+		writeAlias = osc.IndexWriteAlias(index)
+	case SubscriptionsIndex:
+		indexName = osc.IndexCanonicalName(index)
+		indexTemplate = SubscriptionsIndexTemplate
+		componentTemplate = SubscriptionsComponentTemplate
+		readAlias = osc.IndexReadAlias(index)
+		writeAlias = osc.IndexWriteAlias(index)
+	case SessionsIndex:
+		indexName = osc.IndexCanonicalName(index)
+		indexTemplate = SessionsIndexTemplate
+		componentTemplate = SessionsComponentTemplate
+		readAlias = osc.IndexReadAlias(index)
+		writeAlias = osc.IndexWriteAlias(index)
+	case SchedulerIndex:
+		indexName = osc.IndexCanonicalName(index)
+		indexTemplate = SchedulerIndexTemplate
+		componentTemplate = SchedulerComponentTemplate
+		readAlias = osc.IndexReadAlias(index)
+		writeAlias = osc.IndexWriteAlias(index)
+	case ImportsIndex:
+		indexName = osc.IndexCanonicalName(index)
+		indexTemplate = ImportsIndexTemplate
+		componentTemplate = ImportsComponentTemplate
+		readAlias = osc.IndexReadAlias(index)
+		writeAlias = osc.IndexWriteAlias(index)
+	default:
+		return IndexConfig{}, fmt.Errorf("unknown index: %s", index)
+	}
+	return IndexConfig{
+		Name:              indexName,
+		IndexTemplate:     indexTemplate,
+		ComponentTemplate: componentTemplate,
+		ReadAlias:         readAlias,
+		WriteAlias:        writeAlias,
+	}, nil
+}
+
+// InitIndex will ensure all index templates and aliases exist and creates a new index ready for use.
+func (c *IndexConfig) InitIndex(ctx context.Context, osc *opensearch.Client) error {
+	// Create component template.
+	if err := c.UpdateTemplates(ctx, osc); err != nil {
+		return fmt.Errorf("update templates: %w", err)
 	}
 
-	// emailTokenizer tokenizes text including emails and URLs.
-	emailTokenizer = indices.CustomTokenizer{
-		Name: "email_tokenizer",
-		Definition: opensearchapi.NewCommonAnalysisTokenizerFromTokenizerDefinition(
-			opensearchapi.NewCommonAnalysisTokenizerDefinitionFromUAXEmailURLTokenizer(
-				opensearchapi.CommonAnalysisUAXEmailURLTokenizer{},
-			),
-		),
+	// Create index.
+	if err := indices.CreateIndexIfNotExists(ctx, osc.Index, c.Name); err != nil {
+		return fmt.Errorf("create index %s: %w", c.Name, err)
+	}
+	slogctx.Info(ctx, "Created index",
+		slog.String("name", c.Name),
+	)
+
+	// Create aliases.
+	if err := c.UpdateAlias(ctx, osc, "write"); err != nil {
+		return fmt.Errorf("update alias: %w", err)
+	}
+	if err := c.UpdateAlias(ctx, osc, "read"); err != nil {
+		return fmt.Errorf("update alias: %w", err)
 	}
 
-	// personAnalyzer recognizes email addresses for people.
-	personAnalyzer = indices.CustomAnalyzer{
-		Name: "author_contributor",
-		Definition: opensearchapi.NewCommonAnalysisAnalyzerFromCustomAnalyzer(
-			opensearchapi.CommonAnalysisCustomAnalyzer{
-				Type:      "custom",
-				Tokenizer: emailTokenizer.Name,
-				Filter:    []string{"lowercase", "stop"},
-			},
-		),
+	return nil
+}
+
+// UpdateIndex will update all templates for an index.
+func (c *IndexConfig) UpdateIndex(ctx context.Context, osc *opensearch.Client) error {
+	// Create component template.
+	if err := c.UpdateTemplates(ctx, osc); err != nil {
+		return fmt.Errorf("update templates: %w", err)
 	}
 
-	// htmlAnalyzer is the standard analyzer with HTML stripped/cleaned.
-	htmlAnalyzer = indices.CustomAnalyzer{
-		Name: "html",
-		Definition: opensearchapi.NewCommonAnalysisAnalyzerFromCustomAnalyzer(
-			opensearchapi.CommonAnalysisCustomAnalyzer{
-				Type:       "custom",
-				Tokenizer:  emailTokenizer.Name,
-				Filter:     []string{"lowercase", "stop"},
-				CharFilter: []string{"html_strip"},
-			},
-		),
+	return nil
+}
+
+// UpdateTemplates will update the index and component templates for an index, and performs any index-specific
+// configuration.
+func (c *IndexConfig) UpdateTemplates(ctx context.Context, osc *opensearch.Client) error {
+	// Perform any index specific actions.
+	switch c.index {
+	case ItemsIndex:
+		mlc, err := ml.NewClient(osc)
+		if err != nil {
+			return fmt.Errorf("new ml client: %w", err)
+		}
+		if err := ingest.NewIngestPipeline(
+			ctx,
+			&osc.Ingest,
+			ItemsIngestPipeline(mlc.GetModelID()),
+		); err != nil {
+			return fmt.Errorf("configure items ingest pipeline: %w", err)
+		}
 	}
 
-	// domainTokenizer tokenizes (splits) domain names.
-	domainTokenizer = indices.CustomTokenizer{
-		Name: "domain_tokenizer",
-		Definition: opensearchapi.NewCommonAnalysisTokenizerFromTokenizerDefinition(
-			opensearchapi.NewCommonAnalysisTokenizerDefinitionFromCharGroupTokenizer(
-				opensearchapi.CommonAnalysisCharGroupTokenizer{
-					TokenizeOnChars: []string{"."},
-				},
-			),
-		),
+	// Create/update component template.
+	if err := indices.CreateComponentTemplate(ctx, osc.Cluster, c.ComponentTemplate); err != nil {
+		return fmt.Errorf("create %s component template: %w", c.index, err)
 	}
+	slogctx.Info(ctx, "Created component template",
+		slog.String("name", c.ComponentTemplate.Name),
+	)
 
-	// domainNameAnalyzer is an analyzer for domain names.
-	domainNameAnalyzer = indices.CustomAnalyzer{
-		Name: "domain",
-		Definition: opensearchapi.NewCommonAnalysisAnalyzerFromCustomAnalyzer(
-			opensearchapi.CommonAnalysisCustomAnalyzer{
-				Type:      "custom",
-				Tokenizer: domainTokenizer.Name,
-				Filter:    []string{"lowercase"},
-			},
-		),
+	// Create/update index template.
+	if err := indices.CreateIndexTemplate(ctx, osc.Index, c.IndexTemplate); err != nil {
+		return fmt.Errorf("create %s index template: %w", c.index, err)
 	}
+	slogctx.Info(ctx, "Created index template",
+		slog.String("name", c.IndexTemplate.Name),
+	)
 
-	// lowercaseNormalizer converts keywords to lowercase.
-	lowercaseNormalizer = indices.CustomNormalizer{
-		Name: "keyword_lowercase",
-		Definition: opensearchapi.NewCommonAnalysisNormalizerFromCustomNormalizer(
-			opensearchapi.CommonAnalysisCustomNormalizer{
-				Type:   "keyword",
-				Filter: []string{"lowercase"},
-			},
-		),
+	return nil
+}
+
+// UpdateAlias will update the read/write aliases for an index.
+func (c *IndexConfig) UpdateAlias(ctx context.Context, osc *opensearch.Client, aliasType string) error {
+	var (
+		alias        string
+		isWriteAlias bool
+	)
+	switch aliasType {
+	case "read":
+		alias = c.ReadAlias
+	case "write":
+		alias = c.WriteAlias
+		isWriteAlias = true
+	default:
+		return fmt.Errorf("unknown alias type: %s", aliasType)
 	}
-)
+	if err := indices.UpdateIndexAlias(ctx, osc.Index, alias, c.Name, isWriteAlias); err != nil {
+		return fmt.Errorf("create %s alias %s->%s: %w", aliasType, alias, c.Name, err)
+	}
+	slogctx.Info(ctx, "Created alias",
+		slog.String("type", aliasType),
+		slog.String("alias", alias),
+		slog.String("target", c.Name),
+	)
+	return nil
+}

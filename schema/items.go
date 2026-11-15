@@ -14,11 +14,10 @@ import (
 var ItemsMappings = indices.NewMappings(
 	indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("@timestamp"),
 	indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("created"),
-	indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("feed_id"),
-	indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("item_id"),
+	indices.WithMapping("feed_id", indices.WithKeywordIgnoreAbove(32)),
+	indices.WithMapping("item_id", indices.WithKeywordIgnoreAbove(32)),
 	indices.WithMapping("feed_title",
 		indices.WithTextMappingProperties(
-			indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("raw"),
 			indices.WithMapping("exact",
 				indices.WithTextMappingAnalyzer(englishExactAnalyzer),
 			),
@@ -28,7 +27,7 @@ var ItemsMappings = indices.NewMappings(
 	indices.WithMapping("content",
 		indices.WithTextMappingAnalyzer(htmlAnalyzer),
 	),
-	indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("extension_type"),
+	indices.WithMapping("extension_type", indices.WithKeywordIgnoreAbove(256)),
 	indices.WithMapping[opensearchapi.CommonMappingFlatObjectProperty]("extension_data"),
 	indices.WithMapping("geo",
 		indices.WithObjectMappingDynamic(opensearchapi.NewCommonMappingDynamicFromBool(false)),
@@ -36,8 +35,8 @@ var ItemsMappings = indices.NewMappings(
 			indices.WithMapping[opensearchapi.CommonMappingGeoPointProperty]("point"),
 		),
 	),
-	indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("comments_url"),
-	indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("comments_rss"),
+	indices.WithMapping("comments_url", indices.WithKeywordIgnoreAbove(256)),
+	indices.WithMapping("comments_rss", indices.WithKeywordIgnoreAbove(256)),
 )
 
 // ItemsComponentTemplate is a component template containing [ItemMappings].

@@ -103,6 +103,13 @@ func WithTextMappingCopyTo(to string) TextMappingOption {
 	}
 }
 
+// WithTextIndex option enables or indexing on the text field.
+func WithTextIndex(value bool) TextMappingOption {
+	return func(p *opensearchapi.CommonMappingTextProperty) {
+		p.Index = &value
+	}
+}
+
 type ObjectMappingOption func(*opensearchapi.CommonMappingObjectProperty)
 
 func WithObjectMappingProperties(props ...MappingOption) ObjectMappingOption {
@@ -127,6 +134,27 @@ type KeywordMappingOption func(*opensearchapi.CommonMappingKeywordProperty)
 func WithKeywordMappingNormalizer(normalizer CustomNormalizer) KeywordMappingOption {
 	return func(p *opensearchapi.CommonMappingKeywordProperty) {
 		p.Normalizer = &normalizer.Name
+	}
+}
+
+// WithKeywordIgnoreAbove option sets a maximum length for keyword values.
+func WithKeywordIgnoreAbove(value int) KeywordMappingOption {
+	return func(p *opensearchapi.CommonMappingKeywordProperty) {
+		p.IgnoreAbove = &value
+	}
+}
+
+// WithKeywordDocValues option enables or disabled doc values on the keyword field.
+func WithKeywordDocValues(value bool) KeywordMappingOption {
+	return func(p *opensearchapi.CommonMappingKeywordProperty) {
+		p.DocValues = &value
+	}
+}
+
+// WithKeywordIndex option enables or indexing on the keyword field.
+func WithKeywordIndex(value bool) KeywordMappingOption {
+	return func(p *opensearchapi.CommonMappingKeywordProperty) {
+		p.Index = &value
 	}
 }
 

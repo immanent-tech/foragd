@@ -15,7 +15,7 @@ import (
 var SessionsMappings = indices.NewMappings(
 	indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("created_at"),
 	indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("expiry"),
-	indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("token"),
+	indices.WithMapping("token", indices.WithKeywordIgnoreAbove(128)),
 	indices.WithMapping[opensearchapi.CommonMappingBinaryProperty]("data"),
 )
 

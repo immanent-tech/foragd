@@ -12,19 +12,19 @@ import (
 )
 
 var FeedsMappings = indices.NewMappings(
-	indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("feed_id"),
+	indices.WithMapping("feed_id", indices.WithKeywordIgnoreAbove(32)),
 	indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("created_at"),
 	indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("last_fetched"),
 	indices.WithMapping[opensearchapi.CommonMappingUnsignedLongNumberProperty]("update_interval"),
 	indices.WithMapping[opensearchapi.CommonMappingBooleanProperty]("updates_disabled"),
-	indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("source_urls"),
-	indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("fetch_method"),
+	indices.WithMapping("source_urls", indices.WithKeywordIgnoreAbove(256)),
+	indices.WithMapping("fetch_method", indices.WithKeywordIgnoreAbove(24)),
 	indices.WithMapping[opensearchapi.CommonMappingFlatObjectProperty]("fetch_options"),
 	indices.WithMapping[opensearchapi.CommonMappingFlatObjectProperty]("quirks"),
 	indices.WithMapping("domain",
 		indices.WithTextMappingAnalyzer(domainNameAnalyzer),
 		indices.WithTextMappingProperties(
-			indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("raw"),
+			indices.WithMapping("raw", indices.WithKeywordIgnoreAbove(256)),
 			indices.WithMapping[opensearchapi.CommonMappingSearchAsYouTypeProperty]("search"),
 		),
 	),
@@ -34,7 +34,6 @@ var FeedsMappings = indices.NewMappings(
 		indices.WithObjectMappingProperties(
 			indices.WithMapping("title",
 				indices.WithTextMappingProperties(
-					indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("raw"),
 					indices.WithMapping("exact",
 						indices.WithTextMappingAnalyzer(englishExactAnalyzer),
 					),

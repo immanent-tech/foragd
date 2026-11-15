@@ -17,10 +17,10 @@ var SchedulerMappings = indices.NewMappings(
 	indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("updated_at"),
 	indices.WithMapping[opensearchapi.CommonMappingFlatObjectProperty]("job_options"),
 	indices.WithMapping[opensearchapi.CommonMappingFlatObjectProperty]("job_data"),
-	indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("job_type"),
-	indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("job_key"),
+	indices.WithMapping("job_type", indices.WithKeywordIgnoreAbove(128)),
+	indices.WithMapping("job_key", indices.WithKeywordIgnoreAbove(128)),
 	indices.WithMapping[opensearchapi.CommonMappingTextProperty]("job_description"),
-	indices.WithMapping[opensearchapi.CommonMappingKeywordProperty]("job_trigger_type"),
+	indices.WithMapping("job_trigger_type", indices.WithKeywordIgnoreAbove(128)),
 	indices.WithMapping[opensearchapi.CommonMappingFlatObjectProperty]("job_trigger"),
 	indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("job_next_run"),
 )
