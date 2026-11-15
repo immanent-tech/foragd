@@ -9,15 +9,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"slices"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
 	"go.opentelemetry.io/otel"
 
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/opensearch"
+	"github.com/immanent-tech/foragd/providers/opensearch/doc"
+	"github.com/immanent-tech/foragd/schema"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -47,6 +51,10 @@ type UserSession struct {
 	Token string `json:"token"`
 }
 
+func (s UserSession) GetID() string {
+	return s.Token
+}
+
 // Store satisfies the session store interface for storing sessions in Elastic.
 type Store struct {
 	esc *service.ElasticService
@@ -64,6 +72,16 @@ func New(osc *opensearch.Client) (*Store, error) {
 // DeleteCtx should remove the session token and corresponding data from the session store. If the token does not exist
 // then Delete should be a no-op and return nil (not an error).
 func (s *Store) DeleteCtx(ctx context.Context, token string) error {
+	if s.osc != nil {
+		if err := doc.Delete(ctx, s.osc.Doc, s.osc.IndexWriteAlias(schema.SessionsIndex), token); err != nil {
+			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+				if apiErr.HTTPStatus() == http.StatusNotFound {
+					return nil
+				}
+			}
+			return fmt.Errorf("delete doc: %w", err)
+		}
+	}
 	if err := elastic.DeleteDoc(
 		ctx,
 		s.esc.GetIndexRW(service.SessionsIndex),
@@ -116,14 +134,19 @@ func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry
 	spanCtx, span := tracer.Start(ctx, "session-commit")
 	defer span.End()
 
-	if err := elastic.IndexDoc(spanCtx, s.esc.GetIndexRW(service.SessionsIndex),
-		token,
-		&UserSession{
-			UpdatedAt: time.Now().UTC(),
-			Token:     token,
-			Data:      data,
-			Expiry:    expiry,
-		}); err != nil {
+	session := &UserSession{
+		UpdatedAt: time.Now().UTC(),
+		Token:     token,
+		Data:      data,
+		Expiry:    expiry,
+	}
+
+	if s.osc != nil {
+		if err := doc.Index(ctx, s.osc.Doc, s.osc.IndexWriteAlias(schema.SessionsIndex), session); err != nil {
+			return fmt.Errorf("index doc: %w", err)
+		}
+	}
+	if err := elastic.IndexDoc(spanCtx, s.esc.GetIndexRW(service.SessionsIndex), token, session); err != nil {
 		return fmt.Errorf("could not commit session: %w", err)
 	}
 
