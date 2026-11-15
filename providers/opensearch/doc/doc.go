@@ -22,46 +22,8 @@ import (
 	"github.com/immanent-tech/foragd/providers/opensearch/search"
 )
 
-var bufPool = sync.Pool{
-	New: func() any {
-		return new(bytes.Buffer)
-	},
-}
-
 type Client interface {
 	DeleteByQuery(ctx context.Context, req *opensearchapi.DeleteByQueryReq) (*opensearchapi.DeleteByQueryResp, error)
-}
-
-// Create will create the given document, with given id, in the given index.
-func Create[T ~string, O opensearch.Doc[T]](
-	ctx context.Context,
-	client opensearchapi.DocumentClient,
-	index string,
-	doc O,
-) error {
-	bodyBuf, ok := bufPool.Get().(*bytes.Buffer)
-	if !ok {
-		return models.NewAPIError(http.StatusInternalServerError, errors.New("get buffer failed"))
-	}
-	bodyBuf.Reset()
-	defer bufPool.Put(bodyBuf)
-
-	if err := json.NewEncoder(bodyBuf).Encode(doc); err != nil {
-		return models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("encode doc: %w", err))
-	}
-
-	req := opensearchapi.CreateReq{
-		Index:  index,
-		ID:     string(doc.GetID()),
-		Body:   bodyBuf,
-		Header: opensearch.NewRequestHeaders(ctx),
-	}
-
-	resp, err := client.Create(ctx, req)
-	if err != nil {
-		return opensearch.HandleError("create doc", resp, err)
-	}
-	return nil
 }
 
 // Get will retrieve the document with the given ID from the given index.
@@ -94,6 +56,61 @@ func Get[T ~string, O opensearch.Doc[T]](
 	return doc, nil
 }
 
+// Index will create the given document, with given id, in the given index. If a document with the ID already exists, it
+// will be overridden.
+func Index[T ~string, O opensearch.Doc[T]](
+	ctx context.Context,
+	client opensearchapi.DocumentClient,
+	index string,
+	doc O,
+) error {
+	data, err := marshalDoc(doc)
+	if err != nil {
+		return models.NewAPIError(http.StatusUnprocessableEntity, err)
+	}
+
+	req := opensearchapi.IndexReq{
+		Index:  index,
+		ID:     string(doc.GetID()),
+		Header: opensearch.NewRequestHeaders(ctx),
+		Body:   data,
+	}
+
+	resp, err := client.Index(ctx, req)
+	if err != nil {
+		return opensearch.HandleError("index doc", resp, err)
+	}
+
+	return nil
+}
+
+// Create will create the given document, with given id, in the given index. If a document with the given ID already
+// exists, it will return a 409 error. Use [Index] to "upsert" a doc where it might already exists.
+func Create[T ~string, O opensearch.Doc[T]](
+	ctx context.Context,
+	client opensearchapi.DocumentClient,
+	index string,
+	doc O,
+) error {
+	data, err := marshalDoc(doc)
+	if err != nil {
+		return models.NewAPIError(http.StatusUnprocessableEntity, err)
+	}
+
+	req := opensearchapi.CreateReq{
+		Index:  index,
+		ID:     string(doc.GetID()),
+		Body:   data,
+		Header: opensearch.NewRequestHeaders(ctx),
+	}
+
+	resp, err := client.Create(ctx, req)
+	if err != nil {
+		return opensearch.HandleError("create doc", resp, err)
+	}
+	return nil
+}
+
 // Update will apply the updates to the doc with the given id.
 func Update[T ~string](
 	ctx context.Context,
@@ -110,17 +127,11 @@ func Update[T ~string](
 	}
 
 	// Encode the updates.
-	bodyBuf, ok := bufPool.Get().(*bytes.Buffer)
-	if !ok {
-		return models.NewAPIError(http.StatusInternalServerError, errors.New("get buffer failed"))
-	}
-	bodyBuf.Reset()
-	defer bufPool.Put(bodyBuf)
-
-	if err := json.NewEncoder(bodyBuf).Encode(doc); err != nil {
+	data, err := marshalDoc(doc)
+	if err != nil {
 		return models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("encode updates: %w", err))
 	}
-	body.Doc = bodyBuf.Bytes()
+	body.Doc = data.Bytes()
 
 	// Create the request.
 	req := opensearchapi.UpdateReq{
@@ -131,9 +142,9 @@ func Update[T ~string](
 	}
 
 	// Perform the update.
-	_, err := client.Update(ctx, req)
+	resp, err := client.Update(ctx, req)
 	if err != nil {
-		return fmt.Errorf("update doc: %w", err)
+		return opensearch.GenerateAPIError("update", resp)
 	}
 
 	return nil
@@ -233,4 +244,25 @@ func WithDeleteMaxDocs(max int) DeleteByQueryOption {
 	return func(req *opensearchapi.DeleteByQueryBody) {
 		req.MaxDocs = &max
 	}
+}
+
+var bufPool = sync.Pool{
+	New: func() any {
+		return new(bytes.Buffer)
+	},
+}
+
+func marshalDoc(doc any) (*bytes.Buffer, error) {
+	bodyBuf, ok := bufPool.Get().(*bytes.Buffer)
+	if !ok {
+		return nil, errors.New("get buffer failed")
+	}
+	bodyBuf.Reset()
+	defer bufPool.Put(bodyBuf)
+
+	if err := json.NewEncoder(bodyBuf).Encode(doc); err != nil {
+		return nil, fmt.Errorf("encode doc: %w", err)
+	}
+
+	return bodyBuf, nil
 }
