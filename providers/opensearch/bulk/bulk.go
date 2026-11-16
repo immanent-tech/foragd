@@ -25,8 +25,15 @@ import (
 	"time"
 
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/providers/opensearch"
+)
+
+const (
+	defaultFlushBytes          = 5e+6
+	defaultFlushInterval       = 30 * time.Second
+	defaultQueueSizeMultiplier = 1
 )
 
 // ErrIndexerClosed is returned when Flush is called on a closed indexer.
@@ -50,10 +57,10 @@ type Config struct {
 	OnFlushEnd   func(context.Context)                 // Called when the flush ends.
 }
 
-type BulkResponse struct {
-	*opensearchapi.BulkResp
-}
+// IndexerOption is a functional option for configuring the bulk indexer.
+type IndexerOption func(*Config)
 
+// Indexer represents an OpenSearch bulk indexer instance.
 type Indexer struct {
 	wg         sync.WaitGroup
 	config     Config
@@ -63,8 +70,21 @@ type Indexer struct {
 	closed     atomic.Bool   // set by Close()
 }
 
-func New(cfg Config) (*Indexer, error) {
-	// Set defaults if not set.
+// New creates a new bulk indexer instance with the given options.
+func New(ctx context.Context, options ...IndexerOption) (*Indexer, error) {
+	cfg := &Config{
+		Logger:              slogctx.FromCtx(ctx).WithGroup("bulk"),
+		NumWorkers:          runtime.NumCPU(),
+		FlushBytes:          defaultFlushBytes,
+		FlushInterval:       defaultFlushInterval,
+		QueueSizeMultiplier: defaultQueueSizeMultiplier,
+	}
+
+	for option := range slices.Values(options) {
+		option(cfg)
+	}
+
+	// Set client if not set by options.
 	if cfg.Client == nil {
 		client, err := opensearch.GetClient()
 		if err != nil {
@@ -73,33 +93,72 @@ func New(cfg Config) (*Indexer, error) {
 		cfg.Client = client
 	}
 
-	if cfg.Logger == nil {
-		cfg.Logger = slog.Default()
-	}
-
-	if cfg.NumWorkers <= 0 {
-		cfg.NumWorkers = runtime.NumCPU()
-	}
-
-	if cfg.FlushBytes <= 0 {
-		cfg.FlushBytes = 5e+6
-	}
-
-	if cfg.FlushInterval <= 0 {
-		cfg.FlushInterval = 30 * time.Second
-	}
-
-	if cfg.QueueSizeMultiplier <= 0 {
-		cfg.QueueSizeMultiplier = 1
-	}
-
 	indexer := Indexer{
-		config: cfg,
+		config: *cfg,
 	}
 
 	indexer.init()
 
 	return &indexer, nil
+}
+
+// WithNumWorkers option sets the number of parallel bulk indexer workers.
+func WithNumWorkers(workers int) IndexerOption {
+	return func(c *Config) {
+		c.NumWorkers = workers
+	}
+}
+
+// WithFlushBytes option sets the number of bytes after which a bulk indexer worker will flush its queue. Defaults to
+// [defaultFlushBytes] if this option is not used.
+func WithFlushBytes(value int) IndexerOption {
+	return func(c *Config) {
+		c.FlushBytes = value
+	}
+}
+
+// WithFlushInterval option sets the duration after which a bulk indexer worker will flush its queue. Defaults to
+// [defaultFlushInterval] if this option is not used.
+func WithFlushInterval(interval time.Duration) IndexerOption {
+	return func(c *Config) {
+		c.FlushInterval = interval
+	}
+}
+
+// WithQueueSizeMultiplier option sets the queue size multiplier for workers. Defaults to [defaultQueueSizeMultiplier] if this
+// option is not used.
+func WithQueueSizeMultiplier(mult int) IndexerOption {
+	return func(c *Config) {
+		c.QueueSizeMultiplier = mult
+	}
+}
+
+// WithIndex option sets the index to which all actions are applied.
+func WithIndex(index opensearch.Index) IndexerOption {
+	return func(c *Config) {
+		c.Index = index
+	}
+}
+
+// WithOnError option sets a callback function to be called on errors.
+func WithOnError(onError func(context.Context, error)) IndexerOption {
+	return func(c *Config) {
+		c.OnError = onError
+	}
+}
+
+// WithOnFlushStart option sets a callback function to be called when a flush starts.
+func WithOnFlushStart(onFlushStart func(context.Context) context.Context) IndexerOption {
+	return func(c *Config) {
+		c.OnFlushStart = onFlushStart
+	}
+}
+
+// WithOnFlushEnd option sets a callback function to be called when a flush ends.
+func WithOnFlushEnd(onFlushEnd func(context.Context)) IndexerOption {
+	return func(c *Config) {
+		c.OnFlushEnd = onFlushEnd
+	}
 }
 
 func (bi Indexer) GetClient() *opensearch.Client {
@@ -286,6 +345,10 @@ func (bi *Indexer) nextFlushInterval() time.Duration {
 		return bi.config.FlushInterval
 	}
 	return bi.config.FlushInterval + time.Duration(rand.Int64N((int64(bi.config.FlushJitter))))
+}
+
+type BulkResponse struct {
+	*opensearchapi.BulkResp
 }
 
 type worker struct {
