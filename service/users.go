@@ -38,6 +38,8 @@ type UserService struct {
 	esc *ElasticService
 
 	loader otter.LoaderFunc[string, models.User]
+
+	closer closeOnce
 }
 
 // LoadUsersService loads a service that can manipulate user objects in the backend store.
@@ -77,6 +79,24 @@ func LoadUsersService(ctx context.Context, osc *opensearch.Client) (*UserService
 			},
 		),
 	}, nil
+}
+
+func (s *UserService) Close() error {
+	// The shutdown context must not derive from the (already cancelled) signal context.
+	shutdownCtx, cancel := context.WithTimeoutCause(
+		context.Background(),
+		20*time.Second,
+		errors.New("graceful shutdown timeout"),
+	)
+	shutdownCtx = slogctx.NewCtx(shutdownCtx, slog.Default())
+	defer cancel()
+
+	slogctx.Info(shutdownCtx, "Shutting down users service")
+
+	return s.closer.do(func() error {
+		s.Cache.CleanUp()
+		return nil
+	})
 }
 
 // GetUser retrieves the user doc with the given id.

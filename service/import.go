@@ -41,6 +41,8 @@ type ImportService struct {
 	feedsSvc         *FeedService
 	subscriptionsSvc *SubscriptionService
 	usersSvc         *UserService
+
+	closer closeOnce
 }
 
 func LoadImportsService(
@@ -64,6 +66,22 @@ func LoadImportsService(
 		subscriptionsSvc: subscriptionsSvc,
 		usersSvc:         usersSvc,
 	}, nil
+}
+
+func (i *ImportService) Close() error {
+	shutdownCtx, cancel := context.WithTimeoutCause(
+		context.Background(),
+		20*time.Second,
+		errors.New("graceful shutdown timeout"),
+	)
+	shutdownCtx = slogctx.NewCtx(shutdownCtx, slog.Default())
+	defer cancel()
+
+	slogctx.Info(shutdownCtx, "Shutting down imports service")
+
+	return i.closer.do(func() error {
+		return nil
+	})
 }
 
 // StartImport generates a [models.ImportStatus] with a slice of [models.ImportRequest] for all feeds found in the given

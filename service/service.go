@@ -7,20 +7,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"net/http"
 	"net/url"
 	"sync"
-	"time"
 
 	"codeberg.org/readeck/go-readability/v2"
-	"github.com/go-resty/resty/v2"
-	"github.com/immanent-tech/go-base/client"
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"go.opentelemetry.io/otel"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/opensearch/bulk"
 )
 
 var tracer = otel.Tracer("github.com/immanent-tech/foragd/service")
@@ -50,45 +44,6 @@ func extractMetadataFromHTML(
 	return opengraphData, &readabilityData, errors.Join(errs...)
 }
 
-var NewHTTPClient = sync.OnceValue(func() *resty.Client {
-	var userAgent string
-	if appCfg, err := config.LoadAppConfig(); err != nil {
-		userAgent = "Foragd/Unknown (+https://foragd.app/policies/bot)"
-	} else {
-		userAgent = appCfg.GetAppName() + "/" + appCfg.GetAppVersion() + " (+https://foragd.app/policies/bot)"
-
-	}
-	httpClient := client.New().
-		SetTransport(&http.Transport{
-			Proxy:                 http.ProxyFromEnvironment,
-			DialContext:           client.SecureDialer.DialContext,
-			ForceAttemptHTTP2:     true, // required when you supply a custom transport
-			MaxIdleConns:          200,
-			MaxIdleConnsPerHost:   32, // match your per-host concurrency
-			MaxConnsPerHost:       32, // hard cap so you don't hammer one origin
-			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   5 * time.Second,
-			ResponseHeaderTimeout: 10 * time.Second,
-		}).
-		SetHeader("User-Agent", userAgent).
-		SetRedirectPolicy(resty.FlexibleRedirectPolicy(5)).
-		SetRetryCount(3).
-		SetRetryWaitTime(500 * time.Millisecond).
-		SetRetryMaxWaitTime(5 * time.Second).
-		AddRetryCondition(func(r *resty.Response, err error) bool {
-			if err != nil {
-				return true
-			}
-			c := r.StatusCode()
-			return c == 429 || c >= 500
-		})
-	return httpClient
-})
-
-var newBulkIndexer = sync.OnceValues(func() (*bulk.Indexer, error) {
-	return bulk.New()
-})
-
 var (
 	ErrNoUserInCtx = errors.New("no user in context")
 	ErrNoSubsInCtx = errors.New("no subscriptions in context")
@@ -106,4 +61,16 @@ func getUserAndSubscriptions(ctx context.Context) (*models.User, models.Subscrip
 		return nil, nil, ErrNoSubsInCtx
 	}
 	return user, subs, nil
+}
+
+// closeOnce is an embeddable helper to allow services to specify a close procedure that runs once only, no matter how
+// many times their Close method is called.
+type closeOnce struct {
+	once sync.Once
+	err  error
+}
+
+func (c *closeOnce) do(f func() error) error {
+	c.once.Do(func() { c.err = f() })
+	return c.err
 }

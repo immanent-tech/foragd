@@ -7,7 +7,9 @@ package ollama
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -15,6 +17,7 @@ import (
 	"github.com/immanent-tech/go-base/client"
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/validation"
+	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/idtoken"
 )
@@ -42,6 +45,8 @@ type Client struct {
 	mu            sync.RWMutex       `koanf:"-"`
 	tokenSource   oauth2.TokenSource `koanf:"-"`
 	lastTokenTime time.Time          `koanf:"-"`
+
+	closer closeOnce
 }
 
 type Option func(*Client)
@@ -99,14 +104,26 @@ func NewClient(opts ...Option) (*Client, error) {
 
 // Close will gracefully close the client.
 func (c *Client) Close() error {
-	if c.cancel != nil {
-		c.cancel()
-	}
-	// Close the HTTP client if you're using it
-	if c.httpClient != nil {
-		// resty doesn't have Close(), but you can cancel all in-flight requests
-	}
-	return nil
+	shutdownCtx, cancel := context.WithTimeoutCause(
+		context.Background(),
+		20*time.Second,
+		errors.New("graceful shutdown timeout"),
+	)
+	shutdownCtx = slogctx.NewCtx(shutdownCtx, slog.Default())
+	defer cancel()
+
+	slogctx.Info(shutdownCtx, "Shutting down feeds service")
+
+	return c.closer.do(func() error {
+		if c.cancel != nil {
+			c.cancel()
+		}
+		// Close the HTTP client if you're using it
+		if c.httpClient != nil {
+			// resty doesn't have Close(), but you can cancel all in-flight requests
+		}
+		return nil
+	})
 }
 
 // RefreshToken fetches a fresh token and applies it to the client.
@@ -127,4 +144,16 @@ func (c *Client) RefreshToken() error {
 // LastTokenAge returns how long ago the token was refreshed.
 func (c *Client) LastTokenAge() time.Duration {
 	return time.Since(c.lastTokenTime)
+}
+
+// closeOnce is an embeddable helper to allow services to specify a close procedure that runs once only, no matter how
+// many times their Close method is called.
+type closeOnce struct {
+	once sync.Once
+	err  error
+}
+
+func (c *closeOnce) do(f func() error) error {
+	c.once.Do(func() { c.err = f() })
+	return c.err
 }

@@ -105,6 +105,8 @@ type FeedService struct {
 	bulkLoader otter.BulkLoaderFunc[models.FeedID, *models.Feed]
 	httpClient *resty.Client
 	ollama     Classifier
+
+	closer closeOnce
 }
 
 func LoadFeedsService(
@@ -172,23 +174,10 @@ func (s *FeedService) Close() error {
 
 	slogctx.Info(shutdownCtx, "Shutting down feeds service")
 
-	var errs []error
-
-	if s.osc != nil {
-		if err := s.indexer.Close(shutdownCtx); err != nil {
-			slogctx.Error(shutdownCtx, "Failed to close bulk indexer", slog.Any("error", err))
-			errs = append(errs, err)
-		}
-		if err := s.osc.Close(); err != nil {
-			slogctx.Error(shutdownCtx, "Failed to close opensearch client", slog.Any("error", err))
-			errs = append(errs, err)
-		}
-	}
-	if err := s.ollama.Close(); err != nil {
-		slogctx.Error(shutdownCtx, "Failed to close classifier", slog.Any("error", err))
-		errs = append(errs, err)
-	}
-	return errors.Join(errs...)
+	return s.closer.do(func() error {
+		s.Cache.CleanUp()
+		return nil
+	})
 }
 
 // GetFeed retrieves a feed with the given FeedID.

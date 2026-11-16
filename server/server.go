@@ -202,7 +202,12 @@ func shutdown(svr *http.Server, services *services, logger *slog.Logger) error {
 	}
 
 	// 2. TODO: stop background work (import jobs, Resend processing) and wait for it to finish,
-	// e.g. importSvc.Shutdown(shutdownCtx) backed by a sync.WaitGroup.
+	if err := services.close(shutdownCtx); err != nil {
+		slogctx.FromCtx(shutdownCtx).Error("Services failed to shutdown gracefully.",
+			slog.Any("error", err),
+		)
+		errs = append(errs, fmt.Errorf("services shutdown: %w", err))
+	}
 
 	// 3. Flush and close the bulk indexer (if initialized).
 	if err := bulk.Shutdown(shutdownCtx); err != nil {
@@ -217,20 +222,6 @@ func shutdown(svr *http.Server, services *services, logger *slog.Logger) error {
 			slog.Any("error", err),
 		)
 		errs = append(errs, fmt.Errorf("elasticsearch shutdown: %w", err))
-	}
-
-	// 5. TODO: close caches / session store if they expose a Close method.
-	if err := services.feeds.Close(); err != nil {
-		slogctx.Error(shutdownCtx, "Failed to stop feeds service.",
-			slog.Any("error", err),
-		)
-		errs = append(errs, fmt.Errorf("feed service shutdown: %w", err))
-	}
-	if err := services.items.Close(); err != nil {
-		slogctx.Error(shutdownCtx, "Failed to stop items service.",
-			slog.Any("error", err),
-		)
-		errs = append(errs, fmt.Errorf("items service shutdown: %w", err))
 	}
 
 	// 6. Close error client.

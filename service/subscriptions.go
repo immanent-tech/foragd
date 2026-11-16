@@ -55,6 +55,8 @@ type SubscriptionService struct {
 	usersSvc *UserService
 
 	userLoader otter.LoaderFunc[models.UserID, *UserSubscriptions]
+
+	closer closeOnce
 }
 
 func (s *SubscriptionService) get(
@@ -308,24 +310,10 @@ func (s *SubscriptionService) Close() error {
 
 	slogctx.Info(shutdownCtx, "Shutting down subscriptions service")
 
-	var errs []error
-
-	if err := s.feedsSvc.Close(); err != nil {
-		slogctx.Error(shutdownCtx, "Failed to close feeds service", slog.Any("error", err))
-		errs = append(errs, err)
-	}
-
-	if s.osc != nil {
-		if err := s.indexer.Close(shutdownCtx); err != nil {
-			slogctx.Error(shutdownCtx, "Failed to close bulk indexer", slog.Any("error", err))
-			errs = append(errs, err)
-		}
-		if err := s.osc.Close(); err != nil {
-			slogctx.Error(shutdownCtx, "Failed to close opensearch client", slog.Any("error", err))
-			errs = append(errs, err)
-		}
-	}
-	return errors.Join(errs...)
+	return s.closer.do(func() error {
+		s.Cache.CleanUp()
+		return nil
+	})
 }
 
 // Invalidate will invalidate the cache for the given user. Can be used to force fetching subscriptions from the

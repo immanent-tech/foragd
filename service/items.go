@@ -77,9 +77,11 @@ type ItemService struct {
 	indexer    *osbulk.Indexer
 	dataCache  cache.ObjectCache
 	httpClient *resty.Client
+
+	closer closeOnce
 }
 
-// LoadItemService loads a service that can manipulate [models.Item] objects in the backend store.
+// LoadItemsService loads a service that can manipulate [models.Item] objects in the backend store.
 func LoadItemsService(
 	ctx context.Context,
 	osc *opensearch.Client,
@@ -138,19 +140,10 @@ func (s *ItemService) Close() error {
 
 	slogctx.Info(shutdownCtx, "Shutting down items service")
 
-	var errs []error
-
-	if s.osc != nil {
-		if err := s.indexer.Close(shutdownCtx); err != nil {
-			slogctx.Error(shutdownCtx, "Failed to close bulk indexer", slog.Any("error", err))
-			errs = append(errs, err)
-		}
-		if err := s.osc.Close(); err != nil {
-			slogctx.Error(shutdownCtx, "Failed to close opensearch client", slog.Any("error", err))
-			errs = append(errs, err)
-		}
-	}
-	return errors.Join(errs...)
+	return s.closer.do(func() error {
+		s.Cache.CleanUp()
+		return nil
+	})
 }
 
 // GetItems returns a [models.Items] slice containing the items matching the given [models.ItemID].

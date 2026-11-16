@@ -7,6 +7,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -32,6 +33,8 @@ import (
 )
 
 type services struct {
+	osc           *opensearch.Client
+	indexer       *bulk.Indexer
 	imageCache    *cache.ImageCache
 	subscriptions *service.SubscriptionService
 	feeds         *service.FeedService
@@ -134,6 +137,8 @@ func loadServices(ctx context.Context, appCfg *config.AppConfig) (*services, err
 
 	// Build base services.
 	services := &services{
+		osc:           osc,
+		indexer:       indexer,
 		imageCache:    imgCacheF(),
 		items:         itemsSvc,
 		subscriptions: subscriptionsSvc,
@@ -162,6 +167,34 @@ func loadServices(ctx context.Context, appCfg *config.AppConfig) (*services, err
 	)
 
 	return services, nil
+}
+
+func (s *services) close(ctx context.Context) error {
+	var errs []error
+
+	if err := s.imports.Close(); err != nil {
+		errs = append(errs, err)
+	}
+	if err := s.subscriptions.Close(); err != nil {
+		errs = append(errs, err)
+	}
+	if err := s.users.Close(); err != nil {
+		errs = append(errs, err)
+	}
+	if err := s.feeds.Close(); err != nil {
+		errs = append(errs, err)
+	}
+	if err := s.items.Close(); err != nil {
+		errs = append(errs, err)
+	}
+	if err := s.indexer.Close(ctx); err != nil {
+		errs = append(errs, err)
+	}
+	if err := s.osc.Close(); err != nil {
+		errs = append(errs, err)
+	}
+
+	return errors.Join(errs...)
 }
 
 // loadAsync runs fn in the errgroup and returns a getter for the result. The getter must only be called after g.Wait()
