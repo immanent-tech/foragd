@@ -46,6 +46,21 @@ func TermQuery(field string, value any) QueryOption {
 	}
 }
 
+// TermsQuery matches documents with a field with the given value.
+// NOTE: using a bool until its clearer how to constuct a terms query with the typed API.
+//
+// https://docs.opensearch.org/latest/query-dsl/term/terms/
+func TermsQuery(field string, values ...any) QueryOption {
+	clauses := make([]QueryOption, 0, len(values))
+	for v := range slices.Values(values) {
+		clauses = append(clauses, TermQuery(field, v))
+	}
+	return BoolQuery(
+		WithBoolMinimumShouldMatch(1),
+		WithBoolShould(clauses...),
+	)
+}
+
 func DateRangeQuery(field string, value DateRange, options ...DateRangeOption) QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		drq := &opensearchapi.CommonQueryDSLDateRangeQuery{}
