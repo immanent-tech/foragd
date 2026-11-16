@@ -114,6 +114,7 @@ func WithTimezone(tz string) DateRangeOption {
 	}
 }
 
+// SinceQuery matches documents with a datetime field that has a value equal to or greater than the given value.
 func SinceQuery(field string, since any) QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		DateRangeQuery(field, DateRange{
@@ -123,11 +124,85 @@ func SinceQuery(field string, since any) QueryOption {
 	}
 }
 
+// BeforeQuery matches documents with a datetime field that has a value equal to or less than the given value.
 func BeforeQuery(field string, before any) QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		DateRangeQuery(field, DateRange{
 			Upper:        before,
 			IncludeUpper: true,
 		})(q)
+	}
+}
+
+// BoolQuery constructs a boolean query from the given option to match documents.
+func BoolQuery(options ...BoolQueryOption) QueryOption {
+	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
+		boolQuery := &opensearchapi.CommonQueryDSLBoolQuery{}
+		for option := range slices.Values(options) {
+			option(boolQuery)
+		}
+		q.Bool = boolQuery
+	}
+}
+
+// BoolQueryOption is a functional option to construct a bool query.
+type BoolQueryOption func(*opensearchapi.CommonQueryDSLBoolQuery)
+
+// WithBoolMinimumShouldMatch option sets the minimum number of Should clauses that must match.
+func WithBoolMinimumShouldMatch(min int) BoolQueryOption {
+	return func(q *opensearchapi.CommonQueryDSLBoolQuery) {
+		q.MinimumShouldMatch = new(opensearchapi.NewMinimumShouldMatchFromInt(min))
+	}
+}
+
+// WithBoolFilter option defines queries that will be placed within a bool filter clause.
+func WithBoolFilter(queries ...QueryOption) BoolQueryOption {
+	return func(q *opensearchapi.CommonQueryDSLBoolQuery) {
+		filters := make([]opensearchapi.CommonQueryDSLQueryContainer, 0, len(queries))
+		for query := range slices.Values(queries) {
+			container := opensearchapi.CommonQueryDSLQueryContainer{}
+			query(&container)
+			filters = append(filters, container)
+		}
+		q.Filter = new(opensearchapi.NewCommonQueryDSLBoolQueryFilterFromArray(filters))
+	}
+}
+
+// WithBoolMust option defines queries that will be placed within a bool must clause.
+func WithBoolMust(queries ...QueryOption) BoolQueryOption {
+	return func(q *opensearchapi.CommonQueryDSLBoolQuery) {
+		musts := make([]opensearchapi.CommonQueryDSLQueryContainer, 0, len(queries))
+		for query := range slices.Values(queries) {
+			container := opensearchapi.CommonQueryDSLQueryContainer{}
+			query(&container)
+			musts = append(musts, container)
+		}
+		q.Must = new(opensearchapi.NewCommonQueryDSLBoolQueryMustFromArray(musts))
+	}
+}
+
+// WithBoolMustNot option defines queries that will be placed within a bool must_not clause.
+func WithBoolMustNot(queries ...QueryOption) BoolQueryOption {
+	return func(q *opensearchapi.CommonQueryDSLBoolQuery) {
+		mustNots := make([]opensearchapi.CommonQueryDSLQueryContainer, 0, len(queries))
+		for query := range slices.Values(queries) {
+			container := opensearchapi.CommonQueryDSLQueryContainer{}
+			query(&container)
+			mustNots = append(mustNots, container)
+		}
+		q.MustNot = new(opensearchapi.NewCommonQueryDSLBoolQueryMustNotFromArray(mustNots))
+	}
+}
+
+// WithBoolShould option defines queries that will be placed within a bool should clause.
+func WithBoolShould(queries ...QueryOption) BoolQueryOption {
+	return func(q *opensearchapi.CommonQueryDSLBoolQuery) {
+		shoulds := make([]opensearchapi.CommonQueryDSLQueryContainer, 0, len(queries))
+		for query := range slices.Values(queries) {
+			container := opensearchapi.CommonQueryDSLQueryContainer{}
+			query(&container)
+			shoulds = append(shoulds, container)
+		}
+		q.Should = new(opensearchapi.NewCommonQueryDSLBoolQueryShouldFromArray(shoulds))
 	}
 }
