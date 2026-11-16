@@ -72,6 +72,13 @@ var GetClient = sync.OnceValues(func() (*Client, error) {
 	}, nil
 })
 
+func (c *Client) Close() error {
+	if err := c.Client.Close(); err != nil {
+		return fmt.Errorf("close client: %w", err)
+	}
+	return nil
+}
+
 // ApplyClusterSettings applies any cluster settings read from the config to the cluster. Generally, this should only be
 // called when a new cluster is used or when the settings have changed.
 func (c *Client) ApplyClusterSettings(ctx context.Context) error {
