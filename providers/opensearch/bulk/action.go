@@ -43,6 +43,8 @@ type ActionMetadata struct {
 
 const (
 	ActionCreate ActionType = "create"
+	ActionIndex  ActionType = "index"
+	ActionUpdate ActionType = "update"
 )
 
 type ActionType string
@@ -61,13 +63,13 @@ type Action struct {
 	flushDone chan struct{} // non-nil marks a flush sentinel; worker closes it when flush completes
 }
 
-func NewAction(action ActionType, options ...ActionOption) *Action {
-	a := &Action{
+func NewAction(action ActionType, options ...ActionOption) Action {
+	a := Action{
 		Type:     action,
 		Metadata: ActionMetadata{},
 	}
 	for option := range slices.Values(options) {
-		option(a)
+		option(&a)
 	}
 	return a
 }
