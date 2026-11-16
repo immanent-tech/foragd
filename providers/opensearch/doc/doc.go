@@ -22,6 +22,14 @@ import (
 	"github.com/immanent-tech/foragd/providers/opensearch/search"
 )
 
+const (
+	RefreshTrue    Refresh = "true"
+	RefreshFalse   Refresh = "false"
+	RefreshWaitFor Refresh = "wait_for"
+)
+
+type Refresh string
+
 type Client interface {
 	DeleteByQuery(ctx context.Context, req *opensearchapi.DeleteByQueryReq) (*opensearchapi.DeleteByQueryResp, error)
 }
@@ -63,6 +71,7 @@ func Index[T ~string, O opensearch.Doc[T]](
 	client opensearchapi.DocumentClient,
 	index string,
 	doc O,
+	options ...IndexOption,
 ) error {
 	data, err := marshalDoc(doc)
 	if err != nil {
@@ -76,12 +85,24 @@ func Index[T ~string, O opensearch.Doc[T]](
 		Body:   data,
 	}
 
+	for option := range slices.Values(options) {
+		option(&req)
+	}
+
 	resp, err := client.Index(ctx, req)
 	if err != nil {
 		return opensearch.HandleError("index doc", resp, err)
 	}
 
 	return nil
+}
+
+type IndexOption func(*opensearchapi.IndexReq)
+
+func WithIndexRefresh(value Refresh) IndexOption {
+	return func(r *opensearchapi.IndexReq) {
+		r.Params.Refresh = string(value)
+	}
 }
 
 // Create will create the given document, with given id, in the given index. If a document with the given ID already
