@@ -16,12 +16,8 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"sync"
-	"time"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/immanent-tech/go-base/client"
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/zyte"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -149,39 +145,3 @@ func ProxyFetch(ctx context.Context, sourceURL *url.URL, buf *bytes.Buffer) erro
 	}
 	return nil
 }
-
-// NewHTTPClient creates a new single Resty client that can be reused between all services.
-var NewHTTPClient = sync.OnceValue(func() *resty.Client {
-	var userAgent string
-	if appCfg, err := config.LoadAppConfig(); err != nil {
-		userAgent = "Foragd/Unknown (+https://foragd.app/policies/bot)"
-	} else {
-		userAgent = appCfg.GetAppName() + "/" + appCfg.GetAppVersion() + " (+https://foragd.app/policies/bot)"
-
-	}
-	httpClient := client.New().
-		SetTransport(&http.Transport{
-			Proxy:                 http.ProxyFromEnvironment,
-			DialContext:           client.SecureDialer.DialContext,
-			ForceAttemptHTTP2:     true, // required when you supply a custom transport
-			MaxIdleConns:          200,
-			MaxIdleConnsPerHost:   32, // match your per-host concurrency
-			MaxConnsPerHost:       32, // hard cap so you don't hammer one origin
-			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   5 * time.Second,
-			ResponseHeaderTimeout: 10 * time.Second,
-		}).
-		SetHeader("User-Agent", userAgent).
-		SetRedirectPolicy(resty.FlexibleRedirectPolicy(5)).
-		SetRetryCount(3).
-		SetRetryWaitTime(500 * time.Millisecond).
-		SetRetryMaxWaitTime(5 * time.Second).
-		AddRetryCondition(func(r *resty.Response, err error) bool {
-			if err != nil {
-				return true
-			}
-			c := r.StatusCode()
-			return c == 429 || c >= 500
-		})
-	return httpClient
-})

@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -21,6 +22,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
+	"github.com/go-resty/resty/v2"
 	quartzlogger "github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/matcher"
 	"github.com/reugn/go-quartz/quartz"
@@ -28,6 +30,8 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/immanent-tech/go-base/client"
+	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/logging"
 
 	"github.com/immanent-tech/foragd/models"
@@ -363,7 +367,7 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 		slogctx.Warn(ctx, "Failed to load bulk indexer", slog.Any("error", err))
 	}
 
-	httpClient := service.NewHTTPClient()
+	httpClient := loadHTTPClient()
 	ollamaSvc, err := ollama.NewClient()
 	if err != nil {
 		return nil, fmt.Errorf("load ollama client: %w", err)
@@ -422,4 +426,39 @@ func loadAsync[T any](g *errgroup.Group, name string, fn func() (T, error)) func
 		return nil
 	})
 	return func() T { return v }
+}
+
+// NewHTTPClient creates a new single Resty client that can be reused between all services.
+func loadHTTPClient() *resty.Client {
+	var userAgent string
+	if appCfg, err := config.LoadAppConfig(); err != nil {
+		userAgent = "Foragd/Unknown (+https://foragd.app/policies/bot)"
+	} else {
+		userAgent = appCfg.GetAppName() + "/" + appCfg.GetAppVersion() + " (+https://foragd.app/policies/bot)"
+	}
+	httpClient := client.New().
+		SetTransport(&http.Transport{
+			Proxy:                 http.ProxyFromEnvironment,
+			DialContext:           client.SecureDialer.DialContext,
+			ForceAttemptHTTP2:     true, // required when you supply a custom transport
+			MaxIdleConns:          200,
+			MaxIdleConnsPerHost:   32, // match your per-host concurrency
+			MaxConnsPerHost:       32, // hard cap so you don't hammer one origin
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   5 * time.Second,
+			ResponseHeaderTimeout: 10 * time.Second,
+		}).
+		SetHeader("User-Agent", userAgent).
+		SetRedirectPolicy(resty.FlexibleRedirectPolicy(5)).
+		SetRetryCount(3).
+		SetRetryWaitTime(500 * time.Millisecond).
+		SetRetryMaxWaitTime(5 * time.Second).
+		AddRetryCondition(func(r *resty.Response, err error) bool {
+			if err != nil {
+				return true
+			}
+			c := r.StatusCode()
+			return c == 429 || c >= 500
+		})
+	return httpClient
 }

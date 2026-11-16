@@ -124,7 +124,7 @@ func LoadItemsService(
 		esc:        svc,
 		osc:        osc,
 		indexer:    indexer,
-		httpClient: NewHTTPClient(),
+		httpClient: httpClient,
 	}, nil
 }
 

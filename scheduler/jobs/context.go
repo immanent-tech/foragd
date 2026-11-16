@@ -57,10 +57,12 @@ type FeedsAPI interface {
 type ImportAPI interface {
 	GetPendingImports(ctx context.Context) ([]*models.ImportStatus, error)
 	ProcessRequests(ctx context.Context, status *models.ImportStatus) error
+	Close() error
 }
 
 type UserAPI interface {
 	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
+	Close() error
 }
 
 type EmailSender interface {
