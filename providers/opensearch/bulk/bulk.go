@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/providers/opensearch"
 )
@@ -71,9 +70,9 @@ type Indexer struct {
 }
 
 // New creates a new bulk indexer instance with the given options.
-func New(ctx context.Context, options ...IndexerOption) (*Indexer, error) {
+func New(options ...IndexerOption) (*Indexer, error) {
 	cfg := &Config{
-		Logger:              slogctx.FromCtx(ctx).WithGroup("bulk"),
+		Logger:              slog.Default().WithGroup("bulkindexer"),
 		NumWorkers:          runtime.NumCPU(),
 		FlushBytes:          defaultFlushBytes,
 		FlushInterval:       defaultFlushInterval,
@@ -158,6 +157,14 @@ func WithOnFlushStart(onFlushStart func(context.Context) context.Context) Indexe
 func WithOnFlushEnd(onFlushEnd func(context.Context)) IndexerOption {
 	return func(c *Config) {
 		c.OnFlushEnd = onFlushEnd
+	}
+}
+
+// WithLogger option sets the [*slog.Logger] to use with the bulk indexer. If this option is not specified it uses the
+// slog.Default() logger.
+func WithLogger(logger *slog.Logger) IndexerOption {
+	return func(c *Config) {
+		c.Logger = logger.WithGroup("bulkindexer")
 	}
 }
 
