@@ -86,6 +86,12 @@ func NewIndexConfig(osc *opensearch.Client, index opensearch.Index) (IndexConfig
 		componentTemplate = ItemsComponentTemplate
 		readAlias = osc.IndexReadAlias(index)
 		writeAlias = osc.IndexWriteAlias(index)
+	case UsersIndex:
+		indexName = osc.IndexCanonicalName(index)
+		indexTemplate = UsersIndexTemplate
+		componentTemplate = UsersComponentTemplate
+		readAlias = osc.IndexReadAlias(index)
+		writeAlias = osc.IndexWriteAlias(index)
 	case FavoritesIndex:
 		indexName = osc.IndexCanonicalName(index)
 		indexTemplate = FavoritesIndexTemplate
