@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"slices"
@@ -13,6 +14,9 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/ollama"
+	"github.com/immanent-tech/foragd/providers/opensearch"
+	"github.com/immanent-tech/foragd/providers/opensearch/bulk"
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/service"
@@ -35,9 +39,28 @@ func main() {
 		panic(err)
 	}
 
-	feedSvc, err := service.LoadFeedService()
+	osc, err := opensearch.GetClient()
 	if err != nil {
-		panic(err)
+		slogctx.Warn(ctx, "Failed to load opensearch client", slog.Any("error", err))
+		// return nil, fmt.Errorf("load opensearch client: %w", err)
+	}
+	indexer, err := bulk.New()
+	if err != nil {
+		slogctx.Warn(ctx, "Failed to load bulk indexer", slog.Any("error", err))
+	}
+
+	httpClient := service.NewHTTPClient()
+	ollamaSvc, err := ollama.NewClient()
+	if err != nil {
+		panic(fmt.Errorf("load ollama client: %w", err))
+	}
+	itemsSvc, err := service.LoadItemsService(ctx, osc, indexer, httpClient)
+	if err != nil {
+		panic(fmt.Errorf("load items service: %w", err))
+	}
+	feedsSvc, err := service.LoadFeedsService(ctx, osc, indexer, httpClient, ollamaSvc, itemsSvc)
+	if err != nil {
+		panic(fmt.Errorf("load feeds service: %w", err))
 	}
 
 	feeds, err := elastic.SearchAll[*models.Feed](
@@ -65,7 +88,7 @@ func main() {
 			)
 		case errors.Is(err, quartz.ErrJobNotFound):
 			// If there is no existing scheduled newJob, create one.
-			newJob, err := jobs.NewUpdateFeedJob(ctx, feedSvc, feed.GetID())
+			newJob, err := jobs.NewUpdateFeedJob(ctx, feedsSvc, feed.GetID())
 			if err != nil {
 				slogctx.FromCtx(feedCtx).Warn("Unable to create new update feed job for feed.",
 					slog.Any("error", err),

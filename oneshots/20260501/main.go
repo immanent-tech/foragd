@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"slices"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/service"
 )
@@ -22,17 +24,19 @@ func main() {
 	if err := elastic.Connect(); err != nil {
 		panic(err)
 	}
-
 	elasticSvc, err := service.LoadElasticService()
 	if err != nil {
 		panic(err)
 	}
-
-	userSvc, err := service.LoadUsersService()
+	osc, err := opensearch.GetClient()
 	if err != nil {
-		panic(err)
+		slogctx.Warn(ctx, "Failed to load opensearch client", slog.Any("error", err))
+		// return nil, fmt.Errorf("load opensearch client: %w", err)
 	}
-
+	usersSvc, err := service.LoadUsersService(ctx, osc)
+	if err != nil {
+		panic(fmt.Errorf("load users service: %w", err))
+	}
 	emailSender, err := resend.NewSender()
 	if err != nil {
 		panic(err)
@@ -87,7 +91,7 @@ func main() {
 		}
 		metadata := user.Metadata
 		metadata.PendingDeletion = new(true)
-		if err := userSvc.UpdateUser(ctx, user, map[string]any{
+		if err := usersSvc.UpdateUser(ctx, user, map[string]any{
 			"metadata": metadata,
 		}); err != nil {
 			panic(err)

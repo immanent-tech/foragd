@@ -17,6 +17,9 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/reindex"
+	"github.com/immanent-tech/foragd/providers/ollama"
+	"github.com/immanent-tech/foragd/providers/opensearch"
+	osbulk "github.com/immanent-tech/foragd/providers/opensearch/bulk"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -33,11 +36,36 @@ func main() {
 		panic(err)
 	}
 
-	subSvc, err := service.LoadSubscriptionService()
+	osc, err := opensearch.GetClient()
 	if err != nil {
-		panic(err)
+		slogctx.Warn(ctx, "Failed to load opensearch client", slog.Any("error", err))
+		// return nil, fmt.Errorf("load opensearch client: %w", err)
 	}
-
+	indexer, err := osbulk.New()
+	if err != nil {
+		slogctx.Warn(ctx, "Failed to load bulk indexer", slog.Any("error", err))
+	}
+	httpClient := service.NewHTTPClient()
+	ollamaSvc, err := ollama.NewClient()
+	if err != nil {
+		panic(fmt.Errorf("load ollama client: %w", err))
+	}
+	itemsSvc, err := service.LoadItemsService(ctx, osc, indexer, httpClient)
+	if err != nil {
+		panic(fmt.Errorf("load items service: %w", err))
+	}
+	feedsSvc, err := service.LoadFeedsService(ctx, osc, indexer, httpClient, ollamaSvc, itemsSvc)
+	if err != nil {
+		panic(fmt.Errorf("load feeds service: %w", err))
+	}
+	usersSvc, err := service.LoadUsersService(ctx, osc)
+	if err != nil {
+		panic(fmt.Errorf("load users service: %w", err))
+	}
+	subscriptionsSvc, err := service.LoadSubscriptionsService(ctx, osc, indexer, itemsSvc, feedsSvc, usersSvc)
+	if err != nil {
+		panic(fmt.Errorf("load subscriptions service: %w", err))
+	}
 	prefix := "subscriptions"
 
 	index := elastic.GenerateIndexName(prefix)
@@ -129,7 +157,7 @@ func main() {
 	}
 	for user := range slices.Values(users) {
 		ctx := models.UserToCtx(ctx, user)
-		subscriptions, err := subSvc.GetAllSubscriptions(ctx)
+		subscriptions, err := subscriptionsSvc.GetAllSubscriptions(ctx)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			panic(err)
 		}
@@ -155,7 +183,7 @@ func main() {
 		// 		)
 		// 	}
 		// }
-		if err := subSvc.UpdateSubscriptions(ctx, groupSubscriptions...); err != nil {
+		if err := subscriptionsSvc.UpdateSubscriptions(ctx, groupSubscriptions...); err != nil {
 			panic(err)
 		}
 	}

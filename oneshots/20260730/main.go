@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"slices"
 	"strings"
@@ -13,6 +14,9 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/ollama"
+	"github.com/immanent-tech/foragd/providers/opensearch"
+	osbulk "github.com/immanent-tech/foragd/providers/opensearch/bulk"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -28,14 +32,28 @@ func main() {
 		panic(err)
 	}
 
-	feedSvc, err := service.LoadFeedService()
+	osc, err := opensearch.GetClient()
 	if err != nil {
-		panic(err)
+		slogctx.Warn(ctx, "Failed to load opensearch client", slog.Any("error", err))
+		// return nil, fmt.Errorf("load opensearch client: %w", err)
+	}
+	indexer, err := osbulk.New()
+	if err != nil {
+		slogctx.Warn(ctx, "Failed to load bulk indexer", slog.Any("error", err))
 	}
 
-	itemSvc, err := service.LoadItemService()
+	httpClient := service.NewHTTPClient()
+	ollamaSvc, err := ollama.NewClient()
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("load ollama client: %w", err))
+	}
+	itemsSvc, err := service.LoadItemsService(ctx, osc, indexer, httpClient)
+	if err != nil {
+		panic(fmt.Errorf("load items service: %w", err))
+	}
+	feedsSvc, err := service.LoadFeedsService(ctx, osc, indexer, httpClient, ollamaSvc, itemsSvc)
+	if err != nil {
+		panic(fmt.Errorf("load feeds service: %w", err))
 	}
 
 	slogctx.FromCtx(ctx).Info("Get all feeds.")
@@ -64,7 +82,7 @@ func main() {
 		ctx = slogctx.With(ctx, "feed_title", feed.GetTitle())
 
 		slogctx.FromCtx(ctx).Info("Classifying feed.")
-		items, _, err := itemSvc.QueryItems(ctx,
+		items, _, err := itemsSvc.QueryItems(ctx,
 			query.Term("feed_id", feed.GetID()),
 			10,
 			nil,
@@ -77,7 +95,7 @@ func main() {
 
 		feed.Items = items
 
-		if err := feedSvc.ClassifyFeed(ctx, feed); err != nil {
+		if err := feedsSvc.ClassifyFeed(ctx, feed); err != nil {
 			slogctx.FromCtx(ctx).Error("Could not classify feed. Leaving uncategorized.",
 				slog.Any("error", err))
 			feed.Categories = []models.Category{"Uncategorized"}
@@ -86,7 +104,7 @@ func main() {
 		slogctx.FromCtx(ctx).Info("Feed classified.",
 			slog.String("categories", strings.Join(feed.Categories, ",")))
 
-		if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
+		if err := feedsSvc.UpdateFeed(ctx, feed); err != nil {
 			slogctx.FromCtx(ctx).Warn("Update feed failed.",
 				slog.Any("error", err))
 		}
