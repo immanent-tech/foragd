@@ -37,10 +37,13 @@ type SchedulerAPI interface {
 	ScheduleJob(jobDetail *quartz.JobDetail, trigger quartz.Trigger) error
 	DeleteJob(jobKey *quartz.JobKey) error
 	PauseJob(jobKey *quartz.JobKey) error
+	UpdateJob(ctx context.Context, job *SerializedJob) error
 	GetJobKeys(...quartz.Matcher[quartz.ScheduledJob]) ([]*quartz.JobKey, error)
+	ClearDeletedFeedJobs(ctx context.Context) error
 }
 
 type FeedsAPI interface {
+	GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error)
 	GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error)
 	GetAllFeedsExcept(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
 	GetFeed(ctx context.Context, feedID models.FeedID) (*models.Feed, error)

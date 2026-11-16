@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package jobs
 
@@ -8,18 +10,12 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"slices"
-	"sync"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/service"
 )
 
 // NewClearDeletedFeedsJob creates a job for clearing deleted feeds.
@@ -71,44 +67,9 @@ func ExecuteClearDeletedFeeds(ctx context.Context, job *SerializedJob) error {
 		return errors.New("unable to get scheduler api from context")
 	}
 
-	// Find new feeds. We detect new feeds by those where the last_fetched value equals Unix Epoch, indicating they
-	// don't have a job scheduled for updating their items.
-	var (
-		jobs []*SerializedJob
-	)
-	jobs, err = elastic.SearchAll[*SerializedJob](
-		ctx,
-		services.Elastic.GetIndexRO(service.ScheduleIndex),
-		query.Term("job_data.deleted", true),
-		5000,
-	)
-	if err != nil {
-		return fmt.Errorf("search jobs: %w", err)
+	if err := schedulerAPI.ClearDeletedFeedJobs(ctx); err != nil {
+		return fmt.Errorf("clear deleted feed jobs: %w", err)
 	}
-	if len(jobs) > 0 {
-		slogctx.FromCtx(ctx).Info("Found feed jobs that need to be deleted.",
-			slog.Int("count", len(jobs)),
-		)
-	}
-
-	var wg sync.WaitGroup
-	// Create new feed jobs where necessary.
-	for job := range slices.Values(jobs) {
-		wg.Go(func() {
-			if err := schedulerAPI.DeleteJob(job.JobDetail().JobKey()); err != nil {
-				slogctx.FromCtx(ctx).Error("Failed to removed deleted feed job.",
-					slog.String("job_id", job.JobDetail().JobKey().String()),
-					slog.Any("error", err),
-				)
-			} else {
-				slogctx.FromCtx(ctx).Info("Removed feed job marked for deletion.",
-					slog.String("job_id", job.JobDetail().JobKey().String()),
-				)
-			}
-		})
-	}
-
-	wg.Wait()
 
 	// Update the job data (checkpoint).
 	if err := job.JobData.MergeClearDeletedFeedsJob(
@@ -116,13 +77,7 @@ func ExecuteClearDeletedFeeds(ctx context.Context, job *SerializedJob) error {
 	); err != nil {
 		return fmt.Errorf("update job data: %w", err)
 	}
-	if err := elastic.UpdateDoc(
-		ctx,
-		services.Elastic.GetIndexRW(service.ScheduleIndex),
-		job.JobDetail().JobKey().String(),
-		job,
-		elastic.WithDocAsUpsert[*update.Update](true),
-	); err != nil {
+	if err := schedulerAPI.UpdateJob(ctx, job); err != nil {
 		return fmt.Errorf("update job: %w", err)
 	}
 

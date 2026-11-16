@@ -12,12 +12,18 @@ import (
 
 type QueryOption func(*opensearchapi.CommonQueryDSLQueryContainer)
 
+// MatchAllQuery matches all documents.
+//
+// https://docs.opensearch.org/latest/query-dsl/match-all/
 func MatchAllQuery() QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		q.MatchAll = &opensearchapi.CommonQueryDSLQueryBase{}
 	}
 }
 
+// TermQuery matches documents with a field with the given value.
+//
+// https://docs.opensearch.org/latest/query-dsl/term/term/
 func TermQuery(field string, value any) QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		var fieldValue opensearchapi.FieldValue
@@ -113,6 +119,15 @@ func SinceQuery(field string, since any) QueryOption {
 		DateRangeQuery(field, DateRange{
 			Lower:        since,
 			IncludeLower: true,
+		})(q)
+	}
+}
+
+func BeforeQuery(field string, before any) QueryOption {
+	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
+		DateRangeQuery(field, DateRange{
+			Upper:        before,
+			IncludeUpper: true,
 		})(q)
 	}
 }

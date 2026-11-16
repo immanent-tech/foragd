@@ -87,8 +87,6 @@ func (j *SerializedJob) Execute(ctx context.Context) error {
 		return safeExecute(ctx, j, ExecuteGetNewFeeds)
 	case JobTypeUpdateFeed:
 		return safeExecute(ctx, j, ExecuteUpdateFeed)
-	case JobTypeDeleteExpiredSessions:
-		return safeExecute(ctx, j, ExecuteDeleteExpiredSessions)
 	case JobTypeClearDeletedFeeds:
 		return safeExecute(ctx, j, ExecuteClearDeletedFeeds)
 	case JobTypeUserEmailJob:

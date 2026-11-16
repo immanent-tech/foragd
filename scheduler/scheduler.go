@@ -20,6 +20,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
 	quartzlogger "github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/matcher"
 	"github.com/reugn/go-quartz/quartz"
@@ -34,9 +35,12 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	gerror "github.com/immanent-tech/foragd/providers/google/error"
+	"github.com/immanent-tech/foragd/providers/opensearch"
+	"github.com/immanent-tech/foragd/providers/opensearch/doc"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/scheduler/queue"
+	"github.com/immanent-tech/foragd/schema"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -50,15 +54,21 @@ type Manager struct {
 	quartz.Scheduler
 
 	queue quartz.JobQueue
-	store *service.ElasticService
+	esc   *service.ElasticService
+	osc   *opensearch.Client
 }
 
 // New will create a [Manager] containing the scheduler and job queue. New does not start the scheduler; call
 // Run() to start it. The returned [Manager] can however be used to manage jobs (schedule/delete/query jobs).
 func New() (*Manager, error) {
 	logger := logging.New()
+
+	osc, err := opensearch.GetClient()
+	if err != nil {
+		return nil, fmt.Errorf("get opensearch client: %w", err)
+	}
 	// Create distributed queue instance.
-	jobQueue, err := queue.NewJobQueue(logger)
+	jobQueue, err := queue.NewJobQueue(logger, osc)
 	if err != nil {
 		return nil, fmt.Errorf("new job queue: %w", err)
 	}
@@ -84,7 +94,8 @@ func New() (*Manager, error) {
 	return &Manager{
 		Scheduler: scheduler,
 		queue:     jobQueue,
-		store:     elasticSvc,
+		esc:       elasticSvc,
+		osc:       osc,
 	}, nil
 }
 
@@ -183,7 +194,6 @@ func (m *Manager) InitAdminJobs(ctx context.Context) error {
 	var startupJobs = []func() (*jobs.SerializedJob, error){
 		jobs.NewGetNewFeedsJob,
 		jobs.NewClearDeletedFeedsJob,
-		jobs.NewDeleteExpiredSessionsJob,
 		jobs.NewRestartFeedUpdatesJob,
 		jobs.NewRunImportsJob,
 	}
@@ -222,6 +232,25 @@ func (m *Manager) InitAdminJobs(ctx context.Context) error {
 	return nil
 }
 
+// UpdateJob updates a serialized job directly in the queue backend.
+func (m *Manager) UpdateJob(ctx context.Context, job *jobs.SerializedJob) error {
+	if m.osc != nil {
+		if err := doc.Index(ctx, m.osc.Doc, m.osc.IndexWriteAlias(schema.SchedulerIndex), job); err != nil {
+			return fmt.Errorf("index doc: %w", err)
+		}
+	}
+	if err := elastic.UpdateDoc(
+		ctx,
+		m.esc.GetIndexRW(service.ScheduleIndex),
+		job.JobDetail().JobKey().String(),
+		job,
+		elastic.WithDocAsUpsert[*update.Update](true),
+	); err != nil {
+		return fmt.Errorf("update job: %w", err)
+	}
+	return nil
+}
+
 // LoadUpdateFeedJobs will ensure that all feeds have an update job scheduled.
 func (m *Manager) LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedService) error {
 	// Gather all current feed jobs.
@@ -237,16 +266,7 @@ func (m *Manager) LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedS
 	}
 
 	// Find all feeds that don't have an existing job.
-	joblessFeeds, err := elastic.SearchAll[*models.Feed](
-		ctx,
-		m.store.GetIndexRO(service.FeedsIndex),
-		query.Bool(
-			query.MustNot(
-				query.Terms("feed_id", feedIDs),
-			),
-		),
-		5000,
-	)
+	joblessFeeds, err := feedSvc.GetAllFeedsExcept(ctx, feedIDs...)
 	if err != nil {
 		return fmt.Errorf("search feeds: %w", err)
 	}
@@ -284,6 +304,44 @@ func (m *Manager) LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedS
 	return nil
 }
 
+// ClearDeletedFeedJobs clears all jobs that are marked with their feed deleted.
+func (m *Manager) ClearDeletedFeedJobs(ctx context.Context) error {
+	jobs, err := elastic.SearchAll[*jobs.SerializedJob](
+		ctx,
+		m.esc.GetIndexRO(service.ScheduleIndex),
+		query.Term("job_data.deleted", true),
+		5000,
+	)
+	if err != nil {
+		return fmt.Errorf("search jobs: %w", err)
+	}
+	if len(jobs) > 0 {
+		slogctx.FromCtx(ctx).Info("Found feed jobs that need to be deleted.",
+			slog.Int("count", len(jobs)),
+		)
+	}
+
+	var wg sync.WaitGroup
+	// Create new feed jobs where necessary.
+	for job := range slices.Values(jobs) {
+		wg.Go(func() {
+			if err := m.DeleteJob(job.JobDetail().JobKey()); err != nil {
+				slogctx.FromCtx(ctx).Error("Failed to removed deleted feed job.",
+					slog.String("job_id", job.JobDetail().JobKey().String()),
+					slog.Any("error", err),
+				)
+			} else {
+				slogctx.FromCtx(ctx).Info("Removed feed job marked for deletion.",
+					slog.String("job_id", job.JobDetail().JobKey().String()),
+				)
+			}
+		})
+	}
+	wg.Wait()
+
+	return nil
+}
+
 func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, error) {
 	// Load all independent components concurrently. Many of these do network I/O (OIDC discovery, management tokens,
 	// Elasticsearch, etc.), so doing them serially is the main startup cost.
@@ -303,7 +361,7 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 
 	return &jobs.Services{
 		Scheduler:   m,
-		Elastic:     m.store,
+		Elastic:     m.esc,
 		Feeds:       feedSvcF(),
 		Imports:     importSvcF(),
 		Users:       userSvcF(),

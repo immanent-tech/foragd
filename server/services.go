@@ -54,7 +54,7 @@ func loadServices(ctx context.Context, appCfg *config.AppConfig) (*services, err
 		slogctx.Warn(ctx, "Failed to load opensearch client", slog.Any("error", err))
 		// return nil, fmt.Errorf("load opensearch client: %w", err)
 	}
-	sessionMgr, err := session.New(osc)
+	sessionMgr, err := session.New(ctx, osc)
 	if err != nil {
 		return nil, fmt.Errorf("load session manager: %w", err)
 	}

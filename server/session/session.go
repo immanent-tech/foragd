@@ -5,6 +5,7 @@
 package session
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -23,8 +24,8 @@ type Manager struct {
 	*scs.SessionManager
 }
 
-func New(osc *opensearch.Client) (*Manager, error) {
-	store, err := store.New(osc)
+func New(ctx context.Context, osc *opensearch.Client) (*Manager, error) {
+	store, err := store.New(ctx, osc)
 	if err != nil {
 		return nil, fmt.Errorf("load store: %w", err)
 	}

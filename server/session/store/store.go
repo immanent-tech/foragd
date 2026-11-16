@@ -9,11 +9,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"slices"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"
 
 	"github.com/immanent-tech/foragd/models"
@@ -21,6 +23,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/providers/opensearch/doc"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
 	"github.com/immanent-tech/foragd/schema"
 	"github.com/immanent-tech/foragd/service"
 )
@@ -61,12 +64,14 @@ type Store struct {
 	osc *opensearch.Client
 }
 
-func New(osc *opensearch.Client) (*Store, error) {
+func New(ctx context.Context, osc *opensearch.Client) (*Store, error) {
 	esc, err := service.LoadElasticService()
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
-	return &Store{esc: esc, osc: osc}, nil
+	store := &Store{esc: esc, osc: osc}
+	go store.startClearExpiredSessionsWorker(ctx)
+	return store, nil
 }
 
 // DeleteCtx should remove the session token and corresponding data from the session store. If the token does not exist
@@ -191,4 +196,43 @@ func (s *Store) All() (map[string][]byte, error) {
 
 func (s *Store) ctx() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), defaultRequestTimeout)
+}
+
+func (s *Store) startClearExpiredSessionsWorker(ctx context.Context) {
+	t := time.NewTicker(24 * time.Hour)
+	defer t.Stop()
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-t.C:
+				slogctx.Info(ctx, "Deleting expired sessions.")
+				// Delete all sessions with an expiry older than now.
+				if s.osc != nil {
+					if err := doc.DeleteByQuery(
+						ctx,
+						s.osc,
+						s.osc.IndexWriteAlias(schema.SessionsIndex),
+						doc.WithDeleteByQuery(search.BeforeQuery("expiry", time.Now().UTC())),
+					); err != nil {
+						slogctx.Error(ctx, "Delete expired sessions failed.", slog.Any("error", err))
+					}
+				}
+				if err := elastic.DeleteDocs(
+					ctx,
+					s.esc.GetIndexRW(service.SessionsIndex),
+					query.Before("expiry", time.Now().UTC()),
+				); err != nil {
+					slogctx.Error(ctx, "Delete expired sessions failed.", slog.Any("error", err))
+				}
+			}
+		}
+	}()
+
+	<-ctx.Done()
+	<-done
 }
