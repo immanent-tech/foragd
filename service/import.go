@@ -27,10 +27,16 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/opensearch"
+	osbulk "github.com/immanent-tech/foragd/providers/opensearch/bulk"
+	"github.com/immanent-tech/foragd/providers/opensearch/doc"
+	"github.com/immanent-tech/foragd/schema"
 )
 
 type ImportService struct {
-	store *ElasticService
+	esc     *ElasticService
+	osc     *opensearch.Client
+	indexer *osbulk.Indexer
 }
 
 func NewImportService() (*ImportService, error) {
@@ -38,9 +44,19 @@ func NewImportService() (*ImportService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
+	osc, err := opensearch.GetClient()
+	if err != nil {
+		return nil, fmt.Errorf("get opensearch client: %w", err)
+	}
+	indexer, err := osbulk.New()
+	if err != nil {
+		return nil, fmt.Errorf("create bulk indexer: %w", err)
+	}
 
 	return &ImportService{
-		store: svc,
+		esc:     svc,
+		osc:     osc,
+		indexer: indexer,
 	}, nil
 }
 
@@ -86,7 +102,6 @@ func (i *ImportService) StartImport(
 				"The import failed as the OPML file had errors. Please check and try again.",
 			)),
 		)
-
 	}
 	if len(requests) == 0 {
 		return "", models.NewAPIError(
@@ -110,7 +125,14 @@ func (i *ImportService) StartImport(
 	}
 
 	// Add to the store for the import job to find and process.
-	if err := elastic.CreateDoc(ctx, i.store.GetIndexRW(ImportIndex), status.GetID(), status); err != nil {
+	if i.osc != nil {
+		if err := doc.Create(ctx, i.osc.Doc, i.osc.IndexWriteAlias(schema.ImportsIndex), status); err != nil {
+			return "", models.NewAPIError(
+				http.StatusInternalServerError,
+				fmt.Errorf("get user details: %w", models.ErrCtxValueNotFound))
+		}
+	}
+	if err := elastic.CreateDoc(ctx, i.esc.GetIndexRW(ImportIndex), status.GetID(), status); err != nil {
 		return "", models.NewAPIError(
 			http.StatusInternalServerError,
 			fmt.Errorf("get user details: %w", models.ErrCtxValueNotFound))
@@ -268,11 +290,25 @@ func (i *ImportService) ProcessRequests(
 	for result := range resultsCh {
 		// Add new feed as needed.
 		if result.AddFeed {
+			if i.osc != nil {
+				if err := i.indexer.Add(
+					ctx,
+					osbulk.NewAction(osbulk.ActionCreate,
+						osbulk.ToIndex(i.osc.IndexWriteAlias(schema.FeedsIndex)),
+						osbulk.WithDoc(result.Feed),
+					),
+				); err != nil {
+					slogctx.Error(ctx, "Failed to process new feed",
+						slog.Any("error", err))
+					errs = errors.Join(errs, err)
+					// continue
+				}
+			}
 			if err := bulk.AddAction(ctx,
 				bulk.NewAction(
 					result.Feed,
 					bulk.AsOperation[models.FeedID](bulk.OpCreate),
-					bulk.ToIndex[models.FeedID](i.store.GetIndexRW(FeedsIndex)),
+					bulk.ToIndex[models.FeedID](i.esc.GetIndexRW(FeedsIndex)),
 				),
 			); err != nil {
 				slogctx.Error(ctx, "Failed to process new feed",
@@ -283,11 +319,25 @@ func (i *ImportService) ProcessRequests(
 		}
 		// Add new subscription as needed.
 		if result.Subscription != nil {
+			if i.osc != nil {
+				if err := i.indexer.Add(
+					ctx,
+					osbulk.NewAction(osbulk.ActionCreate,
+						osbulk.ToIndex(i.osc.IndexWriteAlias(schema.SubscriptionsIndex)),
+						osbulk.WithDoc(result.Subscription),
+					),
+				); err != nil {
+					slogctx.Error(ctx, "Failed to process new subscription",
+						slog.Any("error", err))
+					errs = errors.Join(errs, err)
+					// continue
+				}
+			}
 			if err := bulk.AddAction(ctx,
 				bulk.NewAction(
 					result.Subscription,
 					bulk.AsOperation[models.SubscriptionID](bulk.OpCreate),
-					bulk.ToIndex[models.SubscriptionID](i.store.GetIndexRW(SubscriptionsIndex)),
+					bulk.ToIndex[models.SubscriptionID](i.esc.GetIndexRW(SubscriptionsIndex)),
 				),
 			); err != nil {
 				slogctx.Error(ctx, "Failed to process new subscription",
@@ -297,11 +347,22 @@ func (i *ImportService) ProcessRequests(
 			}
 		}
 		// Index the results.
+		if i.osc != nil {
+			if err := i.indexer.Add(ctx, osbulk.NewAction(osbulk.ActionCreate,
+				osbulk.ToIndex(i.osc.IndexWriteAlias(schema.ImportsIndex)),
+				osbulk.WithDoc(result.Details),
+			)); err != nil {
+				slogctx.Error(ctx, "Failed to process import result",
+					slog.Any("error", err))
+				errs = errors.Join(errs, err)
+				// continue
+			}
+		}
 		if err := bulk.AddAction(ctx,
 			bulk.NewAction(
 				result.Details,
 				bulk.AsOperation[string](bulk.OpCreate),
-				bulk.ToIndex[string](i.store.GetIndexRW(ImportIndex)),
+				bulk.ToIndex[string](i.esc.GetIndexRW(ImportIndex)),
 			),
 		); err != nil {
 			slogctx.Error(ctx, "Failed to process import result",
@@ -311,6 +372,13 @@ func (i *ImportService) ProcessRequests(
 		}
 	}
 
+	if i.osc != nil {
+		if err := i.indexer.Flush(ctx); err != nil {
+			slogctx.Warn(ctx, "Could not flush bulk indexer after adding subscriptions.",
+				slog.Any("error", err),
+			)
+		}
+	}
 	if err := bulk.Flush(ctx); err != nil {
 		slogctx.Warn(ctx, "Could not flush bulk indexer after adding subscriptions.",
 			slog.Any("error", err),
@@ -456,7 +524,7 @@ func (i *ImportService) GetImportStatus(
 		}
 	} else {
 		// Else, fetch the job status directly.
-		existing, err := elastic.GetDoc[string, *models.ImportStatus](ctx, i.store.GetIndexRO(ImportIndex), jobID)
+		existing, err := elastic.GetDoc[string, *models.ImportStatus](ctx, i.esc.GetIndexRO(ImportIndex), jobID)
 		if err != nil {
 			if errors.Is(err, elastic.ErrNotFound) {
 				return nil, nil, models.NewAPIError(
@@ -487,7 +555,7 @@ func (i *ImportService) GetImportStatus(
 // GetPendingImports retrieves any imports in "pending" status (i.e., ready to be started).
 func (i *ImportService) GetPendingImports(ctx context.Context) ([]*models.ImportStatus, error) {
 	statuses, err := elastic.SearchAll[*models.ImportStatus](ctx,
-		i.store.GetIndexRO(ImportIndex),
+		i.esc.GetIndexRO(ImportIndex),
 		query.Bool(
 			query.Filter(
 				query.Term("doc_type", "import_status"),
@@ -505,7 +573,7 @@ func (i *ImportService) GetPendingImports(ctx context.Context) ([]*models.Import
 
 func (i *ImportService) GetAllImports(ctx context.Context, userID models.UserID) ([]*models.ImportStatus, error) {
 	activeImports, err := elastic.SearchAll[*models.ImportStatus](ctx,
-		i.store.GetIndexRO(ImportIndex),
+		i.esc.GetIndexRO(ImportIndex),
 		query.Bool(
 			// Is Import Status and owned by User.
 			query.Filter(
@@ -524,7 +592,7 @@ func (i *ImportService) GetAllImports(ctx context.Context, userID models.UserID)
 
 func (i *ImportService) findActiveImports(ctx context.Context, userID models.UserID) ([]*models.ImportStatus, error) {
 	activeImports, err := elastic.SearchAll[*models.ImportStatus](ctx,
-		i.store.GetIndexRO(ImportIndex),
+		i.esc.GetIndexRO(ImportIndex),
 		query.Bool(
 			query.WithBoolShouldMinimumMatch(1),
 			// Is Import Status and owned by User.
@@ -549,7 +617,7 @@ func (i *ImportService) findActiveImports(ctx context.Context, userID models.Use
 
 func (i *ImportService) getResultsForImport(ctx context.Context, id string) ([]*models.ImportResult, error) {
 	results, err := elastic.SearchAll[*models.ImportResult](ctx,
-		i.store.GetIndexRO(ImportIndex),
+		i.esc.GetIndexRO(ImportIndex),
 		query.Bool(
 			query.Filter(
 				query.Term("doc_type", "import_result"),
@@ -582,12 +650,17 @@ func (i *ImportService) updateStatus(
 	if msg != nil {
 		status.Error = msg
 	} else {
-		msg = models.NewErrorMessage(
+		status.Error = models.NewErrorMessage(
 			"Internal server error",
 			"The server encountered a problem that stopped the import process completing",
 		)
 	}
-	if err := elastic.UpdateDoc(ctx, i.store.GetIndexRW(ImportIndex), status.GetID(), status); err != nil {
+	if i.osc != nil {
+		if err := doc.Index(ctx, i.osc.Doc, i.osc.IndexWriteAlias(schema.ImportsIndex), status); err != nil {
+			return fmt.Errorf("update doc: %w", err)
+		}
+	}
+	if err := elastic.UpdateDoc(ctx, i.esc.GetIndexRW(ImportIndex), status.GetID(), status); err != nil {
 		return fmt.Errorf("update doc: %w", err)
 	}
 	return nil

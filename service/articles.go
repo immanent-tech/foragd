@@ -21,6 +21,9 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/opensearch/doc"
+	ossearch "github.com/immanent-tech/foragd/providers/opensearch/search"
+	"github.com/immanent-tech/foragd/schema"
 )
 
 // GetArticles generates Article objects from the Items with the given IDs.
@@ -211,7 +214,7 @@ func (s *ItemService) CountArticles(
 
 	count, err := elastic.Count(
 		ctx,
-		s.store.GetIndexRO(ItemsIndex),
+		s.esc.GetIndexRO(ItemsIndex),
 		generateArticlesQuery(
 			user,
 			subscriptions,
@@ -337,9 +340,14 @@ func (s *ItemService) FindSimilarArticles(
 
 // ArchiveArticle will index the given article content to the article archive for permanent storage.
 func (s *ItemService) ArchiveArticle(ctx context.Context, article *models.ArticleArchive) error {
+	if s.osc != nil {
+		if err := doc.Create(ctx, s.osc.Doc, s.osc.IndexWriteAlias(schema.FavoritesIndex), article); err != nil {
+			return fmt.Errorf("archive article: %w", err)
+		}
+	}
 	if err := elastic.CreateDoc(
 		ctx,
-		s.store.GetIndexRW(FavoritesIndex),
+		s.esc.GetIndexRW(FavoritesIndex),
 		article.ItemID,
 		article,
 	); err != nil {
@@ -355,15 +363,26 @@ func (s *ItemService) UnarchiveArticle(
 	itemID models.ItemID,
 ) error {
 	// Set up the query to match the user's favorited article.
+	if s.osc != nil {
+		if err := doc.DeleteByQuery(ctx, s.osc, s.osc.IndexWriteAlias(schema.ItemsIndex), doc.WithDeleteByQuery(
+			ossearch.BoolQuery(ossearch.WithBoolFilter(
+				ossearch.TermQuery("user_id", userID),
+				ossearch.TermQuery("item_id", itemID),
+			)),
+		)); err != nil {
+			return fmt.Errorf("unarchive article: %w", err)
+		}
+	}
 	query := query.Bool(
 		query.Filter(
 			query.Term("user_id", userID),
 			query.Term("item_id", itemID),
 		),
 	)
-	if err := elastic.DeleteDocs(ctx, s.store.GetIndexRW(FavoritesIndex), query); err != nil {
+	if err := elastic.DeleteDocs(ctx, s.esc.GetIndexRW(FavoritesIndex), query); err != nil {
 		return fmt.Errorf("unarchive article: %w", err)
 	}
+
 	return nil
 }
 
@@ -448,7 +467,11 @@ func (s *ItemService) GetArticleRemoteContent(
 		// Extract opengraph and readability data from item HTML source.
 		_, readabilityData, err := extractMetadataFromHTML(sourceURL, itemPageBuf.Bytes())
 		if err != nil {
-			logGeneralError(ctx, err, article.GetLink(), article.Item.GetFeedID())
+			if s.osc != nil {
+				logGeneralError(ctx, s.indexer, err, article.GetLink(), article.Item.GetFeedID())
+			} else {
+				logGeneralError(ctx, nil, err, article.GetLink(), article.Item.GetFeedID())
+			}
 		}
 		if readabilityData != nil {
 			// Extract article content using readability.

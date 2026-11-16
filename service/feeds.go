@@ -54,6 +54,9 @@ import (
 	"github.com/immanent-tech/foragd/providers/google/news"
 	"github.com/immanent-tech/foragd/providers/google/youtube"
 	"github.com/immanent-tech/foragd/providers/ollama"
+	"github.com/immanent-tech/foragd/providers/opensearch"
+	osbulk "github.com/immanent-tech/foragd/providers/opensearch/bulk"
+	"github.com/immanent-tech/foragd/schema"
 )
 
 type Classifier interface {
@@ -92,7 +95,9 @@ func (ec *feedCacheExpiryCalculator) ExpireAfterRead(entry otter.Entry[models.Fe
 type FeedService struct {
 	*otter.Cache[models.FeedID, *models.Feed]
 
-	store      *ElasticService
+	esc        *ElasticService
+	osc        *opensearch.Client
+	indexer    *osbulk.Indexer
 	loader     otter.LoaderFunc[models.FeedID, *models.Feed]
 	bulkLoader otter.BulkLoaderFunc[models.FeedID, *models.Feed]
 	httpClient *resty.Client
@@ -107,6 +112,15 @@ var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
 	}
 	index := svc.GetIndexRO(FeedsIndex)
 
+	osc, err := opensearch.GetClient()
+	if err != nil {
+		return nil, fmt.Errorf("get opensearch client: %w", err)
+	}
+	indexer, err := newBulkIndexer()
+	if err != nil {
+		return nil, fmt.Errorf("create bulk indexer: %w", err)
+	}
+
 	ollamaSvc, err := ollama.NewClient()
 	if err != nil {
 		return nil, fmt.Errorf("load ollama client: %w", err)
@@ -117,7 +131,9 @@ var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
 			MaximumSize:      30_000,
 			ExpiryCalculator: &feedCacheExpiryCalculator{},
 		}),
-		store: svc,
+		esc:     svc,
+		osc:     osc,
+		indexer: indexer,
 		loader: otter.LoaderFunc[models.FeedID, *models.Feed](
 			func(ctx context.Context, id models.FeedID) (*models.Feed, error) {
 				feed, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, index, id)
@@ -149,12 +165,39 @@ var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
 })
 
 func (s *FeedService) Close() error {
-	return s.ollama.Close()
+	// The shutdown context must not derive from the (already cancelled) signal context.
+	shutdownCtx, cancel := context.WithTimeoutCause(
+		context.Background(),
+		20*time.Second,
+		errors.New("graceful shutdown timeout"),
+	)
+	shutdownCtx = slogctx.NewCtx(shutdownCtx, slog.Default())
+	defer cancel()
+
+	slogctx.Info(shutdownCtx, "Shutting down feeds service")
+
+	var errs []error
+
+	if s.osc != nil {
+		if err := s.indexer.Close(shutdownCtx); err != nil {
+			slogctx.Error(shutdownCtx, "Failed to close bulk indexer", slog.Any("error", err))
+			errs = append(errs, err)
+		}
+		if err := s.osc.Close(); err != nil {
+			slogctx.Error(shutdownCtx, "Failed to close opensearch client", slog.Any("error", err))
+			errs = append(errs, err)
+		}
+	}
+	if err := s.ollama.Close(); err != nil {
+		slogctx.Error(shutdownCtx, "Failed to close classifier", slog.Any("error", err))
+		errs = append(errs, err)
+	}
+	return errors.Join(errs...)
 }
 
 // GetFeed retrieves a feed with the given FeedID.
 func (s *FeedService) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-	ctx = context.WithValue(ctx, "feeds_index", s.store.GetIndexRO(FeedsIndex))
+	ctx = context.WithValue(ctx, "feeds_index", s.esc.GetIndexRO(FeedsIndex))
 	switch feed, err := s.Get(ctx, id, s.loader); {
 	case err != nil && !errors.Is(err, elastic.ErrNotFound):
 		return nil, fmt.Errorf("get feed: %w", err)
@@ -189,7 +232,7 @@ func (s *FeedService) GetFeeds(ctx context.Context, ids ...models.FeedID) (model
 func (s *FeedService) GetAllFeedsExcept(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 	allFeeds, err := elastic.SearchAll[*models.Feed](
 		ctx,
-		s.store.GetIndexRO(FeedsIndex),
+		s.esc.GetIndexRO(FeedsIndex),
 		query.Bool(
 			query.MustNot(
 				query.Terms("feed_id", ids),
@@ -207,7 +250,7 @@ func (s *FeedService) GetAllFeedsExcept(ctx context.Context, ids ...models.FeedI
 func (s *FeedService) GetUnclassifiedFeeds(ctx context.Context) (models.Feeds, error) {
 	allFeeds, err := elastic.SearchAll[*models.Feed](
 		ctx,
-		s.store.GetIndexRO(FeedsIndex),
+		s.esc.GetIndexRO(FeedsIndex),
 		query.Bool(
 			query.Filter(
 				query.Term("categories.raw", "Uncategorized"),
@@ -225,7 +268,7 @@ func (s *FeedService) GetUnclassifiedFeeds(ctx context.Context) (models.Feeds, e
 func (s *FeedService) GetNewFeedsSince(ctx context.Context, ts time.Time) (models.Feeds, error) {
 	feeds, err := elastic.SearchAll[*models.Feed](
 		ctx,
-		s.store.GetIndexRO(FeedsIndex),
+		s.esc.GetIndexRO(FeedsIndex),
 		// query.Since("created_at", state.Checkpoint),
 		// Consider a feed new if it has either:
 		// - last_fetched value of the ts
@@ -261,7 +304,7 @@ func (s FeedService) GetFeedsByURLs(ctx context.Context, urls ...string) (models
 	}
 	// Find any existing feed.
 	feeds, err := elastic.SearchAll[*models.Feed](ctx,
-		s.store.GetIndexRO(FeedsIndex),
+		s.esc.GetIndexRO(FeedsIndex),
 		query.Bool(
 			query.Filter(
 				query.Bool(
@@ -279,11 +322,23 @@ func (s FeedService) GetFeedsByURLs(ctx context.Context, urls ...string) (models
 
 // AddFeed adds a new feed to Elasticsearch and the cache.
 func (s *FeedService) AddFeed(ctx context.Context, feed *models.Feed) error {
+	if s.osc != nil {
+		if err := s.indexer.Add(
+			ctx,
+			osbulk.NewAction(
+				osbulk.ActionCreate,
+				osbulk.ToIndex(s.osc.IndexWriteAlias(schema.FeedsIndex)),
+				osbulk.WithDoc(feed),
+			),
+		); err != nil {
+			return fmt.Errorf("bulk add feed: %w", err)
+		}
+	}
 	if err := bulk.AddAction(ctx,
 		bulk.NewAction(
 			feed,
 			bulk.AsOperation[models.FeedID](bulk.OpCreate),
-			bulk.ToIndex[models.FeedID](s.store.GetIndexRW(FeedsIndex)),
+			bulk.ToIndex[models.FeedID](s.esc.GetIndexRW(FeedsIndex)),
 		),
 	); err != nil {
 		return fmt.Errorf("add feed: %w", err)
@@ -298,11 +353,23 @@ func (s *FeedService) AddFeed(ctx context.Context, feed *models.Feed) error {
 
 // UpdateFeed applies the given updates to a Feed. Any cached version of the feed is invalidated.
 func (s *FeedService) UpdateFeed(ctx context.Context, feed *models.Feed) error {
+	if s.osc != nil {
+		if err := s.indexer.Add(
+			ctx,
+			osbulk.NewAction(
+				osbulk.ActionIndex,
+				osbulk.ToIndex(s.osc.IndexWriteAlias(schema.FeedsIndex)),
+				osbulk.WithDoc(feed),
+			),
+		); err != nil {
+			return fmt.Errorf("bulk add feed: %w", err)
+		}
+	}
 	if err := bulk.AddAction(ctx,
 		bulk.NewAction(
 			feed,
 			bulk.AsOperation[models.FeedID](bulk.OpIndex),
-			bulk.ToIndex[models.FeedID](s.store.GetIndexRW(FeedsIndex)),
+			bulk.ToIndex[models.FeedID](s.esc.GetIndexRW(FeedsIndex)),
 		),
 	); err != nil {
 		return fmt.Errorf("update feed: %w", err)
@@ -537,7 +604,7 @@ func (s *FeedService) SuggestYoutubeFeeds(ctx context.Context, text string) (*mo
 	// Try to find existing feeds that match the query.
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
-		s.store.GetIndexRO(FeedsIndex),
+		s.esc.GetIndexRO(FeedsIndex),
 		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.MustNot(
@@ -571,7 +638,7 @@ func (s *FeedService) SuggestYoutubeFeeds(ctx context.Context, text string) (*mo
 	if len(resp.Results) > 0 {
 		feeds = resp.Results
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := getFeedLatestItems(ctx, s.store, 3, feeds.GetIDs())
+		latestItems, err := getFeedLatestItems(ctx, s.esc, 3, feeds.GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -621,7 +688,7 @@ func (s *FeedService) SuggestGoogleNewsFeeds(
 	// Try to find existing feeds that match the query.
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
-		s.store.GetIndexRO(FeedsIndex),
+		s.esc.GetIndexRO(FeedsIndex),
 		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.MustNot(
@@ -656,7 +723,7 @@ func (s *FeedService) SuggestGoogleNewsFeeds(
 	if len(resp.Results) > 0 {
 		feeds = resp.Results
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := getFeedLatestItems(ctx, s.store, 3, feeds.GetIDs())
+		latestItems, err := getFeedLatestItems(ctx, s.esc, 3, feeds.GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -795,7 +862,7 @@ func (s *FeedService) SuggestFeeds(
 	// Try to find existing feeds that match the query.
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
-		s.store.GetIndexRO(FeedsIndex),
+		s.esc.GetIndexRO(FeedsIndex),
 		elastic.WithQuery[*search.Search](feedSearchQuery),
 		elastic.WithSize[*search.Search](request.Count),
 		elastic.WithSort[*search.Search](NewFeedSortOptions(new(models.SortMostRelevant))...),
@@ -807,7 +874,7 @@ func (s *FeedService) SuggestFeeds(
 	}
 	if len(resp.Results) > 0 {
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := getFeedLatestItems(ctx, s.store, 3, models.Feeds(resp.Results).GetIDs())
+		latestItems, err := getFeedLatestItems(ctx, s.esc, 3, models.Feeds(resp.Results).GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -1523,7 +1590,11 @@ func (s *FeedService) FetchFeedUpdates(
 		)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
-			logGeneralError(ctx, err, feedURL, details.GetID())
+			if s.osc != nil {
+				logGeneralError(ctx, s.indexer, err, feedURL, details.GetID())
+			} else {
+				logGeneralError(ctx, nil, err, feedURL, details.GetID())
+			}
 			continue
 		}
 		// Set the FeedID to ensure consistency.
@@ -1536,7 +1607,11 @@ func (s *FeedService) FetchFeedUpdates(
 		http.StatusNoContent,
 		errors.New("failed to fetch feed details with any source URL: "+errors.Join(errs...).Error()),
 	)
-	logGeneralError(ctx, err, strings.Join(details.GetSourceURLs(), ","), details.GetID())
+	if s.osc != nil {
+		logGeneralError(ctx, s.indexer, err, strings.Join(details.GetSourceURLs(), ","), details.GetID())
+	} else {
+		logGeneralError(ctx, nil, err, strings.Join(details.GetSourceURLs(), ","), details.GetID())
+	}
 	return nil, "", err
 }
 
@@ -1588,21 +1663,33 @@ func (s *FeedService) FetchFeedUpdatesAsArticles(
 		)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
-			logZyteError(ctx, err, feedURL, details.GetID())
+			if s.osc != nil {
+				logZyteError(ctx, s.indexer, err, feedURL, details.GetID())
+			} else {
+				logZyteError(ctx, nil, err, feedURL, details.GetID())
+			}
 			continue
 		}
 		// Generate feed details from Zyte response.
 		feed, err := NewFeedFromZyteResponse(ctx, resp)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
-			logGeneralError(ctx, err, feedURL, details.GetID())
+			if s.osc != nil {
+				logGeneralError(ctx, s.indexer, err, feedURL, details.GetID())
+			} else {
+				logGeneralError(ctx, nil, err, feedURL, details.GetID())
+			}
 			continue
 		}
 
 		// Extract and enrich articles from Zyte response.
 		items, err := NewItemsFromZyteArticles(ctx, feed, resp.ArticleList)
 		if err != nil {
-			logGeneralError(ctx, err, feedURL, details.GetID())
+			if s.osc != nil {
+				logGeneralError(ctx, s.indexer, err, feedURL, details.GetID())
+			} else {
+				logGeneralError(ctx, nil, err, feedURL, details.GetID())
+			}
 			return nil, feedURL, fmt.Errorf("%s: %w", feedURL, err)
 		}
 		feed.Items = items
@@ -1615,7 +1702,11 @@ func (s *FeedService) FetchFeedUpdatesAsArticles(
 		http.StatusNoContent,
 		errors.New("failed to fetch feed details with any source URL: "+errors.Join(errs...).Error()),
 	)
-	logGeneralError(ctx, err, strings.Join(details.GetSourceURLs(), ","), details.GetID())
+	if s.osc != nil {
+		logGeneralError(ctx, s.indexer, err, strings.Join(details.GetSourceURLs(), ","), details.GetID())
+	} else {
+		logGeneralError(ctx, nil, err, strings.Join(details.GetSourceURLs(), ","), details.GetID())
+	}
 	return nil, "", err
 }
 
@@ -1646,7 +1737,7 @@ func NewFeedFromZyteResponse(ctx context.Context, resp *zyte.Response) (*models.
 	// Extract metadata (opengraph, readability) from HTML.
 	ogData, rdData, err := extractMetadataFromHTML(sourceURL, body)
 	if err != nil {
-		logGeneralError(ctx, err, resp.URL, feedID)
+		return nil, fmt.Errorf("extract metadata: %w", err)
 	}
 
 	feed := &models.Feed{
@@ -1852,7 +1943,7 @@ func logWithStatusCode(code int) func(*feedStatusLogMsg) {
 	}
 }
 
-func logZyteError(ctx context.Context, err error, feedURL string, feedID models.FeedID) {
+func logZyteError(ctx context.Context, indexer *osbulk.Indexer, err error, feedURL string, feedID models.FeedID) {
 	logMsg := newFeedStatusMsg(feedID)
 	logMsg.FeedStatus.URL = feedURL
 	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
@@ -1866,10 +1957,20 @@ func logZyteError(ctx context.Context, err error, feedURL string, feedID models.
 		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
 			slog.Any("error", err),
 		)
+	}
+	if indexer != nil {
+		if err := indexer.Add(
+			ctx,
+			osbulk.NewAction(osbulk.ActionCreate, osbulk.ToIndex("logs"), osbulk.WithDoc(logMsg)),
+		); err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+				slog.Any("error", err),
+			)
+		}
 	}
 }
 
-func logGeneralError(ctx context.Context, err error, feedURL string, feedID models.FeedID) {
+func logGeneralError(ctx context.Context, indexer *osbulk.Indexer, err error, feedURL string, feedID models.FeedID) {
 	logMsg := newFeedStatusMsg(feedID)
 	logMsg.FeedStatus.URL = feedURL
 	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
@@ -1883,5 +1984,15 @@ func logGeneralError(ctx context.Context, err error, feedURL string, feedID mode
 		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
 			slog.Any("error", err),
 		)
+	}
+	if indexer != nil {
+		if err := indexer.Add(
+			ctx,
+			osbulk.NewAction(osbulk.ActionCreate, osbulk.ToIndex("logs"), osbulk.WithDoc(logMsg)),
+		); err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+				slog.Any("error", err),
+			)
+		}
 	}
 }

@@ -20,6 +20,7 @@ import (
 	"go.opentelemetry.io/otel"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/opensearch/bulk"
 )
 
 var tracer = otel.Tracer("github.com/immanent-tech/foragd/service")
@@ -82,6 +83,10 @@ var newHTTPClient = sync.OnceValue(func() *resty.Client {
 			return c == 429 || c >= 500
 		})
 	return httpClient
+})
+
+var newBulkIndexer = sync.OnceValues(func() (*bulk.Indexer, error) {
+	return bulk.New()
 })
 
 var (

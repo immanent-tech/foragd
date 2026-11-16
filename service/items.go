@@ -38,6 +38,9 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	gerror "github.com/immanent-tech/foragd/providers/google/error"
+	"github.com/immanent-tech/foragd/providers/opensearch"
+	osbulk "github.com/immanent-tech/foragd/providers/opensearch/bulk"
+	"github.com/immanent-tech/foragd/schema"
 	"github.com/immanent-tech/foragd/server/cache"
 )
 
@@ -69,7 +72,9 @@ type ItemService struct {
 	*otter.Cache[models.ItemID, *models.Item]
 
 	bulkLoader otter.BulkLoaderFunc[models.ItemID, *models.Item]
-	store      *ElasticService
+	esc        *ElasticService
+	osc        *opensearch.Client
+	indexer    *osbulk.Indexer
 	dataCache  cache.ObjectCache
 	httpClient *resty.Client
 }
@@ -79,6 +84,15 @@ var LoadItemService = sync.OnceValues(func() (*ItemService, error) {
 	svc, err := LoadElasticService()
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
+	}
+
+	osc, err := opensearch.GetClient()
+	if err != nil {
+		return nil, fmt.Errorf("get opensearch client: %w", err)
+	}
+	indexer, err := newBulkIndexer()
+	if err != nil {
+		return nil, fmt.Errorf("create bulk indexer: %w", err)
 	}
 
 	itemsCache, err := cache.NewItemsCache()
@@ -110,10 +124,39 @@ var LoadItemService = sync.OnceValues(func() (*ItemService, error) {
 			},
 		),
 		dataCache:  itemsCache,
-		store:      svc,
+		esc:        svc,
+		osc:        osc,
+		indexer:    indexer,
 		httpClient: newHTTPClient(),
 	}, nil
 })
+
+func (s *ItemService) Close() error {
+	// The shutdown context must not derive from the (already cancelled) signal context.
+	shutdownCtx, cancel := context.WithTimeoutCause(
+		context.Background(),
+		20*time.Second,
+		errors.New("graceful shutdown timeout"),
+	)
+	shutdownCtx = slogctx.NewCtx(shutdownCtx, slog.Default())
+	defer cancel()
+
+	slogctx.Info(shutdownCtx, "Shutting down items service")
+
+	var errs []error
+
+	if s.osc != nil {
+		// if err := s.indexer.Close(shutdownCtx); err != nil {
+		// 	slogctx.Error(shutdownCtx, "Failed to close bulk indexer", slog.Any("error", err))
+		// 	errs = append(errs, err)
+		// }
+		if err := s.osc.Close(); err != nil {
+			slogctx.Error(shutdownCtx, "Failed to close opensearch client", slog.Any("error", err))
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}
 
 // GetItems returns a [models.Items] slice containing the items matching the given [models.ItemID].
 func (s *ItemService) GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
@@ -137,7 +180,27 @@ func (s *ItemService) GetItems(ctx context.Context, ids ...models.ItemID) (model
 // AddItems will add the given [models.Item] to the database. It returns a map divided into "updated" and "new" items,
 // to indicate items that existed and were updated vs. items that were added as new.
 func (s *ItemService) AddItems(ctx context.Context, items models.Items) (int, error) {
-	if err := bulk.IndexDocuments(ctx, s.store.GetIndexRW(ItemsIndex), items...); err != nil {
+	if s.osc != nil {
+		for item := range slices.Values(items) {
+			if err := s.indexer.Add(ctx, osbulk.NewAction(
+				osbulk.ActionCreate,
+				osbulk.ToIndex(s.osc.IndexWriteAlias(schema.ItemsIndex)),
+				osbulk.WithDoc(item),
+			)); err != nil {
+				slogctx.Warn(
+					ctx,
+					"Could not bulk add item",
+					slog.String("item_id", item.GetID()),
+					slog.Any("error", err),
+				)
+				continue
+			}
+		}
+		if err := s.indexer.Flush(ctx); err != nil {
+			slogctx.Warn(ctx, "Flush bulk items failed", slog.Any("error", err))
+		}
+	}
+	if err := bulk.IndexDocuments(ctx, s.esc.GetIndexRW(ItemsIndex), items...); err != nil {
 		return 0, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add items: %w", err))
 	}
 	if err := bulk.Flush(ctx); err != nil {
@@ -345,7 +408,7 @@ func (s *ItemService) EnrichItem(
 	// Extract opengraph and readability data from item HTML source.
 	opengraphData, readabilityData, err := extractMetadataFromHTML(itemURL, itemContentBuf.Bytes())
 	if err != nil {
-		logGeneralError(itemCtx, err, feed.GetSourceURLs()[0], feed.GetID())
+		logGeneralError(itemCtx, s.indexer, err, feed.GetSourceURLs()[0], feed.GetID())
 	}
 
 	// Add an image if needed.
@@ -416,7 +479,7 @@ func (s *ItemService) GetTopCategoriesForItems(
 	}
 
 	resp, err := elastic.Search[*models.Item](ctx,
-		s.store.GetIndexRO(ItemsIndex),
+		s.esc.GetIndexRO(ItemsIndex),
 		elastic.WithQuery[*search.Search](itemsQuery),
 		elastic.WithAggregations[*search.Search](aggs),
 		elastic.WithSize[*search.Search](0),
@@ -467,7 +530,7 @@ func (s *ItemService) GetTopLanguageCountsForItems(
 	}
 
 	resp, err := elastic.Search[*models.Item](ctx,
-		s.store.GetIndexRO(ItemsIndex),
+		s.esc.GetIndexRO(ItemsIndex),
 		elastic.WithQuery[*search.Search](itemsQuery),
 		elastic.WithAggregations[*search.Search](aggs),
 		elastic.WithSize[*search.Search](0),

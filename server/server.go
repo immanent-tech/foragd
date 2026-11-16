@@ -221,10 +221,16 @@ func shutdown(svr *http.Server, services *services, logger *slog.Logger) error {
 
 	// 5. TODO: close caches / session store if they expose a Close method.
 	if err := services.feeds.Close(); err != nil {
-		slogctx.Error(shutdownCtx, "Failed to stop feed service.",
+		slogctx.Error(shutdownCtx, "Failed to stop feeds service.",
 			slog.Any("error", err),
 		)
 		errs = append(errs, fmt.Errorf("feed service shutdown: %w", err))
+	}
+	if err := services.items.Close(); err != nil {
+		slogctx.Error(shutdownCtx, "Failed to stop items service.",
+			slog.Any("error", err),
+		)
+		errs = append(errs, fmt.Errorf("items service shutdown: %w", err))
 	}
 
 	// 6. Close error client.

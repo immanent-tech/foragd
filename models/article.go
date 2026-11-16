@@ -366,3 +366,7 @@ func (r *ViewArticleRequest) Validate() error {
 	}
 	return nil
 }
+
+func (a ArticleArchive) GetID() ItemID {
+	return a.ItemID
+}

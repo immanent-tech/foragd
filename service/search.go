@@ -137,7 +137,7 @@ func (s *ItemService) QueryItems(
 	}
 	// Perform search.
 	resp, err := elastic.Search[*models.Item](ctx,
-		s.store.GetIndexRO(ItemsIndex),
+		s.esc.GetIndexRO(ItemsIndex),
 		elastic.WithQuery[*search.Search](query),
 		elastic.WithSort[*search.Search](NewItemSortOptions(sort)...),
 		elastic.WithSearchAfter[*search.Search](searchAfter...),
@@ -199,7 +199,7 @@ func (s *ItemService) RetrieveItems(
 
 	// Perform search.
 	resp, err := elastic.Search[*models.Item](ctx,
-		s.store.GetIndexRO(ItemsIndex),
+		s.esc.GetIndexRO(ItemsIndex),
 		elastic.WithRetriever[*search.Search](
 			retriever.WithReciprocalRankFusionRetriever(
 				retriever.WithRankWindowSize(150),
@@ -247,7 +247,7 @@ func (s *ItemService) CountSearchResults(ctx context.Context, request *models.Se
 
 	// Perform search.
 	resp, err := elastic.Search[*models.Item](ctx,
-		s.store.GetIndexRO(ItemsIndex),
+		s.esc.GetIndexRO(ItemsIndex),
 		elastic.WithRetriever[*search.Search](
 			retriever.WithReciprocalRankFusionRetriever(
 				retriever.WithRankWindowSize(150),
@@ -289,7 +289,7 @@ func (s *ItemService) GetTopItemCategoriesForSearchResults(
 
 	// Perform aggregation.
 	resp, err := elastic.Search[*models.Item](ctx,
-		s.store.GetIndexRO(ItemsIndex),
+		s.esc.GetIndexRO(ItemsIndex),
 		elastic.WithRetriever[*search.Search](
 			retriever.WithReciprocalRankFusionRetriever(
 				retriever.WithRankWindowSize(150),
