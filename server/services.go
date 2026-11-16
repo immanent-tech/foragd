@@ -20,7 +20,9 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/providers/auth0"
+	"github.com/immanent-tech/foragd/providers/ollama"
 	"github.com/immanent-tech/foragd/providers/opensearch"
+	"github.com/immanent-tech/foragd/providers/opensearch/bulk"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/server/otel"
@@ -54,6 +56,10 @@ func loadServices(ctx context.Context, appCfg *config.AppConfig) (*services, err
 		slogctx.Warn(ctx, "Failed to load opensearch client", slog.Any("error", err))
 		// return nil, fmt.Errorf("load opensearch client: %w", err)
 	}
+	indexer, err := bulk.New()
+	if err != nil {
+		slogctx.Warn(ctx, "Failed to load bulk indexer", slog.Any("error", err))
+	}
 	sessionMgr, err := session.New(ctx, osc)
 	if err != nil {
 		return nil, fmt.Errorf("load session manager: %w", err)
@@ -61,6 +67,32 @@ func loadServices(ctx context.Context, appCfg *config.AppConfig) (*services, err
 	authMgr, err := auth0.LoadAuthenticator(sessionMgr)
 	if err != nil {
 		return nil, fmt.Errorf("load authenticator: %w", err)
+	}
+
+	httpClient := service.NewHTTPClient()
+	ollamaSvc, err := ollama.NewClient()
+	if err != nil {
+		return nil, fmt.Errorf("load ollama client: %w", err)
+	}
+	itemsSvc, err := service.LoadItemsService(ctx, osc, indexer, httpClient)
+	if err != nil {
+		return nil, fmt.Errorf("load items service: %w", err)
+	}
+	feedsSvc, err := service.LoadFeedsService(ctx, osc, indexer, httpClient, ollamaSvc, itemsSvc)
+	if err != nil {
+		return nil, fmt.Errorf("load feeds service: %w", err)
+	}
+	usersSvc, err := service.LoadUsersService(ctx, osc)
+	if err != nil {
+		return nil, fmt.Errorf("load users service: %w", err)
+	}
+	subscriptionsSvc, err := service.LoadSubscriptionsService(ctx, osc, indexer, itemsSvc, feedsSvc, usersSvc)
+	if err != nil {
+		return nil, fmt.Errorf("load subscriptions service: %w", err)
+	}
+	importsSvc, err := service.LoadImportsService(ctx, osc, indexer, feedsSvc, subscriptionsSvc, usersSvc)
+	if err != nil {
+		return nil, fmt.Errorf("load imports service: %w", err)
 	}
 
 	// Load all independent components concurrently. Many of these do network I/O (OIDC discovery, management tokens,
@@ -76,11 +108,7 @@ func loadServices(ctx context.Context, appCfg *config.AppConfig) (*services, err
 	})
 
 	imgCacheF := loadAsync(g, "image cache", cache.NewCache)
-	subscriptionSvcF := loadAsync(g, "subscription service", service.LoadSubscriptionService)
-	feedSvcF := loadAsync(g, "feed service", service.LoadFeedService)
-	userSvcF := loadAsync(g, "user service", service.LoadUserService)
-	itemSvcF := loadAsync(g, "items service", service.LoadItemService)
-	importSvcF := loadAsync(g, "import service", service.NewImportService)
+
 	resendVerifierF := loadAsync(g, "resend verifier", resend.NewVerifier)
 	emailSenderF := loadAsync(g, "email sender", resend.NewSender)
 	// sessionManagerF := loadAsync(g, "session manager", session.Load)
@@ -107,11 +135,11 @@ func loadServices(ctx context.Context, appCfg *config.AppConfig) (*services, err
 	// Build base services.
 	services := &services{
 		imageCache:    imgCacheF(),
-		subscriptions: subscriptionSvcF(),
-		feeds:         feedSvcF(),
-		users:         userSvcF(),
-		items:         itemSvcF(),
-		imports:       importSvcF(),
+		items:         itemsSvc,
+		subscriptions: subscriptionsSvc,
+		feeds:         feedsSvc,
+		users:         usersSvc,
+		imports:       importsSvc,
 		emailVerifier: resendVerifierF(),
 		emailSender:   emailSenderF(),
 		session:       sessionMgr,

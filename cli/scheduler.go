@@ -18,7 +18,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/scheduler"
-	"github.com/immanent-tech/foragd/service"
 )
 
 // SchedulerCmd defines the `scheduler` command, for performing job scheduler related actions.
@@ -71,9 +70,9 @@ func (c *InitSchedulerCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	feedSvc, err := service.LoadFeedService()
+	services, err := loadServices(ctx)
 	if err != nil {
-		return fmt.Errorf("load feed service: %w", err)
+		return fmt.Errorf("load services: %w", err)
 	}
 
 	// Set up and create scheduler instance.
@@ -87,7 +86,7 @@ func (c *InitSchedulerCmd) Run() error {
 	}
 
 	// Load feed update jobs.
-	if err := manager.LoadUpdateFeedJobs(ctx, feedSvc); err != nil {
+	if err := manager.LoadUpdateFeedJobs(ctx, services.feeds); err != nil {
 		return fmt.Errorf("load update feed jobs: %w", err)
 	}
 

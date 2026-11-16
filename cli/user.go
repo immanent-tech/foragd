@@ -19,7 +19,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
-	"github.com/immanent-tech/foragd/service"
 )
 
 type UserArgs struct {
@@ -48,9 +47,9 @@ func (c *DeleteUserCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	userSvc, err := service.LoadUserService()
+	services, err := loadServices(ctx)
 	if err != nil {
-		return fmt.Errorf("load feed service: %w", err)
+		return fmt.Errorf("load services: %w", err)
 	}
 
 	userMgr, err := auth0.LoadManager()
@@ -58,12 +57,12 @@ func (c *DeleteUserCmd) Run() error {
 		return fmt.Errorf("load auth manager: %w", err)
 	}
 
-	user, err := userSvc.GetUser(ctx, c.UserID)
+	user, err := services.users.GetUser(ctx, c.UserID)
 	if err != nil {
 		return fmt.Errorf("unable to delete user: %w", err)
 	}
 
-	if err := userSvc.DeleteUser(ctx, user); err != nil {
+	if err := services.users.DeleteUser(ctx, user); err != nil {
 		return fmt.Errorf("delete user: %w", err)
 	}
 
@@ -84,12 +83,12 @@ func (c *BlockUserCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	userSvc, err := service.LoadUserService()
+	services, err := loadServices(ctx)
 	if err != nil {
-		return fmt.Errorf("load feed service: %w", err)
+		return fmt.Errorf("load services: %w", err)
 	}
 
-	user, err := userSvc.GetUser(ctx, c.UserID)
+	user, err := services.users.GetUser(ctx, c.UserID)
 	if err != nil {
 		return fmt.Errorf("unable to delete user: %w", err)
 	}
@@ -97,7 +96,7 @@ func (c *BlockUserCmd) Run() error {
 	metadata := user.Metadata
 	metadata.Blocked = c.Value
 
-	if err := userSvc.UpdateUser(ctx, user, map[string]any{
+	if err := services.users.UpdateUser(ctx, user, map[string]any{
 		"metadata": metadata,
 	}); err != nil {
 		return fmt.Errorf("unable to set blocked status of user %s: %w", user.GetID(), err)
@@ -120,21 +119,21 @@ func (c *ListUserCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	userSvc, err := service.LoadUserService()
+	services, err := loadServices(ctx)
 	if err != nil {
-		return fmt.Errorf("load feed service: %w", err)
+		return fmt.Errorf("load services: %w", err)
 	}
 
 	var users []*models.User
 
 	if c.UserID != "" {
-		user, err := userSvc.GetUser(ctx, c.UserID)
+		user, err := services.users.GetUser(ctx, c.UserID)
 		if err != nil {
 			return fmt.Errorf("get user: %w", err)
 		}
 		users = []*models.User{user}
 	} else {
-		users, err = userSvc.GetAllUsers(ctx)
+		users, err = services.users.GetAllUsers(ctx)
 		if err != nil {
 			return fmt.Errorf("get all users: %w", err)
 		}

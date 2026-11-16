@@ -35,13 +35,25 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
+	"github.com/immanent-tech/foragd/providers/opensearch"
+	osbulk "github.com/immanent-tech/foragd/providers/opensearch/bulk"
+	"github.com/immanent-tech/foragd/providers/opensearch/doc"
+	ossearch "github.com/immanent-tech/foragd/providers/opensearch/search"
+	"github.com/immanent-tech/foragd/schema"
 )
 
 // SubscriptionService holds a cache and backend connection for handling [models.Subscription] objects.
 type SubscriptionService struct {
 	*otter.Cache[models.UserID, *UserSubscriptions]
 
-	store      *ElasticService
+	esc     *ElasticService
+	osc     *opensearch.Client
+	indexer *osbulk.Indexer
+
+	itemsSvc *ItemService
+	feedsSvc *FeedService
+	usersSvc *UserService
+
 	userLoader otter.LoaderFunc[models.UserID, *UserSubscriptions]
 }
 
@@ -107,18 +119,19 @@ func (s *UserSubscriptions) bulkGet(
 	return slices.Collect(maps.Values(results)), nil
 }
 
-// LoadSubscriptionService loads a service that can manipulate subscription objects in the backend store.
-var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, error) {
+// LoadSubscriptionsService loads a service that can manipulate subscription objects in the backend store.
+func LoadSubscriptionsService(
+	ctx context.Context,
+	osc *opensearch.Client,
+	indexer *osbulk.Indexer,
+	itemsSvc *ItemService,
+	feedsSvc *FeedService,
+	usersSvc *UserService,
+) (*SubscriptionService, error) {
 	svc, err := LoadElasticService()
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
-
-	feedSvc, err := LoadFeedService()
-	if err != nil {
-		return nil, fmt.Errorf("load feed service: %w", err)
-	}
-
 	return &SubscriptionService{
 		Cache: otter.Must(
 			&otter.Options[models.UserID, *UserSubscriptions]{
@@ -126,7 +139,11 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 				ExpiryCalculator: otter.ExpiryAccessing[models.UserID, *UserSubscriptions](time.Hour),
 			},
 		),
-		store: svc,
+		esc:      svc,
+		osc:      osc,
+		itemsSvc: itemsSvc,
+		feedsSvc: feedsSvc,
+		usersSvc: usersSvc,
 		userLoader: otter.LoaderFunc[models.UserID, *UserSubscriptions](
 			func(
 				ctx context.Context,
@@ -159,7 +176,7 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 				}
 
 				// Get the feeds associated with the subscriptions.
-				feeds, err := feedSvc.GetFeeds(ctx, subscriptions.GetFeedIDs()...)
+				feeds, err := feedsSvc.GetFeeds(ctx, subscriptions.GetFeedIDs()...)
 				if err != nil {
 					return nil, fmt.Errorf("get feeds for subscriptions: %w", err)
 				}
@@ -208,7 +225,7 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 							}
 
 							// Get and set the feed associated with the subscriptions.
-							feed, err := feedSvc.GetFeed(ctx, subscription.GetFeedID())
+							feed, err := feedsSvc.GetFeed(ctx, subscription.GetFeedID())
 							if err != nil {
 								return nil, fmt.Errorf("get feed for subscriptions: %w", err)
 							}
@@ -247,7 +264,7 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 							}
 
 							// Get the feeds associated with the subscriptions.
-							feeds, err := feedSvc.GetFeeds(ctx, subscriptions.GetFeedIDs()...)
+							feeds, err := feedsSvc.GetFeeds(ctx, subscriptions.GetFeedIDs()...)
 							if err != nil {
 								return nil, fmt.Errorf("get feed for subscriptions: %w", err)
 							}
@@ -277,7 +294,39 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 				}, nil
 			}),
 	}, nil
-})
+}
+
+func (s *SubscriptionService) Close() error {
+	// The shutdown context must not derive from the (already cancelled) signal context.
+	shutdownCtx, cancel := context.WithTimeoutCause(
+		context.Background(),
+		20*time.Second,
+		errors.New("graceful shutdown timeout"),
+	)
+	shutdownCtx = slogctx.NewCtx(shutdownCtx, slog.Default())
+	defer cancel()
+
+	slogctx.Info(shutdownCtx, "Shutting down subscriptions service")
+
+	var errs []error
+
+	if err := s.feedsSvc.Close(); err != nil {
+		slogctx.Error(shutdownCtx, "Failed to close feeds service", slog.Any("error", err))
+		errs = append(errs, err)
+	}
+
+	if s.osc != nil {
+		// if err := s.indexer.Close(shutdownCtx); err != nil {
+		// 	slogctx.Error(shutdownCtx, "Failed to close bulk indexer", slog.Any("error", err))
+		// 	errs = append(errs, err)
+		// }
+		if err := s.osc.Close(); err != nil {
+			slogctx.Error(shutdownCtx, "Failed to close opensearch client", slog.Any("error", err))
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}
 
 // Invalidate will invalidate the cache for the given user. Can be used to force fetching subscriptions from the
 // backend.
@@ -381,11 +430,6 @@ func (s *SubscriptionService) AddSubscriptions(
 	ctx context.Context,
 	newSubscriptions ...*models.Subscription,
 ) error {
-	userSvc, err := LoadUserService()
-	if err != nil {
-		return fmt.Errorf("load user service: %w", err)
-	}
-
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
@@ -397,7 +441,7 @@ func (s *SubscriptionService) AddSubscriptions(
 	if settings := user.GetSettings(); settings.ShowOnboarding {
 		settings.ShowOnboarding = false
 		// Update the user object.
-		if err := userSvc.UpdateUser(ctx, user, map[string]any{
+		if err := s.usersSvc.UpdateUser(ctx, user, map[string]any{
 			"settings": settings,
 		}); err != nil {
 			return fmt.Errorf("update user: %w", err)
@@ -415,7 +459,21 @@ func (s *SubscriptionService) RemoveSubscriptions(
 	if user == nil {
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
-	if err := elastic.DeleteDocs(ctx, s.store.GetIndexRW(SubscriptionsIndex),
+	if s.osc != nil {
+		if err := doc.DeleteByQuery(ctx, s.osc, s.osc.IndexWriteAlias(schema.SubscriptionsIndex),
+			doc.WithDeleteByQuery(
+				ossearch.BoolQuery(
+					ossearch.WithBoolFilter(
+						ossearch.TermQuery("user_id", user.GetID()),
+						ossearch.TermsQuery("subscription_id", ids),
+					),
+				),
+			),
+		); err != nil {
+			return fmt.Errorf("delete by query: %w", err)
+		}
+	}
+	if err := elastic.DeleteDocs(ctx, s.esc.GetIndexRW(SubscriptionsIndex),
 		query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
@@ -443,7 +501,7 @@ func (s *SubscriptionService) UpdateSubscriptions(
 	ctx, span := tracer.Start(ctx, "UpdateSubscriptions")
 	defer span.End()
 
-	if err := bulk.IndexDocuments(ctx, s.store.GetIndexRW(SubscriptionsIndex), subscriptions...); err != nil {
+	if err := bulk.IndexDocuments(ctx, s.esc.GetIndexRW(SubscriptionsIndex), subscriptions...); err != nil {
 		return ElasticsearchToAPIError(err)
 	}
 	if err := bulk.Flush(ctx); err != nil {
@@ -571,7 +629,7 @@ func (s *SubscriptionService) GetSubscriptionSuggestions(
 	// Perform search.
 	resp, err := elastic.Search[*models.Subscription](
 		ctx,
-		s.store.GetIndexRO(SubscriptionsIndex),
+		s.esc.GetIndexRO(SubscriptionsIndex),
 		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.Filter(
@@ -620,20 +678,8 @@ func (s *SubscriptionService) GetSubscriptionCategorySuggestions(
 ) []models.Category {
 	var suggestions []models.Category
 
-	feedSvc, err := LoadFeedService()
-	if err != nil {
-		slogctx.Warn(ctx, "Could not load feed service.", slog.Any("error", err))
-		return nil
-	}
-
-	itemSvc, err := LoadItemService()
-	if err != nil {
-		slogctx.Warn(ctx, "Could not load feed service.", slog.Any("error", err))
-		return nil
-	}
-
 	// Get categories from feed sources.
-	if feeds, err := feedSvc.GetFeeds(ctx, feedIDs...); err != nil {
+	if feeds, err := s.feedsSvc.GetFeeds(ctx, feedIDs...); err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to get feeds for category suggestions.",
 			slog.Any("error", err))
 	} else {
@@ -653,7 +699,7 @@ func (s *SubscriptionService) GetSubscriptionCategorySuggestions(
 			),
 		),
 	)
-	if topCategories, resp := itemSvc.GetTopCategoriesForItems(ctx, topCategoriesQuery); resp == nil {
+	if topCategories, resp := s.itemsSvc.GetTopCategoriesForItems(ctx, topCategoriesQuery); resp == nil {
 		for c := range slices.Values(topCategories) {
 			suggestions = append(suggestions, c.Category)
 		}
@@ -801,13 +847,6 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 		return nil
 	}
 
-	itemSvc, err := LoadItemService()
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return fmt.Errorf("load items service: %w", err)
-	}
-
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		span.RecordError(models.ErrCtxValueNotFound)
@@ -840,12 +879,12 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 				request := subscription.SearchData.Search
 				request.Sort = models.SortNewestFirst
 				request.Count = new(1)
-				items, _, err := itemSvc.RetrieveItems(ctx, &request)
+				items, _, err := s.itemsSvc.RetrieveItems(ctx, &request)
 				if err != nil {
 					return fmt.Errorf("retrieve items: %w", err)
 				}
 				subscription.SetLastUpdate(items[0].GetTimestamp())
-				count, err := itemSvc.CountSearchResults(jobCtx, &request)
+				count, err := s.itemsSvc.CountSearchResults(jobCtx, &request)
 				if err == nil {
 					subscription.SetUnreadCount(int(count))
 				} else {
@@ -866,7 +905,7 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 	var lastUpdate map[models.FeedID]time.Time
 	fetchJobs.Go(func() error {
 		var err error
-		lastUpdate, err = getFeedLastUpdates(jobCtx, s.store, subscriptions.GetFeedIDs()...)
+		lastUpdate, err = getFeedLastUpdates(jobCtx, s.esc, subscriptions.GetFeedIDs()...)
 		if err != nil {
 			return fmt.Errorf("get last update: %w", err)
 		}
@@ -878,7 +917,7 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 		// Get average daily updates per feed
 		fetchJobs.Go(func() error {
 			var err error
-			avgDailyUpdates, err = getFeedAverageDailyUpdates(jobCtx, s.store, subscriptions.GetFeedIDs()...)
+			avgDailyUpdates, err = getFeedAverageDailyUpdates(jobCtx, s.esc, subscriptions.GetFeedIDs()...)
 			if err != nil {
 				return fmt.Errorf("get average daily updates: %w", err)
 			}
@@ -922,8 +961,8 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 		// Get the avg daily updates and last update for each subscription in the group.
 		allSubscriptions := models.SubscriptionsFromCtx(ctx)
 		if len(allSubscriptions) == 0 {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, err.Error())
+			span.RecordError(models.ErrCtxValueNotFound)
+			span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
 			return fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 		}
 		groupedSubscriptions := allSubscriptions.FilterByIDs(subscription.GroupData.GetGroupedSubscriptionIDs()...)
@@ -998,7 +1037,7 @@ func (s *SubscriptionService) getFeedSubscriptionLatestItems(
 	}
 
 	resp, err := elastic.Search[*models.Item](ctx,
-		s.store.GetIndexRO(ItemsIndex),
+		s.esc.GetIndexRO(ItemsIndex),
 		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.Filter(
@@ -1157,11 +1196,6 @@ func (s *SubscriptionService) getSearchSubscriptionLatestItems(
 	count int,
 	subscriptions models.Subscriptions,
 ) (map[models.SubscriptionID]models.Items, error) {
-	itemSvc, err := LoadItemService()
-	if err != nil {
-		return nil, fmt.Errorf("load items service: %w", err)
-	}
-
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return nil, fmt.Errorf("%w: could not find user", models.ErrCtxValueNotFound)
@@ -1178,7 +1212,7 @@ func (s *SubscriptionService) getSearchSubscriptionLatestItems(
 			request := subscription.SearchData.Search
 			request.Count = &count
 			request.Sort = models.SortNewestFirst
-			items, _, err := itemSvc.RetrieveItems(ctx, &request)
+			items, _, err := s.itemsSvc.RetrieveItems(ctx, &request)
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				slogctx.FromCtx(ctx).Warn("Get search results for search subscription failed.",
 					slog.String("subscription_id", subscription.GetID()),
@@ -1218,7 +1252,7 @@ func (s *SubscriptionService) getSubscriptionUnreadCounts(
 
 	// Perform aggregation.
 	resp, err := elastic.Search[*models.Item](ctx,
-		s.store.GetIndexRO(ItemsIndex),
+		s.esc.GetIndexRO(ItemsIndex),
 		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.Filter(

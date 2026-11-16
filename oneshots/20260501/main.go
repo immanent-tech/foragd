@@ -28,7 +28,7 @@ func main() {
 		panic(err)
 	}
 
-	userSvc, err := service.LoadUserService()
+	userSvc, err := service.LoadUsersService()
 	if err != nil {
 		panic(err)
 	}

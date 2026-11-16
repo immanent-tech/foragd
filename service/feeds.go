@@ -95,36 +95,31 @@ func (ec *feedCacheExpiryCalculator) ExpireAfterRead(entry otter.Entry[models.Fe
 type FeedService struct {
 	*otter.Cache[models.FeedID, *models.Feed]
 
-	esc        *ElasticService
-	osc        *opensearch.Client
-	indexer    *osbulk.Indexer
+	esc     *ElasticService
+	osc     *opensearch.Client
+	indexer *osbulk.Indexer
+
+	itemSvc *ItemService
+
 	loader     otter.LoaderFunc[models.FeedID, *models.Feed]
 	bulkLoader otter.BulkLoaderFunc[models.FeedID, *models.Feed]
 	httpClient *resty.Client
 	ollama     Classifier
 }
 
-// LoadFeedService loads a service that can manipulate feed objects in the backend store.
-var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
+func LoadFeedsService(
+	ctx context.Context,
+	osc *opensearch.Client,
+	indexer *osbulk.Indexer,
+	httpClient *resty.Client,
+	classifier Classifier,
+	itemSvc *ItemService,
+) (*FeedService, error) {
 	svc, err := LoadElasticService()
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
 	index := svc.GetIndexRO(FeedsIndex)
-
-	osc, err := opensearch.GetClient()
-	if err != nil {
-		return nil, fmt.Errorf("get opensearch client: %w", err)
-	}
-	indexer, err := newBulkIndexer()
-	if err != nil {
-		return nil, fmt.Errorf("create bulk indexer: %w", err)
-	}
-
-	ollamaSvc, err := ollama.NewClient()
-	if err != nil {
-		return nil, fmt.Errorf("load ollama client: %w", err)
-	}
 
 	return &FeedService{
 		Cache: otter.Must(&otter.Options[models.FeedID, *models.Feed]{
@@ -159,10 +154,11 @@ var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
 				return feeds, nil
 			},
 		),
-		httpClient: newHTTPClient(),
-		ollama:     ollamaSvc,
+		httpClient: httpClient,
+		ollama:     classifier,
+		itemSvc:    itemSvc,
 	}, nil
-})
+}
 
 func (s *FeedService) Close() error {
 	// The shutdown context must not derive from the (already cancelled) signal context.
@@ -392,11 +388,6 @@ func (s *FeedService) UpdateFeedItems(
 	ctx context.Context,
 	oldData, newData *models.Feed,
 ) (time.Time, error) {
-	itemSvc, err := LoadItemService()
-	if err != nil {
-		return oldData.LastFetched, fmt.Errorf("load item service: %w", err)
-	}
-
 	// If there are not items, just return.
 	if len(newData.GetItems()) == 0 {
 		if err := newFeedStatusMsg(oldData.GetID(), logWithStatusCode(http.StatusNoContent)).log(ctx); err != nil {
@@ -408,11 +399,11 @@ func (s *FeedService) UpdateFeedItems(
 	// Add any new items since the last feed update.
 	if newItems := newData.GetItems().FilterSince(oldData.LastFetched); len(newItems) > 0 {
 		// Filter to only items that are new or had significant changes.
-		itemStates := itemSvc.SortItemsByState(ctx, newItems)
+		itemStates := s.itemSvc.SortItemsByState(ctx, newItems)
 		updates := slices.Concat(itemStates.New, itemStates.Updated)
 		if len(updates) > 0 {
 			// Enrich new items.
-			if _, err := itemSvc.EnrichItemBatch(ctx, newData, itemStates.New); err != nil {
+			if _, err := s.itemSvc.EnrichItemBatch(ctx, newData, itemStates.New); err != nil {
 				return oldData.LastFetched, fmt.Errorf("enrich items: %w", err)
 			}
 

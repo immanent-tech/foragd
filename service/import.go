@@ -37,26 +37,32 @@ type ImportService struct {
 	esc     *ElasticService
 	osc     *opensearch.Client
 	indexer *osbulk.Indexer
+
+	feedsSvc         *FeedService
+	subscriptionsSvc *SubscriptionService
+	usersSvc         *UserService
 }
 
-func NewImportService() (*ImportService, error) {
+func LoadImportsService(
+	ctx context.Context,
+	osc *opensearch.Client,
+	indexer *osbulk.Indexer,
+	feedsSvc *FeedService,
+	subscriptionsSvc *SubscriptionService,
+	usersSvc *UserService,
+) (*ImportService, error) {
 	svc, err := LoadElasticService()
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
-	osc, err := opensearch.GetClient()
-	if err != nil {
-		return nil, fmt.Errorf("get opensearch client: %w", err)
-	}
-	indexer, err := osbulk.New()
-	if err != nil {
-		return nil, fmt.Errorf("create bulk indexer: %w", err)
-	}
 
 	return &ImportService{
-		esc:     svc,
-		osc:     osc,
-		indexer: indexer,
+		esc:              svc,
+		osc:              osc,
+		indexer:          indexer,
+		feedsSvc:         feedsSvc,
+		subscriptionsSvc: subscriptionsSvc,
+		usersSvc:         usersSvc,
 	}, nil
 }
 
@@ -162,31 +168,7 @@ func (i *ImportService) ProcessRequests(
 		return a.URL == b.URL
 	})
 
-	feedSvc, err := LoadFeedService()
-	if err != nil {
-		if err := i.updateStatus(ctx, status, models.ImportStatusStatusFailed, nil); err != nil {
-			slogctx.Error(ctx, "Could not update status", slog.Any("error", err))
-		}
-		return fmt.Errorf("load feed service: %w", err)
-	}
-
-	userSvc, err := LoadUserService()
-	if err != nil {
-		if err := i.updateStatus(ctx, status, models.ImportStatusStatusFailed, nil); err != nil {
-			slogctx.Error(ctx, "Could not update status", slog.Any("error", err))
-		}
-		return fmt.Errorf("load user service: %w", err)
-	}
-
-	subSvc, err := LoadSubscriptionService()
-	if err != nil {
-		if err := i.updateStatus(ctx, status, models.ImportStatusStatusFailed, nil); err != nil {
-			slogctx.Error(ctx, "Could not update status", slog.Any("error", err))
-		}
-		return fmt.Errorf("load subscription service: %w", err)
-	}
-
-	user, err := userSvc.GetUser(ctx, status.UserID)
+	user, err := i.usersSvc.GetUser(ctx, status.UserID)
 	if err != nil {
 		if err := i.updateStatus(ctx, status, models.ImportStatusStatusFailed, nil); err != nil {
 			slogctx.Error(ctx, "Could not update status", slog.Any("error", err))
@@ -234,7 +216,7 @@ func (i *ImportService) ProcessRequests(
 			}
 
 			// Check and create a feed as needed.
-			feed, addFeed, err := i.checkFeeds(ctx, feedSvc, request.URL)
+			feed, addFeed, err := i.checkFeeds(ctx, request.URL)
 			if err != nil {
 				slogctx.Error(ctx, "Unable check feeds.", slog.Any("error", err))
 				if apiErr, ok := errors.AsType[*models.APIError](err); ok {
@@ -252,7 +234,7 @@ func (i *ImportService) ProcessRequests(
 			result.AddFeed = addFeed
 
 			// Check and create subscription as needed.
-			subscription, err := i.checkSubscriptions(ctx, subSvc, result.Feed, request.URL)
+			subscription, err := i.checkSubscriptions(ctx, result.Feed, request.URL)
 			if err != nil {
 				slogctx.Error(ctx, "Unable check subscriptions.", slog.Any("error", err))
 				if apiErr, ok := errors.AsType[*models.APIError](err); ok {
@@ -401,16 +383,15 @@ func (i *ImportService) ProcessRequests(
 
 func (i *ImportService) checkFeeds(
 	ctx context.Context,
-	feedSvc *FeedService,
 	requestURL string,
 ) (*models.Feed, bool, error) {
 	// Fetch feed details from remote URL.
-	feed, err := feedSvc.FetchFeed(ctx, requestURL)
+	feed, err := i.feedsSvc.FetchFeed(ctx, requestURL)
 	if err != nil {
 		return nil, false, fmt.Errorf("fetch feed: %w", err)
 	}
 
-	existingFeeds, err := feedSvc.GetFeedsByURLs(ctx, feed.GetSourceURLs()...)
+	existingFeeds, err := i.feedsSvc.GetFeedsByURLs(ctx, feed.GetSourceURLs()...)
 	if err != nil {
 		return nil, false, fmt.Errorf("match existing feeds: %w", err)
 	}
@@ -429,7 +410,7 @@ func (i *ImportService) checkFeeds(
 		// If the existing feed has fetching disabled, re-enable fetching.
 		if feed.IsDisabled() {
 			feed.SetDisabled(true)
-			if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
+			if err := i.feedsSvc.UpdateFeed(ctx, feed); err != nil {
 				slogctx.Warn(ctx, "Could not re-enable disabled feed.", slog.Any("error", err))
 			} else {
 				slogctx.Info(ctx, "Re-enabled disabled feed.")
@@ -444,12 +425,11 @@ func (i *ImportService) checkFeeds(
 
 func (i *ImportService) checkSubscriptions(
 	ctx context.Context,
-	subSvc *SubscriptionService,
 	feed *models.Feed,
 	requestURL string,
 ) (*models.Subscription, error) {
 	// Check for an existing subscription to this feed.
-	allSubscriptions, err := subSvc.GetAllSubscriptions(ctx)
+	allSubscriptions, err := i.subscriptionsSvc.GetAllSubscriptions(ctx)
 	if err != nil {
 		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get user subscriptions: %w", err))
 	}

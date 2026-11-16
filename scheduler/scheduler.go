@@ -35,7 +35,9 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	gerror "github.com/immanent-tech/foragd/providers/google/error"
+	"github.com/immanent-tech/foragd/providers/ollama"
 	"github.com/immanent-tech/foragd/providers/opensearch"
+	osbulk "github.com/immanent-tech/foragd/providers/opensearch/bulk"
 	"github.com/immanent-tech/foragd/providers/opensearch/doc"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
@@ -350,9 +352,43 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 	bulkIndexerF := loadAsync(g, "bulk indexer", func() (*bulk.Indexer, error) {
 		return bulk.NewIndexer(ctx, bulk.WithFlushInterval(time.Minute, 5*time.Second))
 	})
-	feedSvcF := loadAsync(g, "feed service", service.LoadFeedService)
-	userSvcF := loadAsync(g, "user service", service.LoadUserService)
-	importSvcF := loadAsync(g, "import service", service.NewImportService)
+
+	osc, err := opensearch.GetClient()
+	if err != nil {
+		slogctx.Warn(ctx, "Failed to load opensearch client", slog.Any("error", err))
+		// return nil, fmt.Errorf("load opensearch client: %w", err)
+	}
+	indexer, err := osbulk.New()
+	if err != nil {
+		slogctx.Warn(ctx, "Failed to load bulk indexer", slog.Any("error", err))
+	}
+
+	httpClient := service.NewHTTPClient()
+	ollamaSvc, err := ollama.NewClient()
+	if err != nil {
+		return nil, fmt.Errorf("load ollama client: %w", err)
+	}
+	itemsSvc, err := service.LoadItemsService(ctx, osc, indexer, httpClient)
+	if err != nil {
+		return nil, fmt.Errorf("load items service: %w", err)
+	}
+	feedsSvc, err := service.LoadFeedsService(ctx, osc, indexer, httpClient, ollamaSvc, itemsSvc)
+	if err != nil {
+		return nil, fmt.Errorf("load feeds service: %w", err)
+	}
+	usersSvc, err := service.LoadUsersService(ctx, osc)
+	if err != nil {
+		return nil, fmt.Errorf("load users service: %w", err)
+	}
+	subscriptionsSvc, err := service.LoadSubscriptionsService(ctx, osc, indexer, itemsSvc, feedsSvc, usersSvc)
+	if err != nil {
+		return nil, fmt.Errorf("load subscriptions service: %w", err)
+	}
+	importsSvc, err := service.LoadImportsService(ctx, osc, indexer, feedsSvc, subscriptionsSvc, usersSvc)
+	if err != nil {
+		return nil, fmt.Errorf("load imports service: %w", err)
+	}
+
 	emailSenderF := loadAsync(g, "email sender", resend.NewSender)
 
 	if err := g.Wait(); err != nil {
@@ -362,9 +398,9 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 	return &jobs.Services{
 		Scheduler:   m,
 		Elastic:     m.esc,
-		Feeds:       feedSvcF(),
-		Imports:     importSvcF(),
-		Users:       userSvcF(),
+		Feeds:       feedsSvc,
+		Imports:     importsSvc,
+		Users:       usersSvc,
 		Indexer:     bulkIndexerF(),
 		EmailSender: emailSenderF(),
 	}, nil

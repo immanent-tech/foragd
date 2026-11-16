@@ -67,9 +67,9 @@ func (c *FetchFeedCmd) Run() error {
 		return fmt.Errorf("validate options: %w", err)
 	}
 
-	feedSvc, err := service.LoadFeedService()
+	services, err := loadServices(ctx)
 	if err != nil {
-		return fmt.Errorf("load feed service: %w", err)
+		return fmt.Errorf("load services: %w", err)
 	}
 
 	var (
@@ -79,17 +79,17 @@ func (c *FetchFeedCmd) Run() error {
 
 	switch {
 	case c.FeedID != nil:
-		details, err = feedSvc.GetFeed(ctx, *c.FeedID)
+		details, err = services.feeds.GetFeed(ctx, *c.FeedID)
 		if err != nil {
 			return fmt.Errorf("get existing feed details: %w", err)
 		}
 		switch details.FetchMethod {
 		case models.FeedFetchMethodZyteArticles:
-			feed, _, err = feedSvc.FetchFeedUpdatesAsArticles(ctx, *details)
+			feed, _, err = services.feeds.FetchFeedUpdatesAsArticles(ctx, *details)
 		case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
 			fallthrough
 		default:
-			feed, _, err = feedSvc.FetchFeedUpdates(ctx, *details)
+			feed, _, err = services.feeds.FetchFeedUpdates(ctx, *details)
 		}
 	case c.FeedURL != nil:
 		var feedURL *url.URL
@@ -97,7 +97,7 @@ func (c *FetchFeedCmd) Run() error {
 		if err != nil {
 			return fmt.Errorf("parse url: %w", err)
 		}
-		feed, err = feedSvc.FetchFeed(ctx, feedURL.String())
+		feed, err = services.feeds.FetchFeed(ctx, feedURL.String())
 	default:
 		return errors.New("no fetch method specified")
 	}
@@ -106,7 +106,7 @@ func (c *FetchFeedCmd) Run() error {
 	}
 
 	if details != nil || c.ApplyUpdates {
-		if err := feedSvc.ApplyFeedUpdates(ctx, details, feed); err != nil {
+		if err := services.feeds.ApplyFeedUpdates(ctx, details, feed); err != nil {
 			return fmt.Errorf("apply feed updates: %w", err)
 		}
 	}
@@ -132,19 +132,19 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 		return fmt.Errorf("validate options: %w", err)
 	}
 
-	feedSvc, err := service.LoadFeedService()
+	services, err := loadServices(ctx)
 	if err != nil {
-		return fmt.Errorf("load feed service: %w", err)
+		return fmt.Errorf("load services: %w", err)
 	}
 
-	feed, err := feedSvc.GetFeed(ctx, c.FeedID)
+	feed, err := services.feeds.GetFeed(ctx, c.FeedID)
 	if err != nil {
 		return fmt.Errorf("get feed %s: %w", c.FeedID, err)
 	}
 
 	// Reset the last_fetched timestamp on the feed.
 	feed.LastFetched = models.UnixEpoch
-	if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
+	if err := services.feeds.UpdateFeed(ctx, feed); err != nil {
 		return fmt.Errorf("reset feed last_fetched: %w", err)
 	}
 	slogctx.FromCtx(ctx).Info("Feed last_fetched reset.")
@@ -181,12 +181,12 @@ func (c *EditFeedCmd) Run() error {
 		return fmt.Errorf("validate options: %w", err)
 	}
 
-	feedSvc, err := service.LoadFeedService()
+	services, err := loadServices(ctx)
 	if err != nil {
-		return fmt.Errorf("load feed service: %w", err)
+		return fmt.Errorf("load services: %w", err)
 	}
 
-	feed, err := feedSvc.GetFeed(ctx, c.FeedID)
+	feed, err := services.feeds.GetFeed(ctx, c.FeedID)
 	if err != nil {
 		return fmt.Errorf("get feed: %w", err)
 	}
@@ -207,7 +207,7 @@ func (c *EditFeedCmd) Run() error {
 	}
 
 	// Update feed.
-	if err := updateFeed(ctx, c.FeedArgs, feedSvc, feed); err != nil {
+	if err := updateFeed(ctx, c.FeedArgs, services.feeds, feed); err != nil {
 		return fmt.Errorf("update feed: %w", err)
 	}
 
@@ -313,30 +313,30 @@ func (c *ClassifyFeedCmd) Run() error {
 		return fmt.Errorf("validate options: %w", err)
 	}
 
-	feedSvc, err := service.LoadFeedService()
+	services, err := loadServices(ctx)
 	if err != nil {
-		return fmt.Errorf("load feed service: %w", err)
+		return fmt.Errorf("load services: %w", err)
 	}
 
 	switch {
 	case c.FeedID != "":
 		// Single feed.
-		details, err := feedSvc.GetFeed(ctx, c.FeedID)
+		details, err := services.feeds.GetFeed(ctx, c.FeedID)
 		if err != nil {
 			return fmt.Errorf("get feed: %w", err)
 		}
-		if err := classifyFeed(ctx, feedSvc, details); err != nil {
+		if err := classifyFeed(ctx, services.feeds, details); err != nil {
 			return fmt.Errorf("classify feed: %w", err)
 		}
 
 	default:
 		// Classify all unclassified.
-		feeds, err := feedSvc.GetUnclassifiedFeeds(ctx)
+		feeds, err := services.feeds.GetUnclassifiedFeeds(ctx)
 		if err != nil {
 			return fmt.Errorf("get unclassified: %w", err)
 		}
 		for feed := range slices.Values(feeds) {
-			if err := classifyFeed(ctx, feedSvc, feed); err != nil {
+			if err := classifyFeed(ctx, services.feeds, feed); err != nil {
 				slogctx.Warn(ctx, "Could not classify feed",
 					slog.Any("error", err),
 					slog.String("feed_id", feed.GetID()),
@@ -389,9 +389,9 @@ func (c *AddFeedCmd) Run() error {
 		return fmt.Errorf("validate options: %w", err)
 	}
 
-	feedSvc, err := service.LoadFeedService()
+	services, err := loadServices(ctx)
 	if err != nil {
-		return fmt.Errorf("load feed service: %w", err)
+		return fmt.Errorf("load services: %w", err)
 	}
 
 	// Parse the given URL.
@@ -406,12 +406,12 @@ func (c *AddFeedCmd) Run() error {
 
 	switch c.FetchMethod {
 	case models.FeedFetchMethodDirect:
-		feed, err = feedSvc.FetchFeed(ctx, feedURL.String())
+		feed, err = services.feeds.FetchFeed(ctx, feedURL.String())
 		if err != nil {
 			return fmt.Errorf("fetch feed directly: %w", err)
 		}
 	case models.FeedFetchMethodProxied:
-		feed, err = feedSvc.FetchFeed(ctx, feedURL.String(), service.FetchWithProxy(true))
+		feed, err = services.feeds.FetchFeed(ctx, feedURL.String(), service.FetchWithProxy(true))
 		if err != nil {
 			return fmt.Errorf("fetch feed with proxy: %w", err)
 		}
@@ -449,7 +449,7 @@ func (c *AddFeedCmd) Run() error {
 		feed.Title = *c.Name
 	}
 
-	switch existing, err := feedSvc.GetFeed(ctx, feed.GetID()); {
+	switch existing, err := services.feeds.GetFeed(ctx, feed.GetID()); {
 	case err != nil && !errors.Is(err, models.ErrNotFound):
 		return fmt.Errorf("check for existing feed: %w", err)
 	case existing != nil:
@@ -458,7 +458,7 @@ func (c *AddFeedCmd) Run() error {
 	}
 
 	// Add the new feed.
-	if err := feedSvc.AddFeed(ctx, feed); err != nil {
+	if err := services.feeds.AddFeed(ctx, feed); err != nil {
 		return fmt.Errorf("add feed: %w", err)
 	}
 

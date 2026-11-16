@@ -80,21 +80,16 @@ type ItemService struct {
 }
 
 // LoadItemService loads a service that can manipulate [models.Item] objects in the backend store.
-var LoadItemService = sync.OnceValues(func() (*ItemService, error) {
+func LoadItemsService(
+	ctx context.Context,
+	osc *opensearch.Client,
+	indexer *osbulk.Indexer,
+	httpClient *resty.Client,
+) (*ItemService, error) {
 	svc, err := LoadElasticService()
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
-
-	osc, err := opensearch.GetClient()
-	if err != nil {
-		return nil, fmt.Errorf("get opensearch client: %w", err)
-	}
-	indexer, err := newBulkIndexer()
-	if err != nil {
-		return nil, fmt.Errorf("create bulk indexer: %w", err)
-	}
-
 	itemsCache, err := cache.NewItemsCache()
 	if err != nil {
 		return nil, fmt.Errorf("load items cache: %w", err)
@@ -127,9 +122,9 @@ var LoadItemService = sync.OnceValues(func() (*ItemService, error) {
 		esc:        svc,
 		osc:        osc,
 		indexer:    indexer,
-		httpClient: newHTTPClient(),
+		httpClient: NewHTTPClient(),
 	}, nil
-})
+}
 
 func (s *ItemService) Close() error {
 	// The shutdown context must not derive from the (already cancelled) signal context.
@@ -146,10 +141,10 @@ func (s *ItemService) Close() error {
 	var errs []error
 
 	if s.osc != nil {
-		// if err := s.indexer.Close(shutdownCtx); err != nil {
-		// 	slogctx.Error(shutdownCtx, "Failed to close bulk indexer", slog.Any("error", err))
-		// 	errs = append(errs, err)
-		// }
+		if err := s.indexer.Close(shutdownCtx); err != nil {
+			slogctx.Error(shutdownCtx, "Failed to close bulk indexer", slog.Any("error", err))
+			errs = append(errs, err)
+		}
 		if err := s.osc.Close(); err != nil {
 			slogctx.Error(shutdownCtx, "Failed to close opensearch client", slog.Any("error", err))
 			errs = append(errs, err)

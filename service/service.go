@@ -50,7 +50,7 @@ func extractMetadataFromHTML(
 	return opengraphData, &readabilityData, errors.Join(errs...)
 }
 
-var newHTTPClient = sync.OnceValue(func() *resty.Client {
+var NewHTTPClient = sync.OnceValue(func() *resty.Client {
 	var userAgent string
 	if appCfg, err := config.LoadAppConfig(); err != nil {
 		userAgent = "Foragd/Unknown (+https://foragd.app/policies/bot)"
