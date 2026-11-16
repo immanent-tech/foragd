@@ -316,10 +316,10 @@ func (s *SubscriptionService) Close() error {
 	}
 
 	if s.osc != nil {
-		// if err := s.indexer.Close(shutdownCtx); err != nil {
-		// 	slogctx.Error(shutdownCtx, "Failed to close bulk indexer", slog.Any("error", err))
-		// 	errs = append(errs, err)
-		// }
+		if err := s.indexer.Close(shutdownCtx); err != nil {
+			slogctx.Error(shutdownCtx, "Failed to close bulk indexer", slog.Any("error", err))
+			errs = append(errs, err)
+		}
 		if err := s.osc.Close(); err != nil {
 			slogctx.Error(shutdownCtx, "Failed to close opensearch client", slog.Any("error", err))
 			errs = append(errs, err)
@@ -500,6 +500,22 @@ func (s *SubscriptionService) UpdateSubscriptions(
 ) error {
 	ctx, span := tracer.Start(ctx, "UpdateSubscriptions")
 	defer span.End()
+
+	if s.osc != nil {
+		for subscription := range slices.Values(subscriptions) {
+			if err := s.indexer.Add(ctx,
+				osbulk.NewAction(
+					osbulk.ActionIndex,
+					osbulk.ToIndex(s.osc.IndexWriteAlias(schema.SubscriptionsIndex)),
+					osbulk.WithDoc(subscription),
+				)); err != nil {
+				return fmt.Errorf("update subscription %s: %w", subscription.GetID(), err)
+			}
+		}
+		if err := s.indexer.Flush(ctx); err != nil {
+			return fmt.Errorf("flush updates: %w", err)
+		}
+	}
 
 	if err := bulk.IndexDocuments(ctx, s.esc.GetIndexRW(SubscriptionsIndex), subscriptions...); err != nil {
 		return ElasticsearchToAPIError(err)
@@ -1643,16 +1659,4 @@ func newSubscriptionSortOptions(sort *models.Sort) []estypes.SortCombinationsVar
 		})
 	}
 	return opts
-}
-
-func mergeMaps[K comparable, V any](sources ...map[K]V) map[K]V {
-	size := 0
-	for src := range slices.Values(sources) {
-		size += len(src)
-	}
-	result := make(map[K]V, size)
-	for src := range slices.Values(sources) {
-		maps.Copy(result, src)
-	}
-	return result
 }

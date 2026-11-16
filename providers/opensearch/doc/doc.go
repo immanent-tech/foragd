@@ -182,6 +182,14 @@ func WithDocAsUpsert(value bool) UpdateOption {
 	}
 }
 
+// WithUpdateDetectNoop option if set to `false` to disable setting `result` in the response to `noop` if no change to
+// the document occurred.
+func WithUpdateDetectNoop(value bool) UpdateOption {
+	return func(b *opensearchapi.UpdateBody) {
+		b.DetectNoop = &value
+	}
+}
+
 // Delete performs a document deletion request.
 func Delete[T ~string](
 	ctx context.Context,

@@ -26,6 +26,8 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/opensearch"
+	"github.com/immanent-tech/foragd/providers/opensearch/doc"
+	"github.com/immanent-tech/foragd/schema"
 )
 
 // UserService holds a cache and backend connection for handling [models.User] objects.
@@ -239,6 +241,20 @@ func (s *UserService) UpdateUser(ctx context.Context, user *models.User, updates
 	defer span.End()
 
 	updates["updated_at"] = time.Now().UTC()
+	if s.osc != nil {
+		if err := doc.Update(
+			ctx,
+			s.osc.Doc,
+			s.osc.IndexWriteAlias(schema.UsersIndex),
+			user.GetID(),
+			updates,
+		); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			return fmt.Errorf("update user: %w", err)
+		}
+	}
+
 	if err := elastic.UpdateDoc(ctx, s.esc.GetIndexRW(UsersIndex), user.GetID(), updates,
 		// elastic.WithRefresh(elastic.RefreshTrue),
 		elastic.WithRetryOnConflict[*update.Update](3),
@@ -256,6 +272,16 @@ func (s *UserService) UpdateUser(ctx context.Context, user *models.User, updates
 
 // AddUser stores and caches the given [*models.User] in the backend.
 func (s UserService) AddUser(ctx context.Context, user *models.User) error {
+	if s.osc != nil {
+		if err := doc.Create(
+			ctx,
+			s.osc.Doc,
+			s.osc.IndexWriteAlias(schema.UsersIndex),
+			user,
+		); err != nil {
+			return fmt.Errorf("create user: %w", err)
+		}
+	}
 	if err := elastic.CreateDoc(
 		ctx,
 		s.esc.GetIndexRW(UsersIndex),
@@ -273,6 +299,17 @@ func (s UserService) AddUser(ctx context.Context, user *models.User) error {
 
 // DeleteUser deletes the user and the user's subscription objects from Elasticsearch.
 func (s *UserService) DeleteUser(ctx context.Context, user *models.User) error {
+	if s.osc != nil {
+		if err := doc.Delete(
+			ctx,
+			s.osc.Doc,
+			s.osc.IndexWriteAlias(schema.UsersIndex),
+			user.GetID(),
+			doc.WithDeleteRefresh(doc.RefreshWaitFor),
+		); err != nil {
+			return fmt.Errorf("delete user: %w", err)
+		}
+	}
 	// Delete user object.
 	if err := elastic.DeleteDoc(
 		ctx,
