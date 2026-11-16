@@ -99,6 +99,7 @@ func Index[T ~string, O opensearch.Doc[T]](
 
 type IndexOption func(*opensearchapi.IndexReq)
 
+// WithIndexRefresh option sets the refresh value for the index operation.
 func WithIndexRefresh(value Refresh) IndexOption {
 	return func(r *opensearchapi.IndexReq) {
 		r.Params.Refresh = string(value)
@@ -213,15 +214,22 @@ type DeleteOption func(*opensearchapi.DeleteParams)
 
 // WithDeleteSeqNo option ensures the deletion will only happen if the document has the given sequence number.
 func WithDeleteSeqNo(num int) DeleteOption {
-	return func(dp *opensearchapi.DeleteParams) {
-		dp.IfSeqNo = &num
+	return func(r *opensearchapi.DeleteParams) {
+		r.IfSeqNo = &num
 	}
 }
 
 // WithDeletePrimaryTerm option ensures the deletion will only happen if the document has the given primary term.
 func WithDeletePrimaryTerm(term int) DeleteOption {
-	return func(dp *opensearchapi.DeleteParams) {
-		dp.IfPrimaryTerm = &term
+	return func(r *opensearchapi.DeleteParams) {
+		r.IfPrimaryTerm = &term
+	}
+}
+
+// WithDeleteRefresh option sets the refresh value for the delete operation.
+func WithDeleteRefresh(refresh Refresh) DeleteOption {
+	return func(r *opensearchapi.DeleteParams) {
+		r.Refresh = string(refresh)
 	}
 }
 
