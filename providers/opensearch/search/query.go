@@ -61,6 +61,15 @@ func TermsQuery(field string, values ...any) QueryOption {
 	)
 }
 
+// ExistsQuery matches documents that have the given field.
+func ExistsQuery(field string) QueryOption {
+	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
+		q.Exists = &opensearchapi.CommonQueryDSLExistsQuery{
+			Field: field,
+		}
+	}
+}
+
 func DateRangeQuery(field string, value DateRange, options ...DateRangeOption) QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		drq := &opensearchapi.CommonQueryDSLDateRangeQuery{}
