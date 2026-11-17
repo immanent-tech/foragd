@@ -149,6 +149,12 @@ func (c *Client) ConfigureMLConnector(ctx context.Context) (string, error) {
 		Version:     c.cfg.Version,
 		Protocol:    c.cfg.Protocol,
 		Credential:  credentials,
+		ClientConfig: &opensearchapi.MLClientConfig{
+			ConnectionTimeout:  new(300),
+			ReadTimeout:        new(300),
+			RetryBackoffPolicy: new("exponential_full_jitter"),
+			MaxRetryTimes:      new(-1),
+		},
 		Parameters: ConnectorParameters{
 			Endpoint: c.cfg.Endpoint,
 			Model:    c.cfg.Model,
