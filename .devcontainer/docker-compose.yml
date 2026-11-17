@@ -77,9 +77,10 @@ services:
     environment:
       - cluster.name=foragd
       - node.name=foragd-opensearch-node1
-      - discovery.seed_hosts=opensearcforagd-h-node2,foragd-opensearch-node2
-      - cluster.initial_cluster_manager_nodes=foragd-opensearch-node1,foragd-opensearch-node2
+      - discovery.seed_hosts=foragd-opensearch-node1,foragd-opensearch-node2,foragd-opensearch-node3
+      - cluster.initial_cluster_manager_nodes=foragd-opensearch-node1,foragd-opensearch-node2,foragd-opensearch-node3
       - bootstrap.memory_lock=true
+      - reindex.remote.allowlist=*.elastic-cloud.com:*
       - "OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g"
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
     ulimits:
@@ -103,9 +104,10 @@ services:
     environment:
       - cluster.name=foragd
       - node.name=foragd-opensearch-node2
-      - discovery.seed_hosts=foragd-opensearch-node2,foragd-opensearch-node2
-      - cluster.initial_cluster_manager_nodes=foragd-opensearch-node1,foragd-opensearch-node2
+      - discovery.seed_hosts=foragd-opensearch-node1,foragd-opensearch-node2,foragd-opensearch-node3
+      - cluster.initial_cluster_manager_nodes=foragd-opensearch-node1,foragd-opensearch-node2,foragd-opensearch-node3
       - bootstrap.memory_lock=true
+      - reindex.remote.allowlist=*.elastic-cloud.com:*
       - "OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g"
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
     ulimits:
@@ -117,6 +119,31 @@ services:
         hard: 65536
     volumes:
       - foragd-opensearch-data2:/usr/share/opensearch/data
+
+  opensearch-node3:
+    env_file:
+      - .env
+    image: opensearchproject/opensearch:${OPENSEARCH_VERSION}
+    container_name: foragd-opensearch-node3
+    environment:
+      - cluster.name=foragd
+      - node.name=foragd-opensearch-node3
+      - discovery.seed_hosts=foragd-opensearch-node2,foragd-opensearch-node1,foragd-opensearch-node3
+      - cluster.initial_cluster_manager_nodes=foragd-opensearch-node1,foragd-opensearch-node2,foragd-opensearch-node3
+      - bootstrap.memory_lock=true
+      - reindex.remote.allowlist=*.elastic-cloud.com:*
+      - "OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g"
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+    ulimits:
+      memlock:
+        soft: -1 # Set memlock to unlimited (no soft or hard limit)
+        hard: -1
+      nofile:
+        soft: 65536 # Maximum number of open files for the opensearch user - set to at least 65536
+        hard: 65536
+    volumes:
+      - foragd-opensearch-data3:/usr/share/opensearch/data
+
 
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:${OPENSEARCH_VERSION}
@@ -131,6 +158,7 @@ services:
 volumes:
   foragd-opensearch-data1:
   foragd-opensearch-data2:
+  foragd-opensearch-data3:
   foragd-datahome:
   foragd-node_modules:
   foragd-go-mod-cache:
