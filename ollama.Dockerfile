@@ -6,12 +6,13 @@ RUN <<EOF
 set -e
 ollama serve &
 until ollama list >/dev/null 2>&1; do sleep 1; done
-ollama pull qwen3-embedding:0.6b
+ollama pull qwen3-embedding:4b
 pkill ollama
 EOF
 
 ENV OLLAMA_HOST=0.0.0.0:11434
 ENV OLLAMA_KEEP_ALIVE=-1
+ENV OLLAMA_NUM_PARALLEL=8
 EXPOSE 11434
 
 ENTRYPOINT ["ollama", "serve"]
