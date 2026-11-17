@@ -193,6 +193,8 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.8.1 // indirect
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
+	github.com/tidwall/gjson v1.20.2 // indirect
+	github.com/tidwall/sjson v1.2.9 // indirect
 	github.com/vektra/mockery/v3 v3.9.1 // indirect
 	github.com/veqryn/slog-context/otel v0.9.0 // indirect
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
@@ -227,7 +229,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.11.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/nilaway v0.0.0-20261112030514-ccd005690d1e // indirect
-	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	go.yaml.in/yaml/v3 v3.0.6 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/exp/typeparams v0.0.0-20260908205506-85c1c2202aba // indirect
