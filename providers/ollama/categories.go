@@ -90,7 +90,7 @@ func (c *Client) buildCategories(ctx context.Context, categories []CategoryEmbed
 		texts[i] = instruction + " " + c.Description
 	}
 
-	vectors, err := c.embedBatch(ctx, texts...)
+	vectors, err := c.EmbedBatch(ctx, texts...)
 	if err != nil {
 		return fmt.Errorf("embedding categories: %w", err)
 	}

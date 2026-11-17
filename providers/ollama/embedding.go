@@ -25,9 +25,9 @@ type ollamaEmbedResponse struct {
 	Error      string      `json:"error,omitempty"`
 }
 
-// embedBatch embeds up to BatchSize texts in one request against a local Ollama server. Ollama returns L2-normalized
+// EmbedBatch embeds up to BatchSize texts in one request against a local Ollama server. Ollama returns L2-normalized
 // vectors already, so no further normalization is needed for cosine similarity.
-func (c *Client) embedBatch(ctx context.Context, texts ...string) ([][]float64, error) {
+func (c *Client) EmbedBatch(ctx context.Context, texts ...string) ([][]float64, error) {
 	// Set timeout
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithTimeout(ctx, 5*time.Minute)
@@ -83,7 +83,7 @@ func (c *Client) embedChunks(ctx context.Context, chunks ...vector.Chunk) ([][]f
 			texts[i-start] = chunks[i].Text
 		}
 
-		vectors, err := c.embedBatch(ctx, texts...)
+		vectors, err := c.EmbedBatch(ctx, texts...)
 		if err != nil {
 			return nil, fmt.Errorf("embedding batch [%d:%d]: %w", start, end, err)
 		}

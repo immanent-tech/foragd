@@ -48,7 +48,7 @@ func (c *Client) Classify(ctx context.Context,
 		embedText = fmt.Sprintf("Section: %s. %s", hint, content)
 	}
 
-	vectors, err := c.embedBatch(ctx, embedText)
+	vectors, err := c.EmbedBatch(ctx, embedText)
 	if err != nil {
 		return nil, fmt.Errorf("embedding content: %w", err)
 	}
