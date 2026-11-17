@@ -48,7 +48,7 @@ var ItemsComponentTemplate = indices.NewComponentTemplateRequest(ItemsIndex.Stri
 		indices.WithTokenizer(emailTokenizer),
 		indices.WithReplicas("2"),
 		indices.WithKNN(),
-		indices.WithDefaultPipeline(ItemsIndex.String()+"_pipeline"),
+		// indices.WithDefaultPipeline(ItemsIndex.String()+"-pipeline"),
 	),
 )
 
