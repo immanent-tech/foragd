@@ -36,6 +36,8 @@ type Client struct {
 	BatchSize int `koanf:"batchsize" validate:"omitempty,gt=0"`
 	// KeepAlive is how long to keep a request alive.
 	KeepAlive config.Duration `koanf:"keepalive"`
+	// Options are the options to pass to the embedding endpoint.
+	Options map[string]int `koanf:"options"`
 
 	httpClient *resty.Client `koanf:"-"`
 

@@ -11,13 +11,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/goforj/godump"
+
 	"github.com/immanent-tech/foragd/providers/elastic/vector"
 )
 
 type ollamaEmbedRequest struct {
-	Model     string   `json:"model"`
-	Input     []string `json:"input"`
-	KeepAlive string   `json:"keep_alive,omitempty"`
+	Model     string         `json:"model"`
+	Input     []string       `json:"input"`
+	KeepAlive string         `json:"keep_alive,omitempty"`
+	Options   map[string]int `json:"options,omitempty"`
+	Truncate  *bool          `json:"truncate,omitempty"`
 }
 
 type ollamaEmbedResponse struct {
@@ -38,7 +42,10 @@ func (c *Client) EmbedBatch(ctx context.Context, texts ...string) ([][]float64, 
 		Model:     c.Model,
 		Input:     texts,
 		KeepAlive: c.KeepAlive.String(),
+		Options:   c.Options,
+		Truncate:  new(false),
 	}
+	godump.Dump(reqBody)
 	payload, err := json.Marshal(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("marshal request: %w", err)
