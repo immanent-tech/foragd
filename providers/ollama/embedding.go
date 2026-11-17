@@ -11,8 +11,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/goforj/godump"
-
 	"github.com/immanent-tech/foragd/providers/elastic/vector"
 )
 
@@ -45,7 +43,6 @@ func (c *Client) EmbedBatch(ctx context.Context, texts ...string) ([][]float64, 
 		Options:   c.Options,
 		Truncate:  new(false),
 	}
-	godump.Dump(reqBody)
 	payload, err := json.Marshal(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("marshal request: %w", err)
