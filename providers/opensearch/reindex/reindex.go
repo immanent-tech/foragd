@@ -6,25 +6,26 @@ package reindex
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"slices"
 
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/opensearch"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
 )
 
 type Response struct {
 	*opensearchapi.ReindexResp
 }
 
-func Reindex(ctx context.Context, src *Source, dest *Destination, options ...Option) (*Response, error) {
-	client, err := opensearch.GetClient()
-	if err != nil {
-		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("connect: %w", err))
-	}
-
+func Reindex(
+	ctx context.Context,
+	client *opensearch.Client,
+	src *Source,
+	dest *Destination,
+	options ...Option,
+) (*Response, error) {
 	req := &opensearchapi.ReindexReq{
 		Body: &opensearchapi.ReindexBody{
 			Source: *src.ReindexSource,
@@ -95,6 +96,24 @@ func From(from ...string) SourceOption {
 	return func(s *Source) {
 		s.Index = from
 	}
+}
+
+// FromRemote defines a remote cluster from which documents will be read.
+func FromRemote(source RemoteSource) SourceOption {
+	return func(s *Source) {
+		s.Remote = &source.ReindexRemoteSource
+	}
+}
+
+// FilterByQuery option allows specifying a query that will filter which documents are reindexed.
+func FilterByQuery(query search.QueryOption) SourceOption {
+	return func(s *Source) {
+		query(s.Query)
+	}
+}
+
+type RemoteSource struct {
+	opensearchapi.ReindexRemoteSource
 }
 
 // Destination represents a reindex destination.
