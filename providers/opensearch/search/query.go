@@ -10,6 +10,7 @@ import (
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 )
 
+// QueryOption is a functional option to configure a query for a search request.
 type QueryOption func(*opensearchapi.CommonQueryDSLQueryContainer)
 
 // MatchAllQuery matches all documents.
@@ -62,6 +63,8 @@ func TermsQuery(field string, values ...any) QueryOption {
 }
 
 // ExistsQuery matches documents that have the given field.
+//
+// https://docs.opensearch.org/latest/query-dsl/term/exists/
 func ExistsQuery(field string) QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		q.Exists = &opensearchapi.CommonQueryDSLExistsQuery{
@@ -70,6 +73,9 @@ func ExistsQuery(field string) QueryOption {
 	}
 }
 
+// DateRangeQuery matches documents with a date field within the given range.
+//
+// https://docs.opensearch.org/latest/query-dsl/term/range/
 func DateRangeQuery(field string, value DateRange, options ...DateRangeOption) QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		drq := &opensearchapi.CommonQueryDSLDateRangeQuery{}
@@ -114,6 +120,7 @@ func DateRangeQuery(field string, value DateRange, options ...DateRangeOption) Q
 	}
 }
 
+// DateRange contains the parameters for defining a [DateRangeQuery].
 type DateRange struct {
 	Lower        any
 	IncludeLower bool
@@ -121,6 +128,7 @@ type DateRange struct {
 	IncludeUpper bool
 }
 
+// DateRangeOption is a functional option to configure a [DateRangeQuery].
 type DateRangeOption func(*opensearchapi.CommonQueryDSLDateRangeQuery)
 
 // WithDateFormat option specifies a date format other than the field’s mapped format to use in the query.
@@ -138,7 +146,8 @@ func WithTimezone(tz string) DateRangeOption {
 	}
 }
 
-// SinceQuery matches documents with a datetime field that has a value equal to or greater than the given value.
+// SinceQuery matches documents with a datetime field that has a value equal to or greater than the given value. This is
+// a wrapper around [DateRangeQuery].
 func SinceQuery(field string, since any) QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		DateRangeQuery(field, DateRange{
@@ -148,7 +157,8 @@ func SinceQuery(field string, since any) QueryOption {
 	}
 }
 
-// BeforeQuery matches documents with a datetime field that has a value equal to or less than the given value.
+// BeforeQuery matches documents with a datetime field that has a value equal to or less than the given value.  This is
+// a wrapper around [DateRangeQuery].
 func BeforeQuery(field string, before any) QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		DateRangeQuery(field, DateRange{
@@ -159,6 +169,8 @@ func BeforeQuery(field string, before any) QueryOption {
 }
 
 // BoolQuery constructs a boolean query from the given option to match documents.
+//
+// https://docs.opensearch.org/latest/query-dsl/compound/bool/
 func BoolQuery(options ...BoolQueryOption) QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		boolQuery := &opensearchapi.CommonQueryDSLBoolQuery{}
@@ -169,7 +181,7 @@ func BoolQuery(options ...BoolQueryOption) QueryOption {
 	}
 }
 
-// BoolQueryOption is a functional option to construct a bool query.
+// BoolQueryOption is a functional option to construct a [BoolQuery].
 type BoolQueryOption func(*opensearchapi.CommonQueryDSLBoolQuery)
 
 // WithBoolMinimumShouldMatch option sets the minimum number of Should clauses that must match.
