@@ -25,6 +25,7 @@ type Config struct {
 	DialTimeout         config.Duration `koanf:"dialtimeout"`
 	ReadTimeout         config.Duration `koanf:"readtimeout"`
 	SkipTLSVerification bool            `koanf:"skiptlsverification"`
+	CAFile              string          `koanf:"cafile"              validate:"omitempty,file"`
 	Settings            Settings        `koanf:"settings"`
 }
 

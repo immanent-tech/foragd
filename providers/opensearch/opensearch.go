@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/go-chi/chi/v5/middleware"
@@ -51,6 +52,14 @@ var GetClient = sync.OnceValues(func() (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("load config: %w", err)
 	}
+	var caFile []byte
+	if cfg.CAFile != "" {
+		var err error
+		caFile, err = os.ReadFile(cfg.CAFile)
+		if err != nil {
+			return nil, fmt.Errorf("read ca file: %w", err)
+		}
+	}
 
 	client, err := opensearchapi.NewClient(opensearchapi.Config{
 		Client: opensearch.Config{
@@ -58,6 +67,7 @@ var GetClient = sync.OnceValues(func() (*Client, error) {
 			Username:           cfg.User,
 			Password:           cfg.Password,
 			InsecureSkipVerify: cfg.SkipTLSVerification,
+			CACert:             caFile,
 		},
 	})
 	if err != nil {
