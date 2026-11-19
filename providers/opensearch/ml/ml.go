@@ -35,7 +35,9 @@ type Config struct {
 	Version      int     `koanf:"version"      validate:"required,gt=0"`
 	Protocol     string  `koanf:"protocol"     validate:"required,oneof=http"`
 	Endpoint     string  `koanf:"endpoint"     validate:"required,hostname_port"`
+	URL          string  `koanf:"url"          validate:"omitempty,url"`
 	Model        string  `koanf:"model"        validate:"required"`
+	Dimensions   int     `koanf:"dimensions"   validate:"required,gt=0"`
 	AccessKey    *string `koanf:"accesskey"    validate:"omitnil"`
 	SecretKey    *string `koanf:"secretkey"    validate:"omitnil"`
 	SessionToken *string `koanf:"sessiontoken" validate:"omitnil"`
@@ -111,8 +113,9 @@ type Connector struct {
 }
 
 type ConnectorParameters struct {
-	Endpoint string `json:"endpoint"`
-	Model    string `json:"model"`
+	Endpoint   string `json:"endpoint"`
+	Model      string `json:"model"`
+	Dimensions int    `json:"dimensions"`
 }
 
 // ConfigureMLConnector will either create or update an model connector in the cluster, based on the config read from
@@ -137,8 +140,12 @@ func (c *Client) ConfigureMLConnector(ctx context.Context) (string, error) {
 	)
 	switch c.cfg.Protocol {
 	case "http":
-		reqURL = `http://${parameters.endpoint}/v1/embeddings`
-		reqBody = `{ "model": "${parameters.model}", "input": ${parameters.input} }`
+		if c.cfg.URL != "" {
+			reqURL = c.cfg.URL
+		} else {
+			reqURL = `http://${parameters.endpoint}/v1/embeddings`
+		}
+		reqBody = `{ "model": "${parameters.model}", "input": ${parameters.input}, "dimensions": ${parameters.dimensions}, "truncate": false }`
 	}
 
 	// Create connector config.
