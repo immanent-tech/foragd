@@ -42,18 +42,13 @@ func NewRestartFeedUpdatesJob() (*SerializedJob, error) {
 func ExecuteRestartFeedUpdates(ctx context.Context, job *SerializedJob) error {
 	start := time.Now()
 
-	schedulerAPI, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)
-	if !ok || schedulerAPI == nil {
-		return errors.New("unable to get scheduler api from context")
-	}
-
 	services := ServicesFromCtx(ctx)
 	if services == nil {
 		return errors.New("no services in context")
 	}
 
 	// Gather all current feed jobs. Match against the job group "update_feed".
-	jobKeys, err := schedulerAPI.GetJobKeys(matcher.NewJobGroup(&matcher.StringEquals, "update_feed"))
+	jobKeys, err := services.Scheduler.GetJobKeys(matcher.NewJobGroup(&matcher.StringEquals, "update_feed"))
 	if err != nil {
 		return fmt.Errorf("get existing jobs: %w", err)
 	}
@@ -80,7 +75,7 @@ func ExecuteRestartFeedUpdates(ctx context.Context, job *SerializedJob) error {
 		// Create a job for the feed.
 		jobKey := quartz.NewJobKeyWithGroup(feed.GetID(), "update_feed")
 		// Check if there is an existing scheduled job.
-		switch existingJob, err := schedulerAPI.GetScheduledJob(jobKey); {
+		switch existingJob, err := services.Scheduler.GetScheduledJob(jobKey); {
 		case err != nil && models.HTTPStatus(err) != http.StatusNotFound && !errors.Is(err, quartz.ErrJobNotFound):
 			// If we cannot ascertain if there is an existing scheduled job, skip this feed.
 			slogctx.Warn(ctx, "Unable to check for existing scheduled job.",
@@ -98,7 +93,7 @@ func ExecuteRestartFeedUpdates(ctx context.Context, job *SerializedJob) error {
 			}
 
 			// Schedule the new job.
-			if err = schedulerAPI.ScheduleJob(newJob.JobDetail(), newJob.Trigger()); err != nil {
+			if err = services.Scheduler.ScheduleJob(newJob.JobDetail(), newJob.Trigger()); err != nil {
 				slogctx.Error(ctx, "Failed to schedule new job for feed.",
 					slog.String("job_id", newJob.JobDetail().JobKey().String()),
 					slog.String("job_schedule", newJob.Trigger().Description()),

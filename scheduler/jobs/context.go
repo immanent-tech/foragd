@@ -10,21 +10,13 @@ import (
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
 )
 
 const (
-	schedulerAPICtxKey contextKey = "scheduler_api"
-	indexerCtxKey      contextKey = "indexer"
-	httpClientCtxKey   contextKey = "http_client"
-	userSvcCtxKey      contextKey = "user_svc"
-	feedSvcCtxKey      contextKey = "feed_svc"
-	itemSvcCtxKey      contextKey = "item_svc"
-	importSvcCtxKey    contextKey = "import_svc"
-	servicesCtxKey     contextKey = "services"
+	servicesCtxKey contextKey = "services"
 )
 
 type contextKey string
@@ -82,6 +74,5 @@ func ServicesFromCtx(ctx context.Context) *Services {
 	if services, ok := ctx.Value(servicesCtxKey).(*Services); ok {
 		return services
 	}
-	slogctx.Warn(ctx, "No services in context.")
 	return nil
 }

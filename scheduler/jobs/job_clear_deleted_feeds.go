@@ -62,12 +62,7 @@ func ExecuteClearDeletedFeeds(ctx context.Context, job *SerializedJob) error {
 		slog.Time("since", data.Checkpoint),
 	)
 
-	schedulerAPI, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)
-	if !ok || schedulerAPI == nil {
-		return errors.New("unable to get scheduler api from context")
-	}
-
-	if err := schedulerAPI.ClearDeletedFeedJobs(ctx); err != nil {
+	if err := services.Scheduler.ClearDeletedFeedJobs(ctx); err != nil {
 		return fmt.Errorf("clear deleted feed jobs: %w", err)
 	}
 
@@ -77,7 +72,7 @@ func ExecuteClearDeletedFeeds(ctx context.Context, job *SerializedJob) error {
 	); err != nil {
 		return fmt.Errorf("update job data: %w", err)
 	}
-	if err := schedulerAPI.UpdateJob(ctx, job); err != nil {
+	if err := services.Scheduler.UpdateJob(ctx, job); err != nil {
 		return fmt.Errorf("update job: %w", err)
 	}
 

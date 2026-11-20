@@ -318,17 +318,6 @@ func (m *Manager) ClearDeletedFeedJobs(ctx context.Context) error {
 }
 
 func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, error) {
-	// Load all independent components concurrently. Many of these do network I/O (OIDC discovery, management tokens,
-	// Elasticsearch, etc.), so doing them serially is the main startup cost.
-	g, _ := errgroup.WithContext(ctx)
-
-	if m.osc == nil {
-		var err error
-		m.osc, err = opensearch.GetClient()
-		if err != nil {
-			return nil, fmt.Errorf("load opensearch client: %w", err)
-		}
-	}
 	indexer, err := bulk.New()
 	if err != nil {
 		slogctx.Warn(ctx, "Failed to load bulk indexer", slog.Any("error", err))
@@ -359,11 +348,9 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 	if err != nil {
 		return nil, fmt.Errorf("load imports service: %w", err)
 	}
-
-	emailSenderF := loadAsync(g, "email sender", resend.NewSender)
-
-	if err := g.Wait(); err != nil {
-		return nil, fmt.Errorf("load services: %w", err)
+	emailSender, err := resend.NewSender()
+	if err != nil {
+		return nil, fmt.Errorf("load email sender: %w", err)
 	}
 
 	return &jobs.Services{
@@ -371,24 +358,6 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 		Feeds:       feedsSvc,
 		Imports:     importsSvc,
 		Users:       usersSvc,
-		EmailSender: emailSenderF(),
+		EmailSender: emailSender,
 	}, nil
-}
-
-// loadAsync runs fn in the errgroup and returns a getter for the result. The getter must only be called after g.Wait()
-// has returned nil. The type is inferred, so no explicit service types are needed at the call site. It also logs how
-// long each step took, which shows what dominates startup.
-func loadAsync[T any](g *errgroup.Group, name string, fn func() (T, error)) func() T {
-	var v T
-	g.Go(func() error {
-		start := time.Now()
-		res, err := fn()
-		if err != nil {
-			return fmt.Errorf("load %s: %w", name, err)
-		}
-		v = res
-		slog.Debug("Loaded component.", slog.String("component", name), slog.Duration("took", time.Since(start)))
-		return nil
-	})
-	return func() T { return v }
 }
