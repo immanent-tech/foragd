@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.262.0](https://github.com/immanent-tech/foragd/compare/v0.261.0...v0.262.0) (2026-11-20)
+
+
+### Features
+
+* **providers/opensearch:** ➕ add ability to set common query options ([205f652](https://github.com/immanent-tech/foragd/commit/205f6527ab9fdbf20a677a7c99ad799898af9558))
+* **providers/opensearch:** ➕ add GetDocs method ([fb327b0](https://github.com/immanent-tech/foragd/commit/fb327b0e0937995949f526f48a1095998efd61ad))
+
+
+### Bug Fixes
+
+* **service:** 🔧 correctly protect against nil pointer access when opensearch not used ([49fcdb1](https://github.com/immanent-tech/foragd/commit/49fcdb1c27346d41d038d78cc6efd5140319595e))
+
 ## [0.261.0](https://github.com/immanent-tech/foragd/compare/v0.260.0...v0.261.0) (2026-11-20)
 
 
