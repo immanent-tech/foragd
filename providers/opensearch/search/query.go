@@ -25,7 +25,7 @@ func MatchAllQuery() QueryOption {
 // TermQuery matches documents with a field with the given value.
 //
 // https://docs.opensearch.org/latest/query-dsl/term/term/
-func TermQuery(field string, value any) QueryOption {
+func TermQuery(field string, value any, options ...CommonQueryOption) QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		var fieldValue opensearchapi.FieldValue
 		switch v := value.(type) {
@@ -41,9 +41,13 @@ func TermQuery(field string, value any) QueryOption {
 		if q.Term == nil {
 			q.Term = make(map[string]opensearchapi.CommonQueryDSLTermQuery)
 		}
-		q.Term[field] = opensearchapi.NewCommonQueryDSLTermQueryFromValue(opensearchapi.CommonQueryDSLTermQueryValue{
+		value := opensearchapi.CommonQueryDSLTermQueryValue{
 			Value: &fieldValue,
-		})
+		}
+		for option := range slices.Values(options) {
+			option(&value.CommonQueryDSLQueryBase)
+		}
+		q.Term[field] = opensearchapi.NewCommonQueryDSLTermQueryFromValue(value)
 	}
 }
 
@@ -51,10 +55,10 @@ func TermQuery(field string, value any) QueryOption {
 // NOTE: using a bool until its clearer how to constuct a terms query with the typed API.
 //
 // https://docs.opensearch.org/latest/query-dsl/term/terms/
-func TermsQuery(field string, values ...any) QueryOption {
+func TermsQuery[V any](field string, values []V, options ...CommonQueryOption) QueryOption {
 	clauses := make([]QueryOption, 0, len(values))
 	for v := range slices.Values(values) {
-		clauses = append(clauses, TermQuery(field, v))
+		clauses = append(clauses, TermQuery(field, v, options...))
 	}
 	return BoolQuery(
 		WithBoolMinimumShouldMatch(1),
@@ -65,10 +69,13 @@ func TermsQuery(field string, values ...any) QueryOption {
 // ExistsQuery matches documents that have the given field.
 //
 // https://docs.opensearch.org/latest/query-dsl/term/exists/
-func ExistsQuery(field string) QueryOption {
+func ExistsQuery(field string, options ...CommonQueryOption) QueryOption {
 	return func(q *opensearchapi.CommonQueryDSLQueryContainer) {
 		q.Exists = &opensearchapi.CommonQueryDSLExistsQuery{
 			Field: field,
+		}
+		for option := range slices.Values(options) {
+			option(&q.Exists.CommonQueryDSLQueryBase)
 		}
 	}
 }
@@ -240,5 +247,19 @@ func WithBoolShould(queries ...QueryOption) BoolQueryOption {
 			shoulds = append(shoulds, container)
 		}
 		q.Should = new(opensearchapi.NewCommonQueryDSLBoolQueryShouldFromArray(shoulds))
+	}
+}
+
+type CommonQueryOption func(*opensearchapi.CommonQueryDSLQueryBase)
+
+func WithQueryName(name string) CommonQueryOption {
+	return func(b *opensearchapi.CommonQueryDSLQueryBase) {
+		b.Name = &name
+	}
+}
+
+func WithQueryBoost(boost float32) CommonQueryOption {
+	return func(b *opensearchapi.CommonQueryDSLQueryBase) {
+		b.Boost = &boost
 	}
 }
