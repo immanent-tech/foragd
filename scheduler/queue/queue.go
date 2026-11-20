@@ -15,11 +15,9 @@ import (
 	"slices"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/providers/opensearch/doc"
 	"github.com/immanent-tech/foragd/providers/opensearch/search"
@@ -163,14 +161,14 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 		jq.osc.IndexReadAlias(schema.SchedulerIndex),
 		jobKey.String(),
 	)
-	if err != nil {
-		if errors.Is(err, elastic.ErrNotFound) {
-			return nil, quartz.ErrJobNotFound
-		}
+	switch {
+	case err == nil:
+		return job, nil
+	case isNotFound(err):
+		return nil, quartz.ErrJobNotFound
+	default:
 		return nil, fmt.Errorf("%w: %w", ErrGetJobFailed, err)
 	}
-
-	return job, nil
 }
 
 // Remove removes and returns the scheduled job with the specified key.
@@ -184,18 +182,16 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	}
 
 	// Delete the job from the queue and invalidate its cache entry.
-	if err := jq.deleteJob(ctx, job.(*jobs.SerializedJob)); err != nil {
-		if isConflict(err) || isNotFound(err) {
-			// Potentially concurrently removed/replaced; treat as not found.
-			return nil, fmt.Errorf("%w: %w", ErrRemoveJobFailed, quartz.ErrJobNotFound)
-		}
+	err = jq.deleteJob(ctx, job.(*jobs.SerializedJob))
+	switch {
+	case err == nil:
+		return job, nil
+	case isConflict(err) || isNotFound(err):
+		// Potentially concurrently removed/replaced; treat as not found.
+		return nil, fmt.Errorf("%w: %w", ErrRemoveJobFailed, quartz.ErrJobNotFound)
+	default:
 		return nil, fmt.Errorf("%w: %w", ErrRemoveJobFailed, err)
 	}
-
-	jq.logger.Debug("Removed job from queue.",
-		slog.String("job_key", jobKey.String()))
-
-	return job, nil
 }
 
 // ScheduledJobs returns the slice of all scheduled jobs in the queue.
@@ -285,7 +281,7 @@ func (q *JobQueue) ctx() (context.Context, context.CancelFunc) {
 }
 
 func isMatch(job quartz.ScheduledJob, matchers []quartz.Matcher[quartz.ScheduledJob]) bool {
-	for _, matcher := range matchers {
+	for matcher := range slices.Values(matchers) {
 		// require all matchers to match the job
 		if !matcher.IsMatch(job) {
 			return false
@@ -308,16 +304,6 @@ var _ quartz.ScheduledJob = (*scheduledJob)(nil)
 func (job *scheduledJob) JobDetail() *quartz.JobDetail { return job.jobDetail }
 func (job *scheduledJob) Trigger() quartz.Trigger      { return job.trigger }
 func (job *scheduledJob) NextRunTime() int64           { return job.nextRunTime }
-
-type jobSorting struct {
-	JobNextRun string `json:"job_next_run"`
-}
-
-// SortCombinationsCaster is required to allow ItemSorting to be used as Elasticsearch sort values.
-func (s *jobSorting) SortCombinationsCaster() *types.SortCombinations {
-	c := types.SortCombinations(s)
-	return &c
-}
 
 func isNotFound(err error) bool {
 	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
