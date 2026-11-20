@@ -9,10 +9,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"slices"
 
-	"github.com/goforj/godump"
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/providers/opensearch"
 )
@@ -44,9 +45,17 @@ func Search(
 	}
 
 	resp, err := client.Search(ctx, req)
-	if err != nil {
-		godump.Dump(req.GetRequest("GET"))
-		return nil, opensearch.GenerateAPIError("search", resp)
+	for sub := range slices.Values(opensearchapi.Errors(err)) {
+		switch e := sub.(type) {
+		case *opensearchapi.PartialSearchError:
+			slogctx.Warn(ctx, "Partial failure for search request.",
+				slog.Int("failed_shards", e.FailedShards),
+				slog.Int("total_shards", e.TotalShards),
+				slog.Int("hits", len(resp.Hits.Hits)),
+			)
+		default:
+			return nil, opensearch.GenerateAPIError("search", resp)
+		}
 	}
 
 	return &SearchResponse{SearchResp: resp}, nil
@@ -108,11 +117,12 @@ func (r *SearchResponse) IsError() bool {
 	return false
 }
 
+func (r *SearchResponse) IsPartialError() bool {
+	return r.Shards.Failed > 0
+}
+
 func (r *SearchResponse) IsSuccess() bool {
-	if resp := r.Inspect().Response; resp != nil {
-		return resp.StatusCode > 199 && resp.StatusCode < 300
-	}
-	return false
+	return !r.IsError() && !r.IsPartialError()
 }
 
 func (r *SearchResponse) Error() string {
@@ -191,9 +201,17 @@ func SearchAll(
 		}
 
 		loopResp, err := client.Search(ctx, loopReq)
-		if err != nil {
-			godump.Dump(loopReq.GetRequest("GET"))
-			resp.errors = append(resp.errors, opensearch.GenerateAPIError("search", loopResp))
+		for sub := range slices.Values(opensearchapi.Errors(err)) {
+			switch e := sub.(type) {
+			case *opensearchapi.PartialSearchError:
+				slogctx.Warn(ctx, "Partial failure for search request.",
+					slog.Int("failed_shards", e.FailedShards),
+					slog.Int("total_shards", e.TotalShards),
+					slog.Int("hits", len(loopResp.Hits.Hits)),
+				)
+			default:
+				resp.errors = append(resp.errors, opensearch.GenerateAPIError("search", loopResp))
+			}
 		}
 
 		// Add response to responses slice.
@@ -219,30 +237,31 @@ func (r *SearchAllResponse) IsError() bool {
 	if len(r.errors) > 0 {
 		return true
 	}
-	var hasErrorResp bool
 	for resp := range slices.Values(r.Responses) {
 		if resp := resp.Inspect().Response; resp != nil {
 			if resp.StatusCode > 399 {
-				hasErrorResp = true
+				return true
 			}
 		}
 	}
-	return hasErrorResp
+	return false
+}
+
+func (r *SearchAllResponse) IsPartialError() bool {
+	if len(r.errors) > 0 {
+		return true
+	}
+	for resp := range slices.Values(r.Responses) {
+		return resp.Shards.Failed > 0
+	}
+	return false
 }
 
 func (r *SearchAllResponse) IsSuccess() bool {
 	if len(r.errors) > 0 {
 		return false
 	}
-	var hasErrorResp bool
-	for resp := range slices.Values(r.Responses) {
-		if resp := resp.Inspect().Response; resp != nil {
-			if resp.StatusCode < 199 || resp.StatusCode > 300 {
-				hasErrorResp = true
-			}
-		}
-	}
-	return !hasErrorResp
+	return !r.IsError() && !r.IsPartialError()
 }
 
 func (r *SearchAllResponse) Error() string {
@@ -295,8 +314,16 @@ func Count(ctx context.Context, client Client, index string, options ...CountOpt
 
 	// Perform request.
 	resp, err := client.Count(ctx, req)
-	if err != nil {
-		return 0, opensearch.GenerateAPIError("search", resp)
+	for sub := range slices.Values(opensearchapi.Errors(err)) {
+		switch e := sub.(type) {
+		case *opensearchapi.PartialSearchError:
+			slogctx.Warn(ctx, "Partial failure for search request.",
+				slog.Int("failed_shards", e.FailedShards),
+				slog.Int("total_shards", e.TotalShards),
+			)
+		default:
+			return 0, opensearch.GenerateAPIError("search", resp)
+		}
 	}
 
 	return resp.Count, nil
