@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.263.0](https://github.com/immanent-tech/foragd/compare/v0.262.0...v0.263.0) (2026-11-20)
+
+
+### Features
+
+* **providers/opensearch:** ➕ add aggregation support ([cde6ffb](https://github.com/immanent-tech/foragd/commit/cde6ffb92738a3dcfece07bce5ecb0286de2272a))
+
 ## [0.262.0](https://github.com/immanent-tech/foragd/compare/v0.261.0...v0.262.0) (2026-11-20)
 
 
