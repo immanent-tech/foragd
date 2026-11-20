@@ -290,7 +290,7 @@ func (i *ImportService) ProcessRequests(
 	for result := range resultsCh {
 		// Add new feed as needed.
 		if result.AddFeed {
-			if i.osc != nil {
+			if i.indexer != nil {
 				if err := i.indexer.Add(
 					ctx,
 					osbulk.NewAction(osbulk.ActionCreate,
@@ -319,7 +319,7 @@ func (i *ImportService) ProcessRequests(
 		}
 		// Add new subscription as needed.
 		if result.Subscription != nil {
-			if i.osc != nil {
+			if i.indexer != nil {
 				if err := i.indexer.Add(
 					ctx,
 					osbulk.NewAction(osbulk.ActionCreate,
@@ -347,7 +347,7 @@ func (i *ImportService) ProcessRequests(
 			}
 		}
 		// Index the results.
-		if i.osc != nil {
+		if i.indexer != nil {
 			if err := i.indexer.Add(ctx, osbulk.NewAction(osbulk.ActionCreate,
 				osbulk.ToIndex(i.osc.IndexWriteAlias(schema.ImportsIndex)),
 				osbulk.WithDoc(result.Details),

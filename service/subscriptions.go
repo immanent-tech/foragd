@@ -489,7 +489,7 @@ func (s *SubscriptionService) UpdateSubscriptions(
 	ctx, span := tracer.Start(ctx, "UpdateSubscriptions")
 	defer span.End()
 
-	if s.osc != nil {
+	if s.indexer != nil {
 		for subscription := range slices.Values(subscriptions) {
 			if err := s.indexer.Add(ctx,
 				osbulk.NewAction(

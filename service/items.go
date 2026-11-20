@@ -168,7 +168,7 @@ func (s *ItemService) GetItems(ctx context.Context, ids ...models.ItemID) (model
 // AddItems will add the given [models.Item] to the database. It returns a map divided into "updated" and "new" items,
 // to indicate items that existed and were updated vs. items that were added as new.
 func (s *ItemService) AddItems(ctx context.Context, items models.Items) (int, error) {
-	if s.osc != nil {
+	if s.indexer != nil {
 		for item := range slices.Values(items) {
 			if err := s.indexer.Add(ctx, osbulk.NewAction(
 				osbulk.ActionCreate,

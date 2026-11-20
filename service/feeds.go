@@ -307,7 +307,7 @@ func (s FeedService) GetFeedsByURLs(ctx context.Context, urls ...string) (models
 
 // AddFeed adds a new feed to Elasticsearch and the cache.
 func (s *FeedService) AddFeed(ctx context.Context, feed *models.Feed) error {
-	if s.osc != nil {
+	if s.indexer != nil {
 		if err := s.indexer.Add(
 			ctx,
 			osbulk.NewAction(
@@ -338,7 +338,7 @@ func (s *FeedService) AddFeed(ctx context.Context, feed *models.Feed) error {
 
 // UpdateFeed applies the given updates to a Feed. Any cached version of the feed is invalidated.
 func (s *FeedService) UpdateFeed(ctx context.Context, feed *models.Feed) error {
-	if s.osc != nil {
+	if s.indexer != nil {
 		if err := s.indexer.Add(
 			ctx,
 			osbulk.NewAction(
