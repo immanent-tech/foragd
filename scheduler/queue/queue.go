@@ -12,26 +12,19 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/providers/opensearch/doc"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/schema"
-	"github.com/immanent-tech/foragd/service"
-
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/index"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
-
-	ossearch "github.com/immanent-tech/foragd/providers/opensearch/search"
 )
 
 const (
@@ -61,7 +54,6 @@ var (
 // JobQueue implements the quartz.JobQueue interface, using Elasticsearch as the persistence layer.
 type JobQueue struct {
 	logger *slog.Logger
-	esc    *service.ElasticService
 	osc    *opensearch.Client
 }
 
@@ -70,13 +62,8 @@ var _ quartz.JobQueue = (*JobQueue)(nil)
 
 // NewJobQueue initializes and returns an empty jobQueue.
 func NewJobQueue(logger *slog.Logger, osc *opensearch.Client) (*JobQueue, error) {
-	store, err := service.LoadElasticService()
-	if err != nil {
-		return nil, fmt.Errorf("load elastic service: %w", err)
-	}
 	return &JobQueue{
 		logger: logger,
-		esc:    store,
 		osc:    osc,
 	}, nil
 }
@@ -96,22 +83,12 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 	serialized.UpdatedAt = time.Now().UTC()
 
 	// Update in backend.
-	if jq.osc != nil {
-		if err := doc.Index(
-			ctx,
-			jq.osc.Doc,
-			jq.osc.IndexWriteAlias(schema.SchedulerIndex),
-			serialized,
-			doc.WithIndexRefresh(doc.RefreshWaitFor),
-		); err != nil {
-			return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
-		}
-	}
-	if err := elastic.IndexDoc(ctx,
-		jq.esc.GetIndexRW(service.ScheduleIndex),
-		job.JobDetail().JobKey().String(),
+	if err := doc.Index(
+		ctx,
+		jq.osc.Doc,
+		jq.osc.IndexWriteAlias(schema.SchedulerIndex),
 		serialized,
-		elastic.WithRefresh[*index.Index](refresh.Waitfor),
+		doc.WithIndexRefresh(doc.RefreshWaitFor),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
@@ -148,20 +125,27 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	ctx, cancel := jq.ctx()
 	defer cancel()
 
-	resp, err := elastic.Search[*jobs.SerializedJob](ctx,
-		jq.esc.GetIndexRO(service.ScheduleIndex),
-		elastic.WithSize[*search.Search](1),
-		elastic.WithQuery[*search.Search](query.MatchAll()),
-		elastic.WithSort[*search.Search](&jobSorting{JobNextRun: "asc"}),
-		elastic.WithSeqNoPrimaryTerm[*search.Search](true),
+	resp, err := search.Search(ctx,
+		jq.osc,
+		jq.osc.IndexReadAlias(schema.SchedulerIndex),
+		search.WithQuery(search.MatchAllQuery()),
+		search.WithSize(1),
+		search.WithSearchParameters(
+			search.WithSortParams("job_next_run:asc"),
+			search.WithSeqNoPrimaryTerm(true),
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("head: %w", err)
 	}
 
-	job := resp.Results[0]
-	job.SeqNo = resp.Hits.Hits[0].SeqNo_
-	job.PrimaryTerm = resp.Hits.Hits[0].PrimaryTerm_
+	jobs, _, err := resp.ExtractHits[*jobs.SerializedJob]()
+	if err != nil {
+		return nil, fmt.Errorf("head: extract hits: %w", err)
+	}
+	job := jobs[0]
+	job.SeqNo = resp.Hits.Hits[0].SeqNo
+	job.PrimaryTerm = resp.Hits.Hits[0].PrimaryTerm
 
 	// Return the job that should run next.
 	return job, nil
@@ -174,9 +158,9 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	defer cancel()
 
 	// Fetch the job from the cache, loading from the backend if needed.
-	job, err := elastic.GetDoc[string, *jobs.SerializedJob](
-		ctx,
-		jq.esc.GetIndexRO(service.ScheduleIndex),
+	job, err := doc.Get[string, *jobs.SerializedJob](ctx,
+		jq.osc.Doc,
+		jq.osc.IndexReadAlias(schema.SchedulerIndex),
 		jobKey.String(),
 	)
 	if err != nil {
@@ -219,26 +203,30 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 	ctx, cancel := jq.ctx()
 	defer cancel()
 
-	allJobs, err := elastic.SearchAll[*jobs.SerializedJob](
-		ctx,
-		jq.esc.GetIndexRO(service.ScheduleIndex),
-		query.MatchAll(),
-		5000,
+	allJobs, err := search.SearchAll(ctx,
+		jq.osc,
+		jq.osc.IndexReadAlias(schema.SchedulerIndex),
+		2500,
+		[]search.QueryOption{search.MatchAllQuery()},
+		search.WithSearchParameters(search.WithSeqNoPrimaryTerm(true)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("get all scheduled jobs: %w", err)
 	}
-	if len(allJobs) == 0 {
-		return nil, fmt.Errorf("get all scheduled jobs: %w", quartz.ErrJobNotFound)
+
+	serializedJobs, err := allJobs.ExtractHits[*jobs.SerializedJob]()
+	if err != nil {
+		return nil, fmt.Errorf("scheduled jobs: %w", err)
 	}
 
-	jobs := make([]quartz.ScheduledJob, 0, len(allJobs))
+	jobs := make([]quartz.ScheduledJob, 0, len(serializedJobs))
 	// Filter jobs that to those that match given matchers.
-	for _, job := range allJobs {
+	for job := range slices.Values(serializedJobs) {
 		if isMatch(job, matchers) {
 			jobs = append(jobs, job)
 		}
 	}
+
 	return jobs, nil
 }
 
@@ -247,7 +235,12 @@ func (jq *JobQueue) Size() (int, error) {
 	ctx, cancel := jq.ctx()
 	defer cancel()
 
-	count, err := elastic.Count(ctx, jq.esc.GetIndexRO(service.ScheduleIndex), query.MatchAll())
+	count, err := search.Count(
+		ctx,
+		jq.osc,
+		jq.osc.IndexReadAlias(schema.SchedulerIndex),
+		search.WithCountQuery(search.MatchAllQuery()),
+	)
 	if err != nil {
 		return 0, fmt.Errorf("count jobs: %w", err)
 	}
@@ -260,17 +253,12 @@ func (jq *JobQueue) Clear() error {
 	ctx, cancel := jq.ctx()
 	defer cancel()
 
-	if jq.osc != nil {
-		if err := doc.DeleteByQuery(
-			ctx,
-			jq.osc,
-			jq.osc.IndexWriteAlias(schema.SchedulerIndex),
-			doc.WithDeleteByQuery(ossearch.MatchAllQuery()),
-		); err != nil {
-			return fmt.Errorf("%w: delete docs: %w", ErrClearJobs, err)
-		}
-	}
-	if err := elastic.DeleteDocs(ctx, jq.esc.GetIndexRW(service.ScheduleIndex), query.MatchAll()); err != nil {
+	if err := doc.DeleteByQuery(
+		ctx,
+		jq.osc,
+		jq.osc.IndexWriteAlias(schema.SchedulerIndex),
+		doc.WithDeleteByQuery(search.MatchAllQuery()),
+	); err != nil {
 		return fmt.Errorf("%w: delete docs: %w", ErrClearJobs, err)
 	}
 
@@ -279,24 +267,12 @@ func (jq *JobQueue) Clear() error {
 }
 
 func (jq *JobQueue) deleteJob(ctx context.Context, job *jobs.SerializedJob) error {
-	if jq.osc != nil {
-		if err := doc.Delete(
-			ctx,
-			jq.osc.Doc,
-			jq.osc.IndexWriteAlias(schema.SchedulerIndex),
-			job.GetID(),
-			doc.WithDeleteRefresh(doc.RefreshWaitFor),
-		); err != nil {
-			return fmt.Errorf("%w: %w", ErrDeleteJobFailed, err)
-		}
-	}
-	if err := elastic.DeleteDoc(
+	if err := doc.Delete(
 		ctx,
-		jq.esc.GetIndexRW(service.ScheduleIndex),
+		jq.osc.Doc,
+		jq.osc.IndexWriteAlias(schema.SchedulerIndex),
 		job.GetID(),
-		elastic.WithSeqNo[*delete.Delete](*job.SeqNo),
-		elastic.WithPrimaryTerm[*delete.Delete](*job.PrimaryTerm),
-		elastic.WithRefresh[*delete.Delete](refresh.Waitfor),
+		doc.WithDeleteRefresh(doc.RefreshWaitFor),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrDeleteJobFailed, err)
 	}
