@@ -122,6 +122,9 @@ type IndexOption func(*opensearchapi.IndexReq)
 // WithIndexRefresh option sets the refresh value for the index operation.
 func WithIndexRefresh(value Refresh) IndexOption {
 	return func(r *opensearchapi.IndexReq) {
+		if r.Params == nil {
+			r.Params = &opensearchapi.IndexParams{}
+		}
 		r.Params.Refresh = string(value)
 	}
 }
