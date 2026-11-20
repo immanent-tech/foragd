@@ -38,7 +38,11 @@ func (c *RunSchedulerCmd) Run() error {
 		return fmt.Errorf("new scheduler: %w", err)
 	}
 
-	if err := manager.Run(); err != nil {
+	// Set up context.
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	defer cancelFunc()
+
+	if err := manager.Start(ctx); err != nil {
 		return fmt.Errorf("run scheduler: %w", err)
 	}
 	return nil

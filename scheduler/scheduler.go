@@ -17,7 +17,6 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	quartzlogger "github.com/reugn/go-quartz/logger"
@@ -58,7 +57,7 @@ type Manager struct {
 
 // New will create a [Manager] containing the scheduler and job queue. New does not start the scheduler; call
 // Run() to start it. The returned [Manager] can however be used to manage jobs (schedule/delete/query jobs).
-func New() (*Manager, error) {
+var New = sync.OnceValues(func() (*Manager, error) {
 	logger := logging.New()
 
 	osc, err := opensearch.GetClient()
@@ -88,14 +87,11 @@ func New() (*Manager, error) {
 		queue:     jobQueue,
 		osc:       osc,
 	}, nil
-}
+})
 
-// Run starts the scheduler, including setting up background services, loading context for job queue and initialising
+// Start starts the scheduler, including setting up background services, loading context for job queue and initialising
 // admin jobs.
-func (m *Manager) Run() error {
-	// Set up context.
-	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	defer cancelFunc()
+func (m Manager) Start(ctx context.Context) error {
 	ctx = slogctx.NewCtx(ctx, logging.New())
 
 	// Store various objects in the context for access by jobs:
@@ -111,7 +107,7 @@ func (m *Manager) Run() error {
 	}
 
 	// Start scheduling jobs.
-	m.Start(ctx)
+	m.Scheduler.Start(ctx)
 
 	slogctx.Info(ctx, "Scheduler started.",
 		slog.Time("start_time", time.Now()),
@@ -326,10 +322,12 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 	// Elasticsearch, etc.), so doing them serially is the main startup cost.
 	g, _ := errgroup.WithContext(ctx)
 
-	osc, err := opensearch.GetClient()
-	if err != nil {
-		slogctx.Warn(ctx, "Failed to load opensearch client", slog.Any("error", err))
-		// return nil, fmt.Errorf("load opensearch client: %w", err)
+	if m.osc == nil {
+		var err error
+		m.osc, err = opensearch.GetClient()
+		if err != nil {
+			return nil, fmt.Errorf("load opensearch client: %w", err)
+		}
 	}
 	indexer, err := bulk.New()
 	if err != nil {
@@ -341,23 +339,23 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 	if err != nil {
 		return nil, fmt.Errorf("load ollama client: %w", err)
 	}
-	itemsSvc, err := service.LoadItemsService(ctx, osc, indexer, httpClient)
+	itemsSvc, err := service.LoadItemsService(ctx, m.osc, indexer, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("load items service: %w", err)
 	}
-	feedsSvc, err := service.LoadFeedsService(ctx, osc, indexer, httpClient, ollamaSvc, itemsSvc)
+	feedsSvc, err := service.LoadFeedsService(ctx, m.osc, indexer, httpClient, ollamaSvc, itemsSvc)
 	if err != nil {
 		return nil, fmt.Errorf("load feeds service: %w", err)
 	}
-	usersSvc, err := service.LoadUsersService(ctx, osc)
+	usersSvc, err := service.LoadUsersService(ctx, m.osc)
 	if err != nil {
 		return nil, fmt.Errorf("load users service: %w", err)
 	}
-	subscriptionsSvc, err := service.LoadSubscriptionsService(ctx, osc, indexer, itemsSvc, feedsSvc, usersSvc)
+	subscriptionsSvc, err := service.LoadSubscriptionsService(ctx, m.osc, indexer, itemsSvc, feedsSvc, usersSvc)
 	if err != nil {
 		return nil, fmt.Errorf("load subscriptions service: %w", err)
 	}
-	importsSvc, err := service.LoadImportsService(ctx, osc, indexer, feedsSvc, subscriptionsSvc, usersSvc)
+	importsSvc, err := service.LoadImportsService(ctx, m.osc, indexer, feedsSvc, subscriptionsSvc, usersSvc)
 	if err != nil {
 		return nil, fmt.Errorf("load imports service: %w", err)
 	}
