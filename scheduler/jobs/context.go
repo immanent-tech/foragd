@@ -13,16 +13,13 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/resend"
-	"github.com/immanent-tech/foragd/service"
 )
 
 const (
 	schedulerAPICtxKey contextKey = "scheduler_api"
 	indexerCtxKey      contextKey = "indexer"
 	httpClientCtxKey   contextKey = "http_client"
-	elasticCtxKey      contextKey = "elastic"
 	userSvcCtxKey      contextKey = "user_svc"
 	feedSvcCtxKey      contextKey = "feed_svc"
 	itemSvcCtxKey      contextKey = "item_svc"
@@ -69,19 +66,12 @@ type EmailSender interface {
 	Send(ctx context.Context, options ...resend.EmailOption) error
 }
 
-type ElasticAPI interface {
-	GetIndexRO(idx service.Index) string
-	GetIndexRW(idx service.Index) string
-}
-
 type Services struct {
 	Scheduler   SchedulerAPI
 	Feeds       FeedsAPI
 	Imports     ImportAPI
 	Users       UserAPI
-	Elastic     ElasticAPI
 	EmailSender EmailSender
-	Indexer     *bulk.Indexer
 }
 
 func ServicesToCtx(ctx context.Context, services *Services) context.Context {
