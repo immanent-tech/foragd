@@ -252,12 +252,15 @@ func WithBoolShould(queries ...QueryOption) BoolQueryOption {
 
 type CommonQueryOption func(*opensearchapi.CommonQueryDSLQueryBase)
 
+// WithQueryName option defines a friendly name for the query that can be referenced in the response.
 func WithQueryName(name string) CommonQueryOption {
 	return func(b *opensearchapi.CommonQueryDSLQueryBase) {
 		b.Name = &name
 	}
 }
 
+// WithQueryBoost option defines a boost value to this query to increase or decrease its score relative to other
+// matches.
 func WithQueryBoost(boost float32) CommonQueryOption {
 	return func(b *opensearchapi.CommonQueryDSLQueryBase) {
 		b.Boost = &boost

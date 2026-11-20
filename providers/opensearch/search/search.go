@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strings"
 
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 	slogctx "github.com/veqryn/slog-context"
@@ -45,7 +46,7 @@ func Search(
 	}
 
 	resp, err := client.Search(ctx, req)
-	for sub := range slices.Values(opensearchapi.Errors(err)) {
+	for _, sub := range opensearchapi.Errors(err) {
 		switch e := sub.(type) {
 		case *opensearchapi.PartialSearchError:
 			slogctx.Warn(ctx, "Partial failure for search request.",
@@ -71,17 +72,21 @@ func WithSize(size int) SearchOption {
 	}
 }
 
-// WithSort option sets the sort order of search results.
-// func WithSort(options ...string) SearchOption {
-// 	return func(req *opensearchapi.SearchBody) {
-// 		sortCombos := make([]opensearchapi.SortCombinations, 0, len(options))
-// 		for option := range slices.Values(options) {
-// 			sortCombos = append(sortCombos, opensearchapi.NewSortCombinationsFromOptions(option))
-// 		}
-// 		sort := opensearchapi.NewSortFromArray(sortCombos)
-// 		req.Sort = &sort
-// 	}
-// }
+// WithTrackTotalHits option sets whether total hits will be calculated. Disabling when not needed will increase
+// performance.
+func WithTrackTotalHits(value bool) SearchOption {
+	return func(req *opensearchapi.SearchReq) {
+		req.Body.TrackTotalHits = new(opensearchapi.NewSearchTrackHitsFromBool(value))
+	}
+}
+
+// WithTrackScores option sets whether to track scores of documents. Disabling this will increase performance when
+// scores are not needed.
+func WithTrackScores(value bool) SearchOption {
+	return func(req *opensearchapi.SearchReq) {
+		req.Body.TrackScores = new(value)
+	}
+}
 
 // WithQuery option sets the query used to find search results.
 func WithQuery(options ...QueryOption) SearchOption {
@@ -91,6 +96,20 @@ func WithQuery(options ...QueryOption) SearchOption {
 			option(query)
 		}
 		req.Body.Query = query
+	}
+}
+
+// WithAggregation adds an aggregation to be performed on the search results.
+func WithAggregation(name string, options ...AggregationOption) SearchOption {
+	return func(req *opensearchapi.SearchReq) {
+		if req.Body.Aggregations == nil {
+			req.Body.Aggregations = make(map[string]opensearchapi.CommonAggregationsAggregationContainer)
+		}
+		agg := opensearchapi.CommonAggregationsAggregationContainer{}
+		for option := range slices.Values(options) {
+			option(&agg)
+		}
+		req.Body.Aggregations[name] = agg
 	}
 }
 
@@ -164,6 +183,156 @@ func (r *SearchResponse) ExtractHits[T any]() ([]T, []opensearchapi.FieldValue, 
 	return sources, lastSortValue, warnings
 }
 
+type Aggregate = opensearchapi.CommonAggregationsAggregate
+
+// ExtractAggregation extracts the aggregation called name as type T, picking the matching As* method on
+// [opensearchapi.CommonAggregationsAggregate] from T alone.
+//
+//	terms, err := resp.ExtractAggregation[opensearchapi.CommonAggregationsStringTermsAggregate]("by_status")
+//
+// The union carries no discriminator, so T must be the type produced by the aggregation you requested. Where several
+// As* methods return the same Go type (avg/max/min/sum/... all return
+// [opensearchapi.CommonAggregationsSingleMetricAggregateBase]) they share the same wire shape and required-key check,
+// so the first is used.
+//
+// If the response was requested with typed_keys=true, the map key is prefixed ("sterms#by_status"); Get matches on
+// either form.
+func (r *SearchResponse) ExtractAggregation[T any](name string) (T, error) {
+	var zero T
+
+	agg, ok := lookup(r.Aggregations, name) // local copy: As* have pointer receivers, map values aren't addressable
+	if !ok {
+		return zero, fmt.Errorf("%w: not found: %q", opensearch.ErrExtractAggregation, name)
+	}
+	if agg.IsZero() {
+		return zero, fmt.Errorf("%w: %q", opensearch.ErrAggregationEmpty, name)
+	}
+
+	var (
+		v   any
+		err error
+	)
+	switch any(zero).(type) {
+	// ---- metrics ----
+	case opensearchapi.CommonAggregationsSingleMetricAggregateBase: // avg, max, min, sum, value_count, simple_value, median_absolute_deviation, weighted_avg
+		v, err = agg.AsAvg()
+	case opensearchapi.CommonAggregationsCardinalityAggregate:
+		v, err = agg.AsCardinality()
+	case opensearchapi.CommonAggregationsCumulativeCardinalityAggregate: // AsSimpleLongValue
+		v, err = agg.AsSimpleLongValue()
+	case opensearchapi.CommonAggregationsStatsAggregateBase: // stats, stats_bucket
+		v, err = agg.AsStats()
+	case opensearchapi.CommonAggregationsExtendedStatsAggregateBase: // extended_stats, extended_stats_bucket
+		v, err = agg.AsExtendedStats()
+	case opensearchapi.CommonAggregationsPercentilesAggregateBase: // percentiles/ranks (hdr, tdigest), percentiles_bucket
+		v, err = agg.AsTDigestPercentiles()
+	case opensearchapi.CommonAggregationsBoxPlotAggregate:
+		v, err = agg.AsBoxPlot()
+	case opensearchapi.CommonAggregationsBucketMetricValueAggregate:
+		v, err = agg.AsBucketMetricValue()
+	case opensearchapi.CommonAggregationsDerivativeAggregate:
+		v, err = agg.AsDerivative()
+	case opensearchapi.CommonAggregationsGeoBoundsAggregate:
+		v, err = agg.AsGeoBounds()
+	case opensearchapi.CommonAggregationsGeoCentroidAggregate:
+		v, err = agg.AsGeoCentroid()
+	case opensearchapi.CommonAggregationsMatrixStatsAggregate:
+		v, err = agg.AsMatrixStats()
+	case opensearchapi.CommonAggregationsRateAggregate:
+		v, err = agg.AsRate()
+	case opensearchapi.CommonAggregationsScriptedMetricAggregate:
+		v, err = agg.AsScriptedMetric()
+	case opensearchapi.CommonAggregationsTTestAggregate:
+		v, err = agg.AsTTest()
+	case opensearchapi.CommonAggregationsTopHitsAggregate:
+		v, err = agg.AsTopHits()
+
+	// ---- single-bucket ----
+	case opensearchapi.CommonAggregationsSingleBucketAggregateBase: // filter, global, missing, nested, reverse_nested, parent, children, sampler
+		v, err = agg.AsFilter()
+
+	// ---- multi-bucket ----
+	case opensearchapi.CommonAggregationsAdjacencyMatrixAggregate:
+		v, err = agg.AsAdjacencyMatrix()
+	case opensearchapi.CommonAggregationsAutoDateHistogramAggregate:
+		v, err = agg.AsAutoDateHistogram()
+	case opensearchapi.CommonAggregationsCompositeAggregate:
+		v, err = agg.AsComposite()
+	case opensearchapi.CommonAggregationsDateHistogramAggregate:
+		v, err = agg.AsDateHistogram()
+	case opensearchapi.CommonAggregationsFiltersAggregate:
+		v, err = agg.AsFilters()
+	case opensearchapi.CommonAggregationsGeoHashGridAggregate:
+		v, err = agg.AsGeohashGrid()
+	case opensearchapi.CommonAggregationsGeoTileGridAggregate:
+		v, err = agg.AsGeotileGrid()
+	case opensearchapi.CommonAggregationsHistogramAggregate:
+		v, err = agg.AsHistogram()
+	case opensearchapi.CommonAggregationsIPRangeAggregate:
+		v, err = agg.AsIPRange()
+	case opensearchapi.CommonAggregationsMultiBucketAggregateBaseRangeBucket: // range, date_range, geo_distance
+		v, err = agg.AsRange()
+	case opensearchapi.CommonAggregationsMultiTermsAggregate:
+		v, err = agg.AsMultiTerms()
+	case opensearchapi.CommonAggregationsVariableWidthHistogramAggregate:
+		v, err = agg.AsVariableWidthHistogram()
+
+	// ---- terms family ----
+	case opensearchapi.CommonAggregationsStringTermsAggregate:
+		v, err = agg.AsSTerms()
+	case opensearchapi.CommonAggregationsLongTermsAggregate:
+		v, err = agg.AsLTerms()
+	case opensearchapi.CommonAggregationsDoubleTermsAggregate:
+		v, err = agg.AsDTerms()
+	case opensearchapi.CommonAggregationsUnsignedLongTermsAggregate:
+		v, err = agg.AsULTerms()
+	case opensearchapi.CommonAggregationsUnmappedTermsAggregate:
+		v, err = agg.AsUMTerms()
+	case opensearchapi.CommonAggregationsStringRareTermsAggregate:
+		v, err = agg.AsSRareTerms()
+	case opensearchapi.CommonAggregationsLongRareTermsAggregate:
+		v, err = agg.AsLRareTerms()
+	case opensearchapi.CommonAggregationsUnmappedRareTermsAggregate:
+		v, err = agg.AsUMRareTerms()
+	case opensearchapi.CommonAggregationsSignificantStringTermsAggregate:
+		v, err = agg.AsSigSTerms()
+	case opensearchapi.CommonAggregationsSignificantLongTermsAggregate:
+		v, err = agg.AsSigLTerms()
+	case opensearchapi.CommonAggregationsUnmappedSignificantTermsAggregate:
+		v, err = agg.AsUMSigTerms()
+
+	default:
+		return zero, fmt.Errorf("%w: unsupported type: %T", opensearch.ErrExtractAggregation, zero)
+	}
+	if err != nil {
+		return zero, fmt.Errorf("aggregation %q as %T: %w", name, zero, err)
+	}
+	return v.(T), nil
+}
+
+// MustGetAggregation is Get that panics on error. Handy in tests.
+func (r *SearchResponse) MustGetAggregation[T any](name string) T {
+	v, err := r.ExtractAggregation[T](name)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// lookup finds name directly, or as a typed_keys entry ("<type>#<name>").
+func lookup(m map[string]Aggregate, name string) (Aggregate, bool) {
+	if a, ok := m[name]; ok {
+		return a, true
+	}
+	suffix := "#" + name
+	for k, a := range m {
+		if strings.HasSuffix(k, suffix) {
+			return a, true
+		}
+	}
+	return Aggregate{}, false
+}
+
 // SearchAll performs a _search request to find documents matching the given query.
 func SearchAll(
 	ctx context.Context,
@@ -201,7 +370,7 @@ func SearchAll(
 		}
 
 		loopResp, err := client.Search(ctx, loopReq)
-		for sub := range slices.Values(opensearchapi.Errors(err)) {
+		for _, sub := range opensearchapi.Errors(err) {
 			switch e := sub.(type) {
 			case *opensearchapi.PartialSearchError:
 				slogctx.Warn(ctx, "Partial failure for search request.",
@@ -314,7 +483,7 @@ func Count(ctx context.Context, client Client, index string, options ...CountOpt
 
 	// Perform request.
 	resp, err := client.Count(ctx, req)
-	for sub := range slices.Values(opensearchapi.Errors(err)) {
+	for _, sub := range opensearchapi.Errors(err) {
 		switch e := sub.(type) {
 		case *opensearchapi.PartialSearchError:
 			slogctx.Warn(ctx, "Partial failure for search request.",

@@ -16,7 +16,9 @@ import (
 
 var (
 	// ErrExtractSource is returned when an error occurred extracting the source of a document from the response hits.
-	ErrExtractSource = errors.New("could not extract document _source")
+	ErrExtractSource      = errors.New("could not extract document _source")
+	ErrExtractAggregation = errors.New("could not extract aggregation")
+	ErrAggregationEmpty   = errors.New("aggregation is empty")
 )
 
 type Inspectable interface {

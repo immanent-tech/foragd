@@ -34,10 +34,17 @@ func WithSortParams(sort ...string) SearchParamsOption {
 	}
 }
 
-// WithSeqNoPrimaryTerm option ensures the results returns sequence number and primary term of the last modification of each
-// hit.
+// WithSeqNoPrimaryTerm option ensures the results returns sequence number and primary term of the last modification of
+// each hit.
 func WithSeqNoPrimaryTerm(value bool) SearchParamsOption {
 	return func(sp *opensearchapi.SearchParams) {
 		sp.SeqNoPrimaryTerm = &value
+	}
+}
+
+// WithTypedKeys option sets whether aggregation and suggester results will have their map keys prefixed by their type.
+func WithTypedKeys(value bool) SearchParamsOption {
+	return func(sp *opensearchapi.SearchParams) {
+		sp.TypedKeys = &value
 	}
 }
