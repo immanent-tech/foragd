@@ -14,6 +14,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
 	"sync"
 
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
@@ -73,6 +74,51 @@ func Get[T ~string, O opensearch.Doc[T]](
 	}
 
 	return doc, nil
+}
+
+// GetDocs will retrieve the documents with the given IDs from the given index.
+func GetDocs[T ~string, O opensearch.Doc[T]](
+	ctx context.Context,
+	client opensearchapi.DocumentClient,
+	index string,
+	ids ...T,
+) ([]O, error) {
+	allIDs := make([]string, 0, len(ids))
+	for id := range slices.Values(ids) {
+		allIDs = append(allIDs, string(id))
+	}
+	req := opensearchapi.MGetReq{
+		Index: index,
+		Body: &opensearchapi.MGetBody{
+			IDs: new(strings.Join(allIDs, ",")),
+		},
+		Header: opensearch.NewRequestHeaders(ctx),
+	}
+	resp, err := client.MGet(ctx, req)
+	for _, sub := range opensearchapi.Errors(err) {
+		switch e := sub.(type) {
+		case *opensearchapi.ShardFailureError:
+			slogctx.Warn(ctx, "Partial failure for doc request.",
+				slog.Int("failed_shards", e.FailedShards),
+				slog.Int("total_shards", e.TotalShards),
+				slog.String("operation", e.Operation),
+			)
+		default:
+			return nil, opensearch.HandleError("get doc", resp, err)
+		}
+	}
+
+	var errs []error
+	docs := make([]O, 0, len(resp.Docs))
+	for source := range slices.Values(resp.Docs) {
+		v, err := opensearch.ExtractSource[O](source.RawJSON())
+		if err != nil {
+			errs = append(errs, err)
+		}
+		docs = append(docs, v)
+	}
+
+	return docs, nil
 }
 
 // Index will create the given document, with given id, in the given index. If a document with the ID already exists, it
@@ -244,6 +290,7 @@ func Delete[T ~string](
 		Index:  index,
 		ID:     string(id),
 		Header: opensearch.NewRequestHeaders(ctx),
+		Params: &opensearchapi.DeleteParams{},
 	}
 
 	// Set any additional optional parameters.
