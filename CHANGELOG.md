@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.261.0](https://github.com/immanent-tech/foragd/compare/v0.260.0...v0.261.0) (2026-11-20)
+
+
+### Features
+
+* **providers/ollama:** ♻️ allow calling EmbedBatch directly ([39e5a6a](https://github.com/immanent-tech/foragd/commit/39e5a6af80bc5d992527d966c3f8de0a78f43e00))
+* **providers/ollama:** ➕ support setting options on embedding request ([030d324](https://github.com/immanent-tech/foragd/commit/030d32470db0b3829385f2b5948a9debf06df1d2))
+* **providers/opensearch:** ♻️ improve error reporting for search/doc requests ([39bbb30](https://github.com/immanent-tech/foragd/commit/39bbb3076c208b9c41580a113e0e26fd654d00fd))
+* **providers/opensearch:** ✨ configure a bulk indexer with functional options ([e619f79](https://github.com/immanent-tech/foragd/commit/e619f7939f284605df2b8745fd334da980d88f8a))
+* **providers/opensearch:** ✨ doc indexing improvements ([65abeb4](https://github.com/immanent-tech/foragd/commit/65abeb421f791392271ddd577d88301ad788ecd3))
+* **providers/opensearch:** ✨ more schema updates ([4041e93](https://github.com/immanent-tech/foragd/commit/4041e93fdc14af628336fe8baea0cb379726bafd))
+* **providers/opensearch:** ➕ add additional bulk action types ([877551a](https://github.com/immanent-tech/foragd/commit/877551a4cbfdf253069f4904c9050050f76078b9))
+* **providers/opensearch:** ➕ add bool query generation ([3fd2662](https://github.com/immanent-tech/foragd/commit/3fd266242950e166d2e1a87ef455b4f98334e737))
+* **providers/opensearch:** ➕ add Close method on opensearch client for safe closing ([f7d656c](https://github.com/immanent-tech/foragd/commit/f7d656c3ce9c73e3cfbd2ea6a254c22b36d48c5a))
+* **providers/opensearch:** ➕ add Exists query ([86d4f00](https://github.com/immanent-tech/foragd/commit/86d4f006a0ffdeddf8bed1f13a91475111879c9c))
+* **providers/opensearch:** ➕ add terms query helper ([493c9c5](https://github.com/immanent-tech/foragd/commit/493c9c50481c8820e8df1758538026f74327f2e4))
+* **providers/opensearch:** ➕ additional reindex options ([2c37c55](https://github.com/immanent-tech/foragd/commit/2c37c5557fcb3cf8a8d5f1ee26aaa505d344aa04))
+* **providers/opensearch:** ➕ allow setting refresh parameter when deleting documents ([0992763](https://github.com/immanent-tech/foragd/commit/0992763fa6dda6c9843660b098c132788b5a928a))
+* **providers/opensearch:** ➕ allow setting refresh parameter when indexing documents ([e0be148](https://github.com/immanent-tech/foragd/commit/e0be148ad377304bdc6cc013e00300b04e409ddf))
+* **scheduler:** ♻️ switch scheduler over to using opensearch ([3292b3b](https://github.com/immanent-tech/foragd/commit/3292b3bb0e21e5fd2d0956a46f8b9a80020ba7a9))
+* **schema:** ➕ add users schema ([1797e5f](https://github.com/immanent-tech/foragd/commit/1797e5f914281c6469a106401209b24dcbf0d407))
+
+
+### Bug Fixes
+
+* **providers/ollama:** 🗑️ remove debug line ([a198db5](https://github.com/immanent-tech/foragd/commit/a198db52345f16eff82358575c63c8bdf3ca2939))
+* **providers/opensearch:** 🔧 fix adding index request options ([56cfbc7](https://github.com/immanent-tech/foragd/commit/56cfbc71892b812de65365f784fd1c7cb327fbad))
+* **scheduler:** 🗑️ more elasticsearch removals ([935fa7c](https://github.com/immanent-tech/foragd/commit/935fa7c853a380c1361277af9f79c66fc1d4ca1d))
+
+
+### Performance Improvements
+
+* **providers/opensearch:** ⚡ tweak model connector settings ([f685ef1](https://github.com/immanent-tech/foragd/commit/f685ef156da2883f5c36539ff2ed624f737c9546))
+
+
+### Reverts
+
+* **services/items:** ♻️ revert date range rounding ([e555ca3](https://github.com/immanent-tech/foragd/commit/e555ca35b7a2805913c9398a978c72d65619b27e))
+
 ## [0.260.0](https://github.com/immanent-tech/foragd/compare/v0.259.0...v0.260.0) (2026-11-14)
 
 
