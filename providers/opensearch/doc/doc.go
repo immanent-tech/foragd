@@ -55,16 +55,18 @@ func Get[T ~string, O opensearch.Doc[T]](
 	if !resp.Found {
 		return doc, errors.Join(models.ErrNotFound, err)
 	}
-	for _, sub := range opensearchapi.Errors(err) {
-		switch e := sub.(type) {
-		case *opensearchapi.ShardFailureError:
-			slogctx.Warn(ctx, "Partial failure for doc request.",
-				slog.Int("failed_shards", e.FailedShards),
-				slog.Int("total_shards", e.TotalShards),
-				slog.String("operation", e.Operation),
-			)
-		default:
-			return doc, opensearch.HandleError("get doc", resp, err)
+	if err != nil {
+		for _, sub := range opensearchapi.Errors(err) {
+			switch e := sub.(type) {
+			case *opensearchapi.ShardFailureError:
+				slogctx.Warn(ctx, "Partial failure for doc request.",
+					slog.Int("failed_shards", e.FailedShards),
+					slog.Int("total_shards", e.TotalShards),
+					slog.String("operation", e.Operation),
+				)
+			default:
+				return doc, opensearch.HandleError("get doc", resp, err)
+			}
 		}
 	}
 
@@ -95,16 +97,18 @@ func GetDocs[T ~string, O opensearch.Doc[T]](
 		Header: opensearch.NewRequestHeaders(ctx),
 	}
 	resp, err := client.MGet(ctx, req)
-	for _, sub := range opensearchapi.Errors(err) {
-		switch e := sub.(type) {
-		case *opensearchapi.ShardFailureError:
-			slogctx.Warn(ctx, "Partial failure for doc request.",
-				slog.Int("failed_shards", e.FailedShards),
-				slog.Int("total_shards", e.TotalShards),
-				slog.String("operation", e.Operation),
-			)
-		default:
-			return nil, opensearch.HandleError("get doc", resp, err)
+	if err != nil {
+		for _, sub := range opensearchapi.Errors(err) {
+			switch e := sub.(type) {
+			case *opensearchapi.ShardFailureError:
+				slogctx.Warn(ctx, "Partial failure for doc request.",
+					slog.Int("failed_shards", e.FailedShards),
+					slog.Int("total_shards", e.TotalShards),
+					slog.String("operation", e.Operation),
+				)
+			default:
+				return nil, opensearch.HandleError("get doc", resp, err)
+			}
 		}
 	}
 
@@ -147,16 +151,18 @@ func Index[T ~string, O opensearch.Doc[T]](
 	}
 
 	resp, err := client.Index(ctx, req)
-	for _, sub := range opensearchapi.Errors(err) {
-		switch e := sub.(type) {
-		case *opensearchapi.ShardFailureError:
-			slogctx.Warn(ctx, "Partial failure for doc request.",
-				slog.Int("failed_shards", e.FailedShards),
-				slog.Int("total_shards", e.TotalShards),
-				slog.String("operation", e.Operation),
-			)
-		default:
-			return opensearch.HandleError("index doc", resp, err)
+	if err != nil {
+		for _, sub := range opensearchapi.Errors(err) {
+			switch e := sub.(type) {
+			case *opensearchapi.ShardFailureError:
+				slogctx.Warn(ctx, "Partial failure for doc request.",
+					slog.Int("failed_shards", e.FailedShards),
+					slog.Int("total_shards", e.TotalShards),
+					slog.String("operation", e.Operation),
+				)
+			default:
+				return opensearch.HandleError("index doc", resp, err)
+			}
 		}
 	}
 
@@ -196,16 +202,18 @@ func Create[T ~string, O opensearch.Doc[T]](
 	}
 
 	resp, err := client.Create(ctx, req)
-	for _, sub := range opensearchapi.Errors(err) {
-		switch e := sub.(type) {
-		case *opensearchapi.ShardFailureError:
-			slogctx.Warn(ctx, "Partial failure for doc request.",
-				slog.Int("failed_shards", e.FailedShards),
-				slog.Int("total_shards", e.TotalShards),
-				slog.String("operation", e.Operation),
-			)
-		default:
-			return opensearch.HandleError("create doc", resp, err)
+	if err != nil {
+		for _, sub := range opensearchapi.Errors(err) {
+			switch e := sub.(type) {
+			case *opensearchapi.ShardFailureError:
+				slogctx.Warn(ctx, "Partial failure for doc request.",
+					slog.Int("failed_shards", e.FailedShards),
+					slog.Int("total_shards", e.TotalShards),
+					slog.String("operation", e.Operation),
+				)
+			default:
+				return opensearch.HandleError("create doc", resp, err)
+			}
 		}
 	}
 
@@ -244,16 +252,18 @@ func Update[T ~string](
 
 	// Perform the update.
 	resp, err := client.Update(ctx, req)
-	for _, sub := range opensearchapi.Errors(err) {
-		switch e := sub.(type) {
-		case *opensearchapi.ShardFailureError:
-			slogctx.Warn(ctx, "Partial failure for doc request.",
-				slog.Int("failed_shards", e.FailedShards),
-				slog.Int("total_shards", e.TotalShards),
-				slog.String("operation", e.Operation),
-			)
-		default:
-			return opensearch.HandleError("update doc", resp, err)
+	if err != nil {
+		for _, sub := range opensearchapi.Errors(err) {
+			switch e := sub.(type) {
+			case *opensearchapi.ShardFailureError:
+				slogctx.Warn(ctx, "Partial failure for doc request.",
+					slog.Int("failed_shards", e.FailedShards),
+					slog.Int("total_shards", e.TotalShards),
+					slog.String("operation", e.Operation),
+				)
+			default:
+				return opensearch.HandleError("update doc", resp, err)
+			}
 		}
 	}
 
@@ -299,16 +309,18 @@ func Delete[T ~string](
 	}
 
 	resp, err := client.Delete(ctx, req)
-	for _, sub := range opensearchapi.Errors(err) {
-		switch e := sub.(type) {
-		case *opensearchapi.ShardFailureError:
-			slogctx.Warn(ctx, "Partial failure for doc request.",
-				slog.Int("failed_shards", e.FailedShards),
-				slog.Int("total_shards", e.TotalShards),
-				slog.String("operation", e.Operation),
-			)
-		default:
-			return opensearch.HandleError("delete doc", resp, err)
+	if err != nil {
+		for _, sub := range opensearchapi.Errors(err) {
+			switch e := sub.(type) {
+			case *opensearchapi.ShardFailureError:
+				slogctx.Warn(ctx, "Partial failure for doc request.",
+					slog.Int("failed_shards", e.FailedShards),
+					slog.Int("total_shards", e.TotalShards),
+					slog.String("operation", e.Operation),
+				)
+			default:
+				return opensearch.HandleError("delete doc", resp, err)
+			}
 		}
 	}
 
@@ -354,16 +366,18 @@ func DeleteByQuery(ctx context.Context, client Client, index string, options ...
 	}
 
 	resp, err := client.DeleteByQuery(ctx, req)
-	for _, sub := range opensearchapi.Errors(err) {
-		switch e := sub.(type) {
-		case *opensearchapi.ShardFailureError:
-			slogctx.Warn(ctx, "Partial failure for doc request.",
-				slog.Int("failed_shards", e.FailedShards),
-				slog.Int("total_shards", e.TotalShards),
-				slog.String("operation", e.Operation),
-			)
-		default:
-			return opensearch.HandleError("delete by query", resp, err)
+	if err != nil {
+		for _, sub := range opensearchapi.Errors(err) {
+			switch e := sub.(type) {
+			case *opensearchapi.ShardFailureError:
+				slogctx.Warn(ctx, "Partial failure for doc request.",
+					slog.Int("failed_shards", e.FailedShards),
+					slog.Int("total_shards", e.TotalShards),
+					slog.String("operation", e.Operation),
+				)
+			default:
+				return opensearch.HandleError("delete by query", resp, err)
+			}
 		}
 	}
 

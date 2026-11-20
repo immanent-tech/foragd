@@ -46,16 +46,18 @@ func Search(
 	}
 
 	resp, err := client.Search(ctx, req)
-	for _, sub := range opensearchapi.Errors(err) {
-		switch e := sub.(type) {
-		case *opensearchapi.PartialSearchError:
-			slogctx.Warn(ctx, "Partial failure for search request.",
-				slog.Int("failed_shards", e.FailedShards),
-				slog.Int("total_shards", e.TotalShards),
-				slog.Int("hits", len(resp.Hits.Hits)),
-			)
-		default:
-			return nil, opensearch.GenerateAPIError("search", resp)
+	if err != nil {
+		for _, sub := range opensearchapi.Errors(err) {
+			switch e := sub.(type) {
+			case *opensearchapi.PartialSearchError:
+				slogctx.Warn(ctx, "Partial failure for search request.",
+					slog.Int("failed_shards", e.FailedShards),
+					slog.Int("total_shards", e.TotalShards),
+					slog.Int("hits", len(resp.Hits.Hits)),
+				)
+			default:
+				return nil, opensearch.GenerateAPIError("search", resp)
+			}
 		}
 	}
 
@@ -370,16 +372,18 @@ func SearchAll(
 		}
 
 		loopResp, err := client.Search(ctx, loopReq)
-		for _, sub := range opensearchapi.Errors(err) {
-			switch e := sub.(type) {
-			case *opensearchapi.PartialSearchError:
-				slogctx.Warn(ctx, "Partial failure for search request.",
-					slog.Int("failed_shards", e.FailedShards),
-					slog.Int("total_shards", e.TotalShards),
-					slog.Int("hits", len(loopResp.Hits.Hits)),
-				)
-			default:
-				resp.errors = append(resp.errors, opensearch.GenerateAPIError("search", loopResp))
+		if err != nil {
+			for _, sub := range opensearchapi.Errors(err) {
+				switch e := sub.(type) {
+				case *opensearchapi.PartialSearchError:
+					slogctx.Warn(ctx, "Partial failure for search request.",
+						slog.Int("failed_shards", e.FailedShards),
+						slog.Int("total_shards", e.TotalShards),
+						slog.Int("hits", len(loopResp.Hits.Hits)),
+					)
+				default:
+					resp.errors = append(resp.errors, opensearch.GenerateAPIError("search", loopResp))
+				}
 			}
 		}
 
@@ -483,15 +487,17 @@ func Count(ctx context.Context, client Client, index string, options ...CountOpt
 
 	// Perform request.
 	resp, err := client.Count(ctx, req)
-	for _, sub := range opensearchapi.Errors(err) {
-		switch e := sub.(type) {
-		case *opensearchapi.PartialSearchError:
-			slogctx.Warn(ctx, "Partial failure for search request.",
-				slog.Int("failed_shards", e.FailedShards),
-				slog.Int("total_shards", e.TotalShards),
-			)
-		default:
-			return 0, opensearch.GenerateAPIError("search", resp)
+	if err != nil {
+		for _, sub := range opensearchapi.Errors(err) {
+			switch e := sub.(type) {
+			case *opensearchapi.PartialSearchError:
+				slogctx.Warn(ctx, "Partial failure for search request.",
+					slog.Int("failed_shards", e.FailedShards),
+					slog.Int("total_shards", e.TotalShards),
+				)
+			default:
+				return 0, opensearch.GenerateAPIError("search", resp)
+			}
 		}
 	}
 
