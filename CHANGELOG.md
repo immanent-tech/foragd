@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.263.1](https://github.com/immanent-tech/foragd/compare/v0.263.0...v0.263.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* **providers/opensearch:** 🔧 handle nil error ([f690196](https://github.com/immanent-tech/foragd/commit/f690196dcba85a3a2161cf5108653ae1643b57df))
+* **providers/opensearch:** 🔧 wrap error handling ([7b17a4b](https://github.com/immanent-tech/foragd/commit/7b17a4b49c1307afed1ff414941875f8619b4e4b))
+
 ## [0.263.0](https://github.com/immanent-tech/foragd/compare/v0.262.0...v0.263.0) (2026-11-20)
 
 
