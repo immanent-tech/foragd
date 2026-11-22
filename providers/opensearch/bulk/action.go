@@ -12,6 +12,8 @@ import (
 	"slices"
 
 	"github.com/opensearch-project/opensearch-go/v5/opensearchutil"
+
+	"github.com/immanent-tech/foragd/providers/opensearch"
 )
 
 const (
@@ -41,7 +43,7 @@ func NewAction(action ActionType, options ...ActionOption) Action {
 	return a
 }
 
-func (a Action) encode() error {
+func (a *Action) encode() error {
 	if a.doc != nil {
 		data, err := json.Marshal(a.doc)
 		if err != nil {
@@ -55,10 +57,24 @@ func (a Action) encode() error {
 // ActionOption is a functional option applied to a bulk action.
 type ActionOption func(*Action)
 
+// WithID option defines the document ID to use.
+func WithID(id string) ActionOption {
+	return func(a *Action) {
+		a.DocumentID = id
+	}
+}
+
 // WithDoc option defines the document for the action.
 func WithDoc(doc any) ActionOption {
 	return func(a *Action) {
 		a.doc = doc
+	}
+}
+
+// WithRefresh option sets the [opensearch.Refresh] handling for this request.
+func WithRefresh(refresh opensearch.Refresh) ActionOption {
+	return func(a *Action) {
+		a.Refresh = new(refresh.String())
 	}
 }
 

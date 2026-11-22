@@ -58,7 +58,7 @@ func loadServices(ctx context.Context, appCfg *config.AppConfig) (*services, err
 		slogctx.Warn(ctx, "Failed to load opensearch client", slog.Any("error", err))
 		// return nil, fmt.Errorf("load opensearch client: %w", err)
 	}
-	indexer, err := bulk.New()
+	indexer, err := bulk.New(osc)
 	if err != nil {
 		slogctx.Warn(ctx, "Failed to load bulk indexer", slog.Any("error", err))
 	}

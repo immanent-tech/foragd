@@ -23,6 +23,8 @@ import (
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 	"github.com/opensearch-project/opensearch-go/v5/opensearchutil"
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/foragd/providers/opensearch"
 )
 
 const (
@@ -45,9 +47,10 @@ type Indexer struct {
 }
 
 // New creates a new bulk indexer instance with the given options.
-func New(options ...IndexerOption) (*Indexer, error) {
+func New(client *opensearch.Client, options ...IndexerOption) (*Indexer, error) {
 	// Set up config.
 	cfg := &Config{
+		Client:        client.Client,
 		NumWorkers:    runtime.NumCPU(),
 		FlushBytes:    defaultFlushBytes,
 		FlushInterval: defaultFlushInterval,
@@ -59,6 +62,9 @@ func New(options ...IndexerOption) (*Indexer, error) {
 				return 100 * time.Millisecond << (attempt - 1), true // 100ms, 200ms, 400ms, ...
 			},
 		),
+		OnUnhandledError: func(ctx context.Context, err error) {
+			slogctx.Warn(ctx, "Unhandled bulk error occurred", slog.Any("error", err))
+		},
 	}
 	for option := range slices.Values(options) {
 		option(cfg)
