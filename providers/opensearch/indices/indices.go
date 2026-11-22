@@ -8,7 +8,9 @@ package indices
 import (
 	"context"
 	"fmt"
+	"maps"
 	"net/http"
+	"slices"
 
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 
@@ -168,4 +170,21 @@ func IndexExists(ctx context.Context, client opensearchapi.IndicesClient, index 
 		return true, nil
 	}
 	return false, nil
+}
+
+// GetAllIndices retrieves the underlying indices for the given [opensearch.Index].
+func GetAllIndices(
+	ctx context.Context,
+	client opensearchapi.IndicesClient,
+	index opensearch.Index,
+) ([]string, error) {
+	match := index.String() + "*"
+	resp, err := client.Get(ctx, &opensearchapi.IndicesGetReq{
+		Indices: []string{match},
+		Header:  opensearch.NewRequestHeaders(ctx),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("get all indices matching %s: %w", match, err)
+	}
+	return slices.Collect(maps.Keys(resp.Entries)), nil
 }
