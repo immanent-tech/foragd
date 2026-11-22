@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -37,7 +38,7 @@ type Config struct {
 	Endpoint     string  `koanf:"endpoint"     validate:"required,hostname_port"`
 	URL          string  `koanf:"url"          validate:"omitempty,url"`
 	Model        string  `koanf:"model"        validate:"required"`
-	Dimensions   int     `koanf:"dimensions"   validate:"required,gt=0"`
+	Dimensions   int64   `koanf:"dimensions"   validate:"required,gt=0"`
 	AccessKey    *string `koanf:"accesskey"    validate:"omitnil"`
 	SecretKey    *string `koanf:"secretkey"    validate:"omitnil"`
 	SessionToken *string `koanf:"sessiontoken" validate:"omitnil"`
@@ -183,8 +184,11 @@ func (c *Client) ConfigureMLConnector(ctx context.Context) (string, error) {
 	}
 
 	resp, err := c.Connector.GetConnector(ctx, ml.GetConnectorReq{ConnectorID: c.cfg.ConnectorID})
-	if err != nil && resp.Inspect().Response.StatusCode != http.StatusNotFound {
+	if err != nil {
 		return "", opensearch.HandleError("get connector", resp, err)
+	}
+	if resp == nil {
+		return "", errors.New("no connector response!")
 	}
 	switch resp.Inspect().Response.StatusCode {
 	case http.StatusOK:
@@ -231,6 +235,14 @@ func (c *Client) ConfigureModel(ctx context.Context, connectorID string) (string
 		Name:         "Model " + c.cfg.Model,
 		FunctionName: new("remote"),
 		Description:  new("Remote model " + c.cfg.Model + " from " + c.cfg.Name),
+		ModelConfig: &opensearchapi.MLModelConfig{
+			EmbeddingDimension: &c.cfg.Dimensions,
+			ModelType:          new("text_embedding"),
+			FrameworkType:      new("SENTENCE_TRANSFORMERS"),
+			AdditionalConfig: &opensearchapi.MLAdditionalConfig{
+				SpaceType: new("cosinesimil"),
+			},
+		},
 	}
 	body, err := json.Marshal(model)
 	if err != nil {
@@ -290,8 +302,16 @@ func (c *Client) modelExists(ctx context.Context, modelID string) (bool, error) 
 		Header:  opensearch.NewRequestHeaders(ctx),
 		ModelID: modelID,
 	})
-	if err != nil && resp.Inspect().Response.StatusCode != http.StatusNotFound {
+	if err != nil {
 		return false, opensearch.HandleError("get model", resp, err)
 	}
-	return resp.Inspect().Response.StatusCode == http.StatusOK, nil
+	if resp == nil {
+		return false, errors.New("empty response")
+	}
+	switch resp.Inspect().Response.StatusCode {
+	case http.StatusOK:
+		return true, nil
+	default:
+		return false, nil
+	}
 }
