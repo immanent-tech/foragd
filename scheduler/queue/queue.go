@@ -123,15 +123,20 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	ctx, cancel := jq.ctx()
 	defer cancel()
 
-	resp, err := search.Search(ctx,
+	resp, err := search.Search(
+		ctx,
 		jq.osc,
 		jq.osc.IndexReadAlias(schema.SchedulerIndex),
 		search.WithQuery(search.MatchAllQuery()),
 		search.WithSize(1),
+		search.WithSort(
+			search.NewSortOptions(search.WithSortField("job_next_run", search.WithFieldSortOrder(search.SortOrderAsc))),
+		),
 		search.WithSearchParameters(
-			search.WithSortParams("job_next_run:asc"),
 			search.WithSeqNoPrimaryTerm(true),
 		),
+		search.WithTrackTotalHits(false),
+		search.WithTrackScores(false),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("head: %w", err)
