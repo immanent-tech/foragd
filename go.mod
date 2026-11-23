@@ -18,12 +18,12 @@ require (
 	codeberg.org/readeck/go-readability/v2 v2.1.3
 	github.com/BurntSushi/toml v1.6.0
 	github.com/PaddleHQ/paddle-go-sdk/v5 v5.2.0
-	github.com/PuerkitoBio/goquery v1.13.0
+	github.com/PuerkitoBio/goquery v1.14.0
 	github.com/a-h/templ v0.3.1118
 	github.com/alecthomas/kong v1.17.0
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/auth0/go-auth0/v2 v2.14.0
-	github.com/brianvoe/gofakeit/v7 v7.18.3
+	github.com/brianvoe/gofakeit/v7 v7.18.4
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/dimmerz92/go-icons v0.77.0
@@ -86,7 +86,7 @@ require (
 	github.com/a-h/parse v0.0.42 // indirect
 	github.com/air-verse/air v1.67.4 // indirect
 	github.com/andybalholm/brotli v1.3.0 // indirect
-	github.com/andybalholm/cascadia v1.3.4 // indirect
+	github.com/andybalholm/cascadia v1.3.5 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
