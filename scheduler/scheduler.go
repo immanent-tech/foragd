@@ -318,7 +318,7 @@ func (m *Manager) ClearDeletedFeedJobs(ctx context.Context) error {
 }
 
 func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, error) {
-	indexer, err := bulk.New()
+	indexer, err := bulk.New(m.osc)
 	if err != nil {
 		slogctx.Warn(ctx, "Failed to load bulk indexer", slog.Any("error", err))
 	}
