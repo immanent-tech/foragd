@@ -19,11 +19,9 @@ import (
 	"time"
 
 	"codeberg.org/readeck/go-readability/v2"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
-	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-resty/resty/v2"
 	"github.com/maypok86/otter/v2"
+	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
@@ -34,12 +32,11 @@ import (
 	"github.com/immanent-tech/go-base/pkg/zyte"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/bulk"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	gerror "github.com/immanent-tech/foragd/providers/google/error"
 	"github.com/immanent-tech/foragd/providers/opensearch"
-	osbulk "github.com/immanent-tech/foragd/providers/opensearch/bulk"
+	"github.com/immanent-tech/foragd/providers/opensearch/bulk"
+	"github.com/immanent-tech/foragd/providers/opensearch/doc"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
 	"github.com/immanent-tech/foragd/schema"
 	"github.com/immanent-tech/foragd/server/cache"
 )
@@ -72,9 +69,8 @@ type ItemService struct {
 	*otter.Cache[models.ItemID, *models.Item]
 
 	bulkLoader otter.BulkLoaderFunc[models.ItemID, *models.Item]
-	esc        *ElasticService
 	osc        *opensearch.Client
-	indexer    *osbulk.Indexer
+	indexer    *bulk.Indexer
 	dataCache  cache.ObjectCache
 	httpClient *resty.Client
 
@@ -85,19 +81,23 @@ type ItemService struct {
 func LoadItemsService(
 	ctx context.Context,
 	osc *opensearch.Client,
-	indexer *osbulk.Indexer,
+	indexer *bulk.Indexer,
 	httpClient *resty.Client,
 ) (*ItemService, error) {
-	svc, err := LoadElasticService()
-	if err != nil {
-		return nil, fmt.Errorf("load elastic service: %w", err)
+	if osc == nil {
+		return nil, errors.New("no opensearch client")
 	}
+	if indexer == nil {
+		return nil, errors.New("no indexer")
+	}
+	if httpClient == nil {
+		return nil, errors.New("no http client")
+	}
+
 	itemsCache, err := cache.NewItemsCache()
 	if err != nil {
 		return nil, fmt.Errorf("load items cache: %w", err)
 	}
-
-	index := svc.GetIndexRO(ItemsIndex)
 
 	return &ItemService{
 		Cache: otter.Must(&otter.Options[models.ItemID, *models.Item]{
@@ -106,22 +106,22 @@ func LoadItemsService(
 		}),
 		bulkLoader: otter.BulkLoaderFunc[models.ItemID, *models.Item](
 			func(ctx context.Context, keys []models.ItemID) (map[models.ItemID]*models.Item, error) {
-				fetched, err := elastic.GetDocs[models.ItemID, *models.Item](
+				items, err := doc.GetDocs[models.ItemID, models.Item](
 					ctx,
-					index,
+					osc.Doc,
+					osc.IndexReadAlias(schema.ItemsIndex),
 					keys...)
 				if err != nil {
 					return nil, fmt.Errorf("mget items: %w", err)
 				}
-				items := make(map[models.ItemID]*models.Item)
-				for item := range slices.Values(fetched) {
-					items[item.GetID()] = item
+				itemMap := make(map[models.ItemID]*models.Item)
+				for item := range slices.Values(items) {
+					itemMap[item.GetID()] = &item
 				}
-				return items, nil
+				return itemMap, nil
 			},
 		),
 		dataCache:  itemsCache,
-		esc:        svc,
 		osc:        osc,
 		indexer:    indexer,
 		httpClient: httpClient,
@@ -168,31 +168,24 @@ func (s *ItemService) GetItems(ctx context.Context, ids ...models.ItemID) (model
 // AddItems will add the given [models.Item] to the database. It returns a map divided into "updated" and "new" items,
 // to indicate items that existed and were updated vs. items that were added as new.
 func (s *ItemService) AddItems(ctx context.Context, items models.Items) (int, error) {
-	if s.indexer != nil {
-		for item := range slices.Values(items) {
-			if err := s.indexer.Add(ctx, osbulk.NewAction(
-				osbulk.ActionCreate,
-				osbulk.ToIndex(s.osc.IndexWriteAlias(schema.ItemsIndex)),
-				osbulk.WithDoc(item),
-			)); err != nil {
-				slogctx.Warn(
-					ctx,
-					"Could not bulk add item",
-					slog.String("item_id", item.GetID()),
-					slog.Any("error", err),
-				)
-				continue
-			}
-		}
-		if err := s.indexer.Flush(ctx); err != nil {
-			slogctx.Warn(ctx, "Flush bulk items failed", slog.Any("error", err))
+	for item := range slices.Values(items) {
+		if err := s.indexer.Add(ctx, bulk.NewAction(
+			bulk.ActionCreate,
+			bulk.ToIndex(s.osc.IndexWriteAlias(schema.ItemsIndex)),
+			bulk.WithID(item.GetID()),
+			bulk.WithDoc(item),
+		)); err != nil {
+			slogctx.Warn(
+				ctx,
+				"Could not bulk add item",
+				slog.String("item_id", item.GetID()),
+				slog.Any("error", err),
+			)
+			continue
 		}
 	}
-	if err := bulk.IndexDocuments(ctx, s.esc.GetIndexRW(ItemsIndex), items...); err != nil {
-		return 0, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add items: %w", err))
-	}
-	if err := bulk.Flush(ctx); err != nil {
-		return 0, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk flush: %w", err))
+	if err := s.indexer.Flush(ctx); err != nil {
+		slogctx.Warn(ctx, "Flush bulk items failed", slog.Any("error", err))
 	}
 	if err := ctx.Err(); err != nil {
 		slogctx.Warn(ctx, "context done",
@@ -217,7 +210,7 @@ type ItemChanges struct {
 
 // SortItemsByState takes a [models.Items] slice and checks for significant changes for the existing items in the
 // slice. It returns an [ItemChanges] which contains slices of the new, updated, and unchanged items.
-func (s ItemService) SortItemsByState(ctx context.Context, items models.Items) ItemChanges {
+func (s *ItemService) SortItemsByState(ctx context.Context, items models.Items) ItemChanges {
 	oldItems, err := s.GetItems(ctx, items.GetIDs()...)
 	if err != nil {
 		// If we can't fetch existing items, assume all items are new so enrichment takes place.
@@ -452,104 +445,76 @@ func enrichItemImage(
 
 func (s *ItemService) GetTopCategoriesForItems(
 	ctx context.Context,
-	itemsQuery query.Option,
+	itemsQuery search.QueryOption,
 ) (models.CategoryCounts, error) {
-	// Build elastic.
-	termsField := "categories.raw"
-	termsCount := 20
-	aggs := elastic.Aggs{
-		"CategoryCounts": estypes.Aggregations{
-			Terms: &estypes.TermsAggregation{
-				Field: &termsField,
-				Size:  &termsCount,
-			},
-		},
-	}
-
-	resp, err := elastic.Search[*models.Item](ctx,
-		s.esc.GetIndexRO(ItemsIndex),
-		elastic.WithQuery[*search.Search](itemsQuery),
-		elastic.WithAggregations[*search.Search](aggs),
-		elastic.WithSize[*search.Search](0),
-		elastic.WithDocSorting[*search.Search](),
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithQuery(itemsQuery),
+		search.WithAggregation("CategoryCounts",
+			search.TermsAggregation(
+				search.WithTermsAggregationField("categories.raw"),
+				search.WithTermsAggregationSize(20),
+			),
+		),
+		search.WithSize(0),
+		search.WithTrackTotalHits(false),
+		search.WithTrackScores(false),
+		search.WithSort(search.NewSortOptions(search.WithSortField("_doc"))),
 	)
 	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
+		return nil, fmt.Errorf("search items: %w", err)
 	}
-
-	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*estypes.StringTermsAggregate)
-	if !ok {
-		return nil, fmt.Errorf(
-			"category counts aggregation invalid: %w",
-			models.ErrInvalidAPIResult,
-		)
+	categoryCounts, err := resp.ExtractAggregation[opensearchapi.CommonAggregationsStringTermsAggregate](
+		"CategoryCounts",
+	)
+	if err != nil {
+		return nil, fmt.Errorf("extract aggregation: %w", err)
 	}
-	categoryCountsBuckets, ok := categoryCounts.Buckets.([]estypes.StringTermsBucket)
-	if !ok {
-		return nil, fmt.Errorf(
-			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
-			models.ErrInvalidAPIResult,
-		)
-	}
-
-	counts := make(models.CategoryCounts, 0, len(categoryCountsBuckets))
 
 	// Loop through the aggregation results and extract the unread count for each feed.
-	for bucket := range slices.Values(categoryCountsBuckets) {
-		var category models.Category
-		if category, ok = bucket.Key.(string); ok {
-			counts = append(counts, models.CategoryCount{Category: category, Count: int(bucket.DocCount)})
+	counts := make(models.CategoryCounts, 0, len(categoryCounts.Buckets))
+	for bucket := range slices.Values(categoryCounts.Buckets) {
+		if bucket.Key == "" {
+			continue
 		}
+		counts = append(counts, models.CategoryCount{Category: bucket.Key, Count: int(bucket.DocCount)})
 	}
 	return counts, nil
 }
 
 func (s *ItemService) GetTopLanguageCountsForItems(
 	ctx context.Context,
-	itemsQuery query.Option,
+	itemsQuery search.QueryOption,
 ) (map[string]int64, error) {
-	aggs := elastic.Aggs{
-		"LanguageCounts": estypes.Aggregations{
-			Terms: &estypes.TermsAggregation{
-				Field: new("language"),
-				Size:  new(10),
-			},
-		},
-	}
-
-	resp, err := elastic.Search[*models.Item](ctx,
-		s.esc.GetIndexRO(ItemsIndex),
-		elastic.WithQuery[*search.Search](itemsQuery),
-		elastic.WithAggregations[*search.Search](aggs),
-		elastic.WithSize[*search.Search](0),
-		elastic.WithDocSorting[*search.Search](),
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithQuery(itemsQuery),
+		search.WithAggregation("LanguageCounts",
+			search.TermsAggregation(
+				search.WithTermsAggregationField("language"),
+				search.WithTermsAggregationSize(20),
+			),
+		),
+		search.WithSize(0),
+		search.WithTrackTotalHits(false),
+		search.WithTrackScores(false),
+		search.WithSort(search.NewSortOptions(search.WithSortField("_doc"))),
 	)
 	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
+		return nil, fmt.Errorf("search items: %w", err)
 	}
-
-	languageCounts, ok := resp.Aggregations["LanguageCounts"].(*estypes.StringTermsAggregate)
-	if !ok {
-		return nil, fmt.Errorf(
-			"language counts aggregation invalid: %w",
-			models.ErrInvalidAPIResult,
-		)
+	languageCounts, err := resp.ExtractAggregation[opensearchapi.CommonAggregationsStringTermsAggregate](
+		"LanguageCounts",
+	)
+	if err != nil {
+		return nil, fmt.Errorf("extract aggregation: %w", err)
 	}
-	languageCountsBuckets, ok := languageCounts.Buckets.([]estypes.StringTermsBucket)
-	if !ok {
-		return nil, fmt.Errorf(
-			"language counts aggregation invalid: %w",
-			models.ErrInvalidAPIResult,
-		)
-	}
-
-	counts := make(map[string]int64, len(languageCountsBuckets))
 
 	// Loop through the aggregation results and extract the unread count for each feed.
-	for bucket := range slices.Values(languageCountsBuckets) {
-		if lang, ok := bucket.Key.(string); ok {
-			counts[lang] = bucket.DocCount
+	counts := make(map[string]int64, len(languageCounts.Buckets))
+	for bucket := range slices.Values(languageCounts.Buckets) {
+		if bucket.Key == "" {
+			continue
 		}
+		counts[bucket.Key] = bucket.DocCount
 	}
 	return counts, nil
 }
@@ -559,8 +524,8 @@ func BuildItemQueries(
 	user *models.User,
 	view models.View,
 	subscriptions models.Subscriptions,
-) []query.Option {
-	queries := make([]query.Option, 0, len(subscriptions))
+) []search.QueryOption {
+	queries := make([]search.QueryOption, 0, len(subscriptions))
 
 	// Ignore if no subscriptions specified.
 	if len(subscriptions) == 0 {
@@ -569,12 +534,8 @@ func BuildItemQueries(
 
 	// Filter to favorites.
 	if view == models.ViewFavorites {
-		return []query.Option{
-			query.Terms(
-				"item_id",
-				user.ItemFavorites,
-				query.WithQueryName[*query.TermsQuery]("favorite-items"),
-			),
+		return []search.QueryOption{
+			search.TermsQuery("item_id", user.ItemFavorites),
 		}
 	}
 
@@ -605,45 +566,34 @@ func BuildItemQueries(
 
 	switch view {
 	case models.ViewAll:
-		// queries = append(queries, queryAllItems(user, subscription))
-		filters := allSubscriptionFilters(grouped, filtered, user.GetMaxHistory())
-		query := query.Bool(
-			// Must match any subscription clause.
-			query.Should(filters...),
+		shouldClauses := allSubscriptionFilters(grouped, filtered, user.GetMaxHistory())
+		// Must match any subscription clause.
+		viewQuery := search.BoolQuery(
+			search.WithBoolShould(shouldClauses...),
 		)
-		queries = append(queries, query)
+		queries = append(queries, viewQuery)
 	case models.ViewRead:
-		// queries = append(queries, queryReadItems(user, subscription))
-		filters := readSubscriptionFilters(grouped, filtered, user.GetMaxHistory())
-		query := query.Bool(
-			// Must not match unread items.
-			query.MustNot(query.Terms("item_id", unreadItems)),
-			// Should match one of these.
-			query.Should(
-				// Match read items.
-				query.Terms("item_id", readItems),
+		shouldClauses := readSubscriptionFilters(grouped, filtered, user.GetMaxHistory())
+		shouldClauses = append(shouldClauses, search.TermsQuery("item_id", readItems))
+		readQuery := search.BoolQuery(
+			search.WithBoolMustNot(
+				search.TermsQuery("item_id", unreadItems),
 			),
-			// Must match any subscription clause.
-			query.Should(filters...),
+			search.WithBoolShould(shouldClauses...),
 		)
-		queries = append(queries, query)
+		queries = append(queries, readQuery)
 	case models.ViewUnread:
 		fallthrough
 	default:
-		// queries = append(queries, queryUnreadItems(user, subscription))
-		filters := unReadSubscriptionFilters(grouped, filtered, user.GetMaxHistory())
-		query := query.Bool(
-			// Must not match read items.
-			query.MustNot(query.Terms("item_id", readItems)),
-			// Should match one of these.
-			query.Should(
-				// Match unread items.
-				query.Terms("item_id", unreadItems),
+		shouldClauses := unReadSubscriptionFilters(grouped, filtered, user.GetMaxHistory())
+		shouldClauses = append(shouldClauses, search.TermsQuery("item_id", unreadItems))
+		unreadQuery := search.BoolQuery(
+			search.WithBoolMustNot(
+				search.TermsQuery("item_id", readItems),
 			),
-			// Match any subscription clause.
-			query.Should(filters...),
+			search.WithBoolShould(shouldClauses...),
 		)
-		queries = append(queries, query)
+		queries = append(queries, unreadQuery)
 	}
 
 	return queries
@@ -654,25 +604,20 @@ func unReadSubscriptionFilters(
 	grouped map[time.Time][]models.FeedID,
 	filtered models.Subscriptions,
 	maxHistory time.Time,
-) []query.Option {
-	filters := make([]query.Option, 0)
+) []search.QueryOption {
+	filters := make([]search.QueryOption, 0)
 	// Add filters for grouped subscriptions.
 	for ts, feedIDs := range grouped {
+		since := mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")
 		filters = append(filters,
-			query.Bool(
-				query.Filter(
-					query.Terms("feed_id", feedIDs),
-					query.Bool(
-						query.WithBoolShouldMinimumMatch(1),
-						query.Should(
-							query.Since(
-								"published",
-								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z"),
-							),
-							query.Since(
-								"updated",
-								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z"),
-							),
+			search.BoolQuery(
+				search.WithBoolFilter(
+					search.TermsQuery("feed_id", feedIDs),
+					search.BoolQuery(
+						search.WithBoolMinimumShouldMatch(1),
+						search.WithBoolShould(
+							search.SinceQuery("published", since),
+							search.SinceQuery("updated", since),
 						),
 					),
 				),
@@ -681,40 +626,30 @@ func unReadSubscriptionFilters(
 	}
 	// Add filters for subscriptions with article filters.
 	for subscription := range slices.Values(filtered) {
-		filters = append(filters, unreadItemsForSubscriptionClause(subscription, maxHistory))
+		filters = append(filters, UnreadItemsForSubscriptionClause(subscription, maxHistory))
 	}
 	return filters
 }
 
-// unreadItemsForSubscriptionClause generates a bool query that can be used to get unread items for a subscription.
-func unreadItemsForSubscriptionClause(subscription *models.Subscription, maxHistory time.Time) query.Option {
-	return query.Bool(
-		query.WithBoolQueryName(subscription.GetID()+"_unread"),
-		query.Filter(
-			query.Term("feed_id", subscription.GetFeedID()),
-			query.Bool(
-				query.WithBoolShouldMinimumMatch(1),
-				query.Should(
-					query.Since(
-						"published",
-						mostRecent(
-							subscription.GetMarkedReadAt(),
-							maxHistory,
-						).Format("2006-01-02T15:04:05Z"),
-					),
-					query.Since(
-						"updated",
-						mostRecent(
-							subscription.GetMarkedReadAt(),
-							maxHistory,
-						).Format("2006-01-02T15:04:05Z"),
-					),
+// UnreadItemsForSubscriptionClause generates a bool query that can be used to get unread items for a subscription.
+func UnreadItemsForSubscriptionClause(subscription *models.Subscription, maxHistory time.Time) search.QueryOption {
+	since := mostRecent(subscription.GetMarkedReadAt(), maxHistory).Format("2006-01-02T15:04:05Z")
+	return search.BoolQuery(
+		search.WithBoolFilter(
+			search.TermQuery("feed_id", subscription.GetFeedID()),
+			search.BoolQuery(
+				search.WithBoolMinimumShouldMatch(1),
+				search.WithBoolShould(
+					search.SinceQuery("published", since),
+					search.SinceQuery("updated", since),
 				),
 			),
 		),
-		query.MustNot(query.Terms("item_id", subscription.GetReadItems())),
-		query.Should(
-			query.Terms("item_id", subscription.GetUnreadItems()),
+		search.WithBoolMustNot(
+			search.TermsQuery("item_id", subscription.GetReadItems()),
+		),
+		search.WithBoolShould(
+			search.TermsQuery("item_id", subscription.GetUnreadItems()),
 		),
 		ArticleFiltersQueryClause(subscription.GetArticleFilters()),
 	)
@@ -725,25 +660,20 @@ func readSubscriptionFilters(
 	grouped map[time.Time][]models.FeedID,
 	filtered models.Subscriptions,
 	maxHistory time.Time,
-) []query.Option {
-	filters := make([]query.Option, 0)
+) []search.QueryOption {
+	filters := make([]search.QueryOption, 0)
 	// Add filters for grouped subscriptions.
 	for ts, feedIDs := range grouped {
+		before := mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z")
 		filters = append(filters,
-			query.Bool(
-				query.Filter(
-					query.Terms("feed_id", feedIDs),
-					query.Bool(
-						query.WithBoolShouldMinimumMatch(1),
-						query.Should(
-							query.Before(
-								"published",
-								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z"),
-							),
-							query.Before(
-								"updated",
-								mostRecent(ts, maxHistory).Format("2006-01-02T15:04:05Z"),
-							),
+			search.BoolQuery(
+				search.WithBoolFilter(
+					search.TermsQuery("feed_id", feedIDs),
+					search.BoolQuery(
+						search.WithBoolMinimumShouldMatch(1),
+						search.WithBoolShould(
+							search.BeforeQuery("published", before),
+							search.BeforeQuery("updated", before),
 						),
 					),
 				),
@@ -752,39 +682,30 @@ func readSubscriptionFilters(
 	}
 	// Add filters for subscriptions with article filters.
 	for subscription := range slices.Values(filtered) {
-		filters = append(filters, readItemsForSubscriptionClause(subscription, maxHistory))
+		filters = append(filters, ReadItemsForSubscriptionClause(subscription, maxHistory))
 	}
 	return filters
 }
 
-// readItemsForSubscriptionClause generates a bool query that can be used to get read items for a subscription.
-func readItemsForSubscriptionClause(subscription *models.Subscription, maxHistory time.Time) query.Option {
-	return query.Bool(
-		query.Filter(
-			query.Term("feed_id", subscription.GetFeedID()),
-			query.Bool(
-				query.WithBoolShouldMinimumMatch(1),
-				query.Should(
-					query.Before(
-						"published",
-						mostRecent(
-							subscription.GetMarkedReadAt(),
-							maxHistory,
-						).Format("2006-01-02T15:04:05Z"),
-					),
-					query.Before(
-						"updated",
-						mostRecent(
-							subscription.GetMarkedReadAt(),
-							maxHistory,
-						).Format("2006-01-02T15:04:05Z"),
-					),
+// ReadItemsForSubscriptionClause generates a bool query that can be used to get read items for a subscription.
+func ReadItemsForSubscriptionClause(subscription *models.Subscription, maxHistory time.Time) search.QueryOption {
+	before := mostRecent(subscription.GetMarkedReadAt(), maxHistory).Format("2006-01-02T15:04:05Z")
+	return search.BoolQuery(
+		search.WithBoolFilter(
+			search.TermQuery("feed_id", subscription.GetFeedID()),
+			search.BoolQuery(
+				search.WithBoolMinimumShouldMatch(1),
+				search.WithBoolShould(
+					search.BeforeQuery("published", before),
+					search.BeforeQuery("updated", before),
 				),
 			),
 		),
-		query.MustNot(query.Terms("item_id", subscription.GetUnreadItems())),
-		query.Should(
-			query.Terms("item_id", subscription.GetReadItems()),
+		search.WithBoolMustNot(
+			search.TermsQuery("item_id", subscription.GetUnreadItems()),
+		),
+		search.WithBoolShould(
+			search.TermsQuery("item_id", subscription.GetReadItems()),
 		),
 		ArticleFiltersQueryClause(subscription.GetArticleFilters()),
 	)
@@ -795,123 +716,66 @@ func allSubscriptionFilters(
 	grouped map[time.Time][]models.FeedID,
 	filtered models.Subscriptions,
 	maxHistory time.Time,
-) []query.Option {
-	filters := make([]query.Option, 0)
+) []search.QueryOption {
+	filters := make([]search.QueryOption, 0)
 	// Add filters for grouped subscriptions.
 	filteredIDs := make([]models.FeedID, 0)
 	for _, feedIDs := range grouped {
 		filteredIDs = append(filteredIDs, feedIDs...)
 	}
 	filters = append(filters,
-		query.Bool(
-			query.Filter(
-				query.Terms("feed_id", filteredIDs),
+		search.BoolQuery(
+			search.WithBoolFilter(
+				search.TermsQuery("feed_id", filteredIDs),
 			),
 		),
 	)
 	// Add filters for subscriptions with article filters.
 	for subscription := range slices.Values(filtered) {
-		filters = append(filters, allItemsForSubscriptionClause(subscription, maxHistory))
+		filters = append(filters, AllItemsForSubscriptionClause(subscription, maxHistory))
 	}
 	return filters
 }
 
-// allItemsForSubscriptionClause generates a bool query that can be used to get all items for a subscription.
-func allItemsForSubscriptionClause(subscription *models.Subscription, maxHistory time.Time) query.Option {
-	return query.Bool(
-		query.Filter(
-			query.Term("feed_id", subscription.GetFeedID()),
+// AllItemsForSubscriptionClause generates a bool query that can be used to get all items for a subscription.
+func AllItemsForSubscriptionClause(subscription *models.Subscription, maxHistory time.Time) search.QueryOption {
+	return search.BoolQuery(
+		search.WithBoolFilter(
+			search.TermQuery("feed_id", subscription.GetFeedID()),
 		),
 		ArticleFiltersQueryClause(subscription.GetArticleFilters()),
 	)
 }
 
-// ItemSorting contains the sort options for sorting item search results.
-type ItemSorting struct {
-	Published string `json:"published"`
-	Updated   string `json:"updated"`
-	ItemID    string `json:"item_id"`
-}
-
-// SortCombinationsCaster is required to allow ItemSorting to be used as Elasticsearch sort values.
-func (s *ItemSorting) SortCombinationsCaster() *estypes.SortCombinations {
-	c := estypes.SortCombinations(s)
-	return &c
-}
-
-func NewItemSortOptions(sort *models.Sort) []estypes.SortCombinationsVariant {
+func ItemSortCombinations(sort *models.Sort) *search.Sorting {
 	if sort == nil {
-		return []estypes.SortCombinationsVariant{&estypes.SortOptions{Doc_: estypes.NewScoreSort()}}
+		return search.NewSortOptions(search.WithSortField("_doc"))
 	}
-	var opts []estypes.SortCombinationsVariant
 	switch *sort {
 	case models.SortNewestFirst:
-		opts = append(opts, &ItemSorting{
-			Published: "desc",
-			Updated:   "desc",
-			ItemID:    "desc",
-		})
+		return search.NewSortOptions(
+			search.WithSortField("published", search.WithFieldSortOrder(search.SortOrderDesc)),
+			search.WithSortField("updated", search.WithFieldSortOrder(search.SortOrderDesc)),
+			search.WithSortField("item_id", search.WithFieldSortOrder(search.SortOrderDesc)),
+		)
 	case models.SortOldestFirst:
-		opts = append(opts, &ItemSorting{
-			Published: "asc",
-			Updated:   "asc",
-			ItemID:    "asc",
-		})
+		return search.NewSortOptions(
+			search.WithSortField("published", search.WithFieldSortOrder(search.SortOrderAsc)),
+			search.WithSortField("updated", search.WithFieldSortOrder(search.SortOrderAsc)),
+			search.WithSortField("item_id", search.WithFieldSortOrder(search.SortOrderAsc)),
+		)
 	case models.SortMostRelevant:
-		opts = append(opts, &estypes.SortOptions{
-			Score_: &estypes.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&ItemSorting{
-				Published: "asc",
-				Updated:   "asc",
-				ItemID:    "asc",
-			},
+		return search.NewSortOptions(
+			search.WithSortField("_score", search.WithFieldSortOrder(search.SortOrderDesc)),
+			search.WithSortField("published", search.WithFieldSortOrder(search.SortOrderDesc)),
+			search.WithSortField("updated", search.WithFieldSortOrder(search.SortOrderDesc)),
+			search.WithSortField("item_id", search.WithFieldSortOrder(search.SortOrderDesc)),
 		)
 	default:
-		opts = append(opts, &estypes.SortOptions{
-			Doc_: &estypes.ScoreSort{},
-		})
-	}
-	return opts
-}
-
-func NewItemSortCombinations(sort *models.Sort) []estypes.SortCombinations {
-	var opts []estypes.SortCombinations
-	switch *sort {
-	case models.SortNewestFirst:
-		opts = append(opts, &ItemSorting{
-			Published: "desc",
-			Updated:   "desc",
-			ItemID:    "desc",
-		})
-	case models.SortOldestFirst:
-		opts = append(opts, &ItemSorting{
-			Published: "asc",
-			Updated:   "asc",
-			ItemID:    "asc",
-		})
-	case models.SortMostRelevant:
-		opts = append(opts, &estypes.SortOptions{
-			Score_: &estypes.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&ItemSorting{
-				Published: "asc",
-				Updated:   "asc",
-				ItemID:    "asc",
-			},
+		return search.NewSortOptions(
+			search.WithSortField("_doc"),
 		)
-	default:
-		opts = append(opts, &estypes.SortOptions{
-			Doc_: estypes.NewScoreSort(),
-		})
 	}
-	return opts
 }
 
 func (s *ItemService) getItemContent(

@@ -23,8 +23,6 @@ import (
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/logging"
 
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	gerror "github.com/immanent-tech/foragd/providers/google/error"
 )
 
@@ -207,21 +205,6 @@ func shutdown(svr *http.Server, services *services, logger *slog.Logger) error {
 			slog.Any("error", err),
 		)
 		errs = append(errs, fmt.Errorf("services shutdown: %w", err))
-	}
-
-	// 3. Flush and close the bulk indexer (if initialized).
-	if err := bulk.Shutdown(shutdownCtx); err != nil {
-		slogctx.FromCtx(shutdownCtx).Error("Bulk indexer failed to shutdown gracefully.",
-			slog.Any("error", err),
-		)
-		errs = append(errs, fmt.Errorf("bulk indexer shutdown: %w", err))
-	}
-	// 4. Then close any Elasticsearch connection (if initialized).
-	if err := elastic.Shutdown(shutdownCtx); err != nil {
-		slogctx.FromCtx(shutdownCtx).Error("Elasticsearch failed to shutdown gracefully.",
-			slog.Any("error", err),
-		)
-		errs = append(errs, fmt.Errorf("elasticsearch shutdown: %w", err))
 	}
 
 	// 6. Close error client.

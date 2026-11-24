@@ -12,21 +12,15 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/create"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
-
 	"github.com/maypok86/otter/v2"
+	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel/codes"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/providers/opensearch/doc"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
 	"github.com/immanent-tech/foragd/schema"
 )
 
@@ -35,7 +29,6 @@ type UserService struct {
 	*otter.Cache[string, models.User]
 
 	osc *opensearch.Client
-	esc *ElasticService
 
 	loader otter.LoaderFunc[string, models.User]
 
@@ -44,9 +37,8 @@ type UserService struct {
 
 // LoadUsersService loads a service that can manipulate user objects in the backend store.
 func LoadUsersService(ctx context.Context, osc *opensearch.Client) (*UserService, error) {
-	svc, err := LoadElasticService()
-	if err != nil {
-		return nil, fmt.Errorf("load elastic service: %w", err)
+	if osc == nil {
+		return nil, errors.New("no opensearch client")
 	}
 	return &UserService{
 		Cache: otter.Must(&otter.Options[string, models.User]{
@@ -55,26 +47,26 @@ func LoadUsersService(ctx context.Context, osc *opensearch.Client) (*UserService
 				60 * time.Second,
 			),
 		}),
-		esc: svc,
 		osc: osc,
 		loader: otter.LoaderFunc[string, models.User](
 			func(ctx context.Context, id string) (models.User, error) {
-				index := ctx.Value("users_index").(string)
-				switch resp, err := elastic.Search[*models.User](ctx,
-					index,
-					elastic.WithQuery[*search.Search](
-						query.Term("external_user_id", id, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
+				resp, err := search.Search(ctx, osc, osc.IndexReadAlias(schema.UsersIndex),
+					search.WithQuery(
+						search.TermQuery("external_user_id", id),
 					),
-					elastic.WithDocSorting[*search.Search](),
-					elastic.WithTrackHits[*search.Search](false),
-					elastic.WithSize[*search.Search](1),
-				); {
-				case err != nil:
-					return models.User{}, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
-				case len(resp.Results) == 0:
-					return models.User{}, fmt.Errorf("%w: %w", otter.ErrNotFound, elastic.ErrNotFound)
+					search.WithSize(1),
+				)
+				switch {
+				case err == nil:
+					if users, _, err := resp.ExtractHits[*models.User](); err != nil {
+						return models.User{}, fmt.Errorf("extract user: %w", err)
+					} else {
+						return *users[0], nil
+					}
+				case isNotFound(err):
+					return models.User{}, fmt.Errorf("get doc: %w: %w", otter.ErrNotFound, err)
 				default:
-					return *resp.Results[0], nil
+					return models.User{}, fmt.Errorf("get doc: %w", err)
 				}
 			},
 		),
@@ -104,7 +96,7 @@ func (s *UserService) GetUser(ctx context.Context, id models.UserID) (*models.Us
 	ctx, span := tracer.Start(ctx, "GetUser")
 	defer span.End()
 
-	user, err := elastic.GetDoc[models.UserID, *models.User](ctx, s.esc.GetIndexRO(UsersIndex), id)
+	user, err := doc.Get[models.UserID, *models.User](ctx, s.osc.Doc, s.osc.IndexReadAlias(schema.UsersIndex), id)
 	switch {
 	case err != nil:
 		span.RecordError(err)
@@ -121,12 +113,23 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]*models.User, error) {
 	ctx, span := tracer.Start(ctx, "GetUser")
 	defer span.End()
 
-	users, err := elastic.SearchAll[*models.User](ctx, s.esc.GetIndexRO(UsersIndex), query.MatchAll(), 5000)
+	resp, err := search.SearchAll(
+		ctx,
+		s.osc,
+		s.osc.IndexReadAlias(schema.UsersIndex),
+		2500,
+		[]search.QueryOption{search.MatchAllQuery()},
+	)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("get user: %w", err)
 	}
+	users, err := resp.ExtractHits[*models.User]()
+	if err != nil {
+		return nil, fmt.Errorf("extract users: %w")
+	}
+
 	return users, nil
 }
 
@@ -135,14 +138,12 @@ func (s *UserService) GetUserByExternalID(ctx context.Context, externalID string
 	ctx, span := tracer.Start(ctx, "GetUserByExternalID")
 	defer span.End()
 
-	ctx = context.WithValue(ctx, "users_index", s.esc.GetIndexRO(UsersIndex))
-
 	switch user, err := s.Get(ctx, externalID, s.loader); {
-	case err != nil && !errors.Is(err, elastic.ErrNotFound):
+	case err != nil && !errors.Is(err, otter.ErrNotFound):
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("find user by external id: %w", err)
-	case errors.Is(err, elastic.ErrNotFound):
+	case errors.Is(err, otter.ErrNotFound):
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("find user by external id: %w", models.ErrNotFound)
@@ -153,105 +154,51 @@ func (s *UserService) GetUserByExternalID(ctx context.Context, externalID string
 
 // GetUserByEmail will retrieve a user by their email.
 func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
-	switch resp, err := elastic.Search[*models.User](
-		ctx,
-		s.esc.GetIndexRO(UsersIndex),
-		elastic.WithQuery[*search.Search](
-			query.Term("email", email),
-		),
-		elastic.WithDocSorting[*search.Search](),
-		elastic.WithTrackHits[*search.Search](false),
-		elastic.WithSize[*search.Search](1),
-	); {
-	case err != nil:
-		return nil, fmt.Errorf("search: %w", err)
-	case len(resp.Results) == 0:
-		return nil, fmt.Errorf("search: %w", models.ErrNotFound)
-	default:
-		return resp.Results[0], nil
-	}
+	return s.getUserBy(ctx, search.TermQuery("email", email))
 }
 
 // GetUserBySubscriptionEmail will retrieve a user from their Foragd newsletter subscription email.
 func (s *UserService) GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*models.User, error) {
-	switch resp, err := elastic.Search[*models.User](
-		ctx,
-		s.esc.GetIndexRO(UsersIndex),
-		elastic.WithQuery[*search.Search](
-			query.Terms("settings.subscription_email", emails),
-		),
-		elastic.WithDocSorting[*search.Search](),
-		elastic.WithTrackHits[*search.Search](false),
-		elastic.WithSize[*search.Search](1),
-	); {
-	case err != nil:
-		return nil, fmt.Errorf("search by subscription email: %w", err)
-	case len(resp.Results) == 0:
-		return nil, fmt.Errorf("search by subscription email: %w", models.ErrNotFound)
-	default:
-		return resp.Results[0], nil
-	}
+	return s.getUserBy(ctx, search.TermsQuery("settings.subscription_email", emails))
 }
 
 // GetUserBySubscriptionID will retrieve a user from their payment subscription ID.
 func (s *UserService) GetUserBySubscriptionID(ctx context.Context, id string) (*models.User, error) {
-	switch resp, err := elastic.Search[*models.User](
-		ctx,
-		s.esc.GetIndexRO(UsersIndex),
-		elastic.WithQuery[*search.Search](
-			query.Term("subscription.subscription_id", id),
-		),
-		elastic.WithDocSorting[*search.Search](),
-		elastic.WithTrackHits[*search.Search](false),
-		elastic.WithSize[*search.Search](1),
-	); {
-	case err != nil:
-		return nil, fmt.Errorf("search by subscription id: %w", err)
-	case len(resp.Results) == 0:
-		return nil, fmt.Errorf("search by subscription id: %w", models.ErrNotFound)
-	default:
-		return resp.Results[0], nil
-	}
+	return s.getUserBy(ctx, search.TermQuery("subscription.subscription_id", id))
 }
 
 // GetUserByPurchaseToken retrieves the [models.User] associated with the given purchase token.
 func (s *UserService) GetUserByPurchaseToken(ctx context.Context, token string) (*models.User, error) {
-	// Retrieve the user associated with the customer ID.
-	switch resp, err := elastic.Search[*models.User](
-		ctx,
-		s.esc.GetIndexRO(UsersIndex),
-		elastic.WithQuery[*search.Search](query.Term("subscription.purchase_token", token)),
-		elastic.WithDocSorting[*search.Search](),
-		elastic.WithTrackHits[*search.Search](false),
-		elastic.WithSize[*search.Search](1),
-	); {
-	case err != nil:
-		return nil, fmt.Errorf("search by subscription id: %w", err)
-	case len(resp.Results) == 0:
-		return nil, fmt.Errorf("search by subscription id: %w", models.ErrNotFound)
-	default:
-		return resp.Results[0], nil
-	}
+	return s.getUserBy(ctx, search.TermQuery("subscription.purchase_token", token))
 }
 
 // GetUserByCustomerID retrieves the user associated with the given customer ID. It handles finding and adding customer
 // details to an existing user for a new customer.
 func (s *UserService) GetUserByCustomerID(ctx context.Context, id string) (*models.User, error) {
-	// Retrieve the user associated with the customer ID.
-	switch resp, err := elastic.Search[*models.User](
-		ctx,
-		s.esc.GetIndexRO(UsersIndex),
-		elastic.WithQuery[*search.Search](query.Term("subscription.customer_id", id)),
-		elastic.WithDocSorting[*search.Search](),
-		elastic.WithTrackHits[*search.Search](false),
-		elastic.WithSize[*search.Search](1),
-	); {
-	case err != nil:
-		return nil, fmt.Errorf("find user by customer id: %w", err)
-	case len(resp.Results) == 0:
-		return nil, fmt.Errorf("find user by customer id: %w", models.ErrNotFound)
+	return s.getUserBy(ctx, search.TermQuery("subscription.customer_id", id))
+}
+
+func (s *UserService) getUserBy(ctx context.Context, query search.QueryOption) (*models.User, error) {
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.UsersIndex),
+		search.WithQuery(
+			query,
+		),
+		search.WithSize(1),
+		search.WithTrackTotalHits(false),
+		search.WithTrackScores(false),
+		search.WithSort(search.NewSortOptions(search.WithSortField("_doc"))),
+	)
+	switch {
+	case err == nil && len(resp.Hits.Hits) > 0:
+		if users, _, err := resp.ExtractHits[*models.User](); err != nil {
+			return nil, fmt.Errorf("extract user: %w", err)
+		} else {
+			return users[0], nil
+		}
+	case err == nil && len(resp.Hits.Hits) == 0:
+		return nil, fmt.Errorf("get doc: %w: %w", models.ErrNotFound, err)
 	default:
-		return resp.Results[0], nil
+		return nil, fmt.Errorf("get doc: %w", err)
 	}
 }
 
@@ -261,23 +208,12 @@ func (s *UserService) UpdateUser(ctx context.Context, user *models.User, updates
 	defer span.End()
 
 	updates["updated_at"] = time.Now().UTC()
-	if s.osc != nil {
-		if err := doc.Update(
-			ctx,
-			s.osc.Doc,
-			s.osc.IndexWriteAlias(schema.UsersIndex),
-			user.GetID(),
-			updates,
-		); err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, err.Error())
-			return fmt.Errorf("update user: %w", err)
-		}
-	}
-
-	if err := elastic.UpdateDoc(ctx, s.esc.GetIndexRW(UsersIndex), user.GetID(), updates,
-		// elastic.WithRefresh(elastic.RefreshTrue),
-		elastic.WithRetryOnConflict[*update.Update](3),
+	if err := doc.Update(
+		ctx,
+		s.osc.Doc,
+		s.osc.IndexWriteAlias(schema.UsersIndex),
+		user.GetID(),
+		updates,
 	); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
@@ -291,23 +227,12 @@ func (s *UserService) UpdateUser(ctx context.Context, user *models.User, updates
 }
 
 // AddUser stores and caches the given [*models.User] in the backend.
-func (s UserService) AddUser(ctx context.Context, user *models.User) error {
-	if s.osc != nil {
-		if err := doc.Create(
-			ctx,
-			s.osc.Doc,
-			s.osc.IndexWriteAlias(schema.UsersIndex),
-			user,
-		); err != nil {
-			return fmt.Errorf("create user: %w", err)
-		}
-	}
-	if err := elastic.CreateDoc(
+func (s *UserService) AddUser(ctx context.Context, user *models.User) error {
+	if err := doc.Create(
 		ctx,
-		s.esc.GetIndexRW(UsersIndex),
-		user.GetID(),
+		s.osc.Doc,
+		s.osc.IndexWriteAlias(schema.UsersIndex),
 		user,
-		elastic.WithRefresh[*create.Create](refresh.Waitfor),
 	); err != nil {
 		return fmt.Errorf("create user: %w", err)
 	}
@@ -319,45 +244,35 @@ func (s UserService) AddUser(ctx context.Context, user *models.User) error {
 
 // DeleteUser deletes the user and the user's subscription objects from Elasticsearch.
 func (s *UserService) DeleteUser(ctx context.Context, user *models.User) error {
-	if s.osc != nil {
-		if err := doc.Delete(
-			ctx,
-			s.osc.Doc,
-			s.osc.IndexWriteAlias(schema.UsersIndex),
-			user.GetID(),
-			doc.WithDeleteRefresh(doc.RefreshWaitFor),
-		); err != nil {
-			return fmt.Errorf("delete user: %w", err)
-		}
-	}
 	// Delete user object.
-	if err := elastic.DeleteDoc(
+	if err := doc.Delete(
 		ctx,
-		s.esc.GetIndexRW(UsersIndex),
+		s.osc.Doc,
+		s.osc.IndexWriteAlias(schema.UsersIndex),
 		user.GetID(),
-		elastic.WithRefresh[*delete.Delete](refresh.Waitfor),
+		doc.WithDeleteRefresh(opensearchapi.RefreshWaitFor),
 	); err != nil {
-		return fmt.Errorf("delete user object: %w", err)
+		return fmt.Errorf("delete user: %w", err)
 	}
+
 	// Delete the user's subscriptions.
-	if err := elastic.DeleteDocs(
+	if err := doc.DeleteByQuery(
 		ctx,
-		s.esc.GetIndexRW(SubscriptionsIndex),
-		query.Term("user_id", user.GetID()),
+		s.osc,
+		s.osc.IndexWriteAlias(schema.SubscriptionsIndex),
+		doc.WithDeleteByQuery(search.TermQuery("user_id", user.GetID())),
 	); err != nil {
 		return fmt.Errorf("delete user subscriptions: %w", err)
 	}
 
 	// Delete any scheduled jobs for the user.
-	if err := elastic.DeleteDocs(
+	if err := doc.DeleteByQuery(
 		ctx,
-		s.esc.GetIndexRW(ScheduleIndex),
-		query.Term("job_data.user_id", user.GetID()),
+		s.osc,
+		s.osc.IndexWriteAlias(schema.SchedulerIndex),
+		doc.WithDeleteByQuery(search.TermQuery("job_data.user_id", user.GetID())),
 	); err != nil {
-		slogctx.FromCtx(ctx).Warn("Could not delete scheduled jobs for user.",
-			slog.String("user_id", user.GetID()),
-			slog.Any("error", err),
-		)
+		return fmt.Errorf("delete scheduler user jobs: %w", err)
 	}
 
 	s.Invalidate(user.GetID())

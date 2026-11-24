@@ -20,7 +20,6 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
@@ -358,14 +357,14 @@ func (m *Manager) HandleBrowseArticles(
 			direction,
 			article.GetUpdatedDate().UTC(),
 		)
-		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("get next article: %w", err),
 			).ServeHTTP(res, req)
 			return
 		}
-		if errors.Is(err, elastic.ErrNotFound) {
+		if errors.Is(err, models.ErrNotFound) {
 			// Likely reached the "end of the list".
 			res.Header().Set(htmx.HeaderReswap, "none")
 			m.HandleNotification(res, req, models.NewInfoMessage("No more articles!", ""))

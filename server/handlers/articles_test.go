@@ -15,7 +15,7 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
 	"github.com/immanent-tech/foragd/server/handlers"
 )
 
@@ -29,7 +29,7 @@ func TestManager_HandleListArticlesGet(t *testing.T) {
 		{
 			name: "ok",
 			itemSvc: &MoqItemService{
-				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error) {
+				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...search.QueryOption) (models.Articles, models.Subscriptions, models.Pagination, error) {
 					return models.Articles{
 						&models.Article{},
 					}, models.Subscriptions{
@@ -45,7 +45,7 @@ func TestManager_HandleListArticlesGet(t *testing.T) {
 		{
 			name: "no articles",
 			itemSvc: &MoqItemService{
-				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error) {
+				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...search.QueryOption) (models.Articles, models.Subscriptions, models.Pagination, error) {
 					return nil, models.Subscriptions{
 						&models.Subscription{},
 					}, models.Pagination{}, nil
@@ -59,7 +59,7 @@ func TestManager_HandleListArticlesGet(t *testing.T) {
 		{
 			name: "no subscriptions",
 			itemSvc: &MoqItemService{
-				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error) {
+				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...search.QueryOption) (models.Articles, models.Subscriptions, models.Pagination, error) {
 					return models.Articles{
 						&models.Article{},
 					}, nil, models.Pagination{}, nil
@@ -73,7 +73,7 @@ func TestManager_HandleListArticlesGet(t *testing.T) {
 		{
 			name: "error",
 			itemSvc: &MoqItemService{
-				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error) {
+				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...search.QueryOption) (models.Articles, models.Subscriptions, models.Pagination, error) {
 					return nil, nil, models.Pagination{}, models.NewAPIError(
 						http.StatusInternalServerError,
 						errors.New("error!"),
@@ -116,7 +116,7 @@ func TestManager_HandleListArticlesPost(t *testing.T) {
 		{
 			name: "ok",
 			itemSvc: &MoqItemService{
-				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error) {
+				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...search.QueryOption) (models.Articles, models.Subscriptions, models.Pagination, error) {
 					return models.Articles{
 						&models.Article{},
 					}, models.Subscriptions{
@@ -132,7 +132,7 @@ func TestManager_HandleListArticlesPost(t *testing.T) {
 		{
 			name: "no articles",
 			itemSvc: &MoqItemService{
-				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error) {
+				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...search.QueryOption) (models.Articles, models.Subscriptions, models.Pagination, error) {
 					return nil, models.Subscriptions{
 						&models.Subscription{},
 					}, models.Pagination{}, nil
@@ -146,7 +146,7 @@ func TestManager_HandleListArticlesPost(t *testing.T) {
 		{
 			name: "no subscriptions",
 			itemSvc: &MoqItemService{
-				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error) {
+				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...search.QueryOption) (models.Articles, models.Subscriptions, models.Pagination, error) {
 					return models.Articles{
 						&models.Article{},
 					}, nil, models.Pagination{}, nil
@@ -160,7 +160,7 @@ func TestManager_HandleListArticlesPost(t *testing.T) {
 		{
 			name: "error",
 			itemSvc: &MoqItemService{
-				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error) {
+				FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...search.QueryOption) (models.Articles, models.Subscriptions, models.Pagination, error) {
 					return nil, nil, models.Pagination{}, models.NewAPIError(
 						http.StatusInternalServerError,
 						errors.New("error!"),
@@ -425,7 +425,7 @@ func TestManager_HandleListArticlesUpdates(t *testing.T) {
 		{
 			name: "ok",
 			itemSvc: &MoqItemService{
-				CountArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (int64, error) {
+				CountArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...search.QueryOption) (int64, error) {
 					return 5, nil
 				},
 			},
@@ -437,7 +437,7 @@ func TestManager_HandleListArticlesUpdates(t *testing.T) {
 		{
 			name: "no updates",
 			itemSvc: &MoqItemService{
-				CountArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (int64, error) {
+				CountArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...search.QueryOption) (int64, error) {
 					return 0, nil
 				},
 			},
@@ -449,7 +449,7 @@ func TestManager_HandleListArticlesUpdates(t *testing.T) {
 		{
 			name: "not view unread",
 			itemSvc: &MoqItemService{
-				CountArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (int64, error) {
+				CountArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...search.QueryOption) (int64, error) {
 					return 5, nil
 				},
 			},
@@ -463,7 +463,7 @@ func TestManager_HandleListArticlesUpdates(t *testing.T) {
 		{
 			name: "error",
 			itemSvc: &MoqItemService{
-				CountArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (int64, error) {
+				CountArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...search.QueryOption) (int64, error) {
 					return 0, models.NewAPIError(http.StatusInternalServerError, errors.New("error!"))
 				},
 			},

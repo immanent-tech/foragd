@@ -14,7 +14,6 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"strings"
 	"sync"
 
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
@@ -25,19 +24,13 @@ import (
 	"github.com/immanent-tech/foragd/providers/opensearch/search"
 )
 
-const (
-	RefreshTrue    Refresh = "true"
-	RefreshFalse   Refresh = "false"
-	RefreshWaitFor Refresh = "wait_for"
-)
-
-type Refresh string
-
 type Client interface {
 	DeleteByQuery(ctx context.Context, req *opensearchapi.DeleteByQueryReq) (*opensearchapi.DeleteByQueryResp, error)
 }
 
 // Get will retrieve the document with the given ID from the given index.
+//
+// https://docs.opensearch.org/latest/api-reference/document-apis/get-documents/
 func Get[T ~string, O opensearch.Doc[T]](
 	ctx context.Context,
 	client opensearchapi.DocumentClient,
@@ -52,10 +45,12 @@ func Get[T ~string, O opensearch.Doc[T]](
 	}
 
 	resp, err := client.Get(ctx, req)
-	if !resp.Found {
-		return doc, errors.Join(models.ErrNotFound, err)
-	}
 	if err != nil {
+		// Check for 404.
+		if resp != nil && resp.Inspect().Response.StatusCode == http.StatusNotFound {
+			return doc, errors.Join(models.ErrNotFound, err)
+		}
+		// Handle all other errors.
 		for _, sub := range opensearchapi.Errors(err) {
 			switch e := sub.(type) {
 			case *opensearchapi.ShardFailureError:
@@ -69,6 +64,10 @@ func Get[T ~string, O opensearch.Doc[T]](
 			}
 		}
 	}
+	// Check response status.
+	if !resp.Found {
+		return doc, errors.Join(models.ErrNotFound, err)
+	}
 
 	doc, err = opensearch.ExtractSource[O](resp.Source)
 	if err != nil {
@@ -79,20 +78,24 @@ func Get[T ~string, O opensearch.Doc[T]](
 }
 
 // GetDocs will retrieve the documents with the given IDs from the given index.
+//
+// https://docs.opensearch.org/latest/api-reference/document-apis/multi-get/
 func GetDocs[T ~string, O opensearch.Doc[T]](
 	ctx context.Context,
 	client opensearchapi.DocumentClient,
 	index string,
 	ids ...T,
 ) ([]O, error) {
-	allIDs := make([]string, 0, len(ids))
+	allDocs := make([]opensearchapi.MGetOperation, 0, len(ids))
 	for id := range slices.Values(ids) {
-		allIDs = append(allIDs, string(id))
+		allDocs = append(allDocs, opensearchapi.MGetOperation{
+			ID: string(id),
+		})
 	}
 	req := opensearchapi.MGetReq{
 		Index: index,
 		Body: &opensearchapi.MGetBody{
-			IDs: new(strings.Join(allIDs, ",")),
+			Docs: allDocs,
 		},
 		Header: opensearch.NewRequestHeaders(ctx),
 	}
@@ -114,8 +117,13 @@ func GetDocs[T ~string, O opensearch.Doc[T]](
 
 	var errs []error
 	docs := make([]O, 0, len(resp.Docs))
-	for source := range slices.Values(resp.Docs) {
-		v, err := opensearch.ExtractSource[O](source.RawJSON())
+	for result := range slices.Values(resp.Docs) {
+		g, err := result.GetResult()
+		if err != nil {
+			errs = append(errs, fmt.Errorf("get result: %w", err))
+			continue
+		}
+		v, err := opensearch.ExtractSource[O](g.Source)
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -127,6 +135,8 @@ func GetDocs[T ~string, O opensearch.Doc[T]](
 
 // Index will create the given document, with given id, in the given index. If a document with the ID already exists, it
 // will be overridden.
+//
+// https://docs.opensearch.org/latest/api-reference/document-apis/index-document/
 func Index[T ~string, O opensearch.Doc[T]](
 	ctx context.Context,
 	client opensearchapi.DocumentClient,
@@ -169,20 +179,23 @@ func Index[T ~string, O opensearch.Doc[T]](
 	return nil
 }
 
+// IndexOption is a functional option applied to an [Index] request.
 type IndexOption func(*opensearchapi.IndexReq)
 
 // WithIndexRefresh option sets the refresh value for the index operation.
-func WithIndexRefresh(value Refresh) IndexOption {
+func WithIndexRefresh(value opensearchapi.Refresh) IndexOption {
 	return func(r *opensearchapi.IndexReq) {
 		if r.Params == nil {
 			r.Params = &opensearchapi.IndexParams{}
 		}
-		r.Params.Refresh = string(value)
+		r.Params.Refresh = value
 	}
 }
 
 // Create will create the given document, with given id, in the given index. If a document with the given ID already
 // exists, it will return a 409 error. Use [Index] to "upsert" a doc where it might already exists.
+//
+// https://docs.opensearch.org/latest/api-reference/document-apis/index-document/
 func Create[T ~string, O opensearch.Doc[T]](
 	ctx context.Context,
 	client opensearchapi.DocumentClient,
@@ -221,6 +234,8 @@ func Create[T ~string, O opensearch.Doc[T]](
 }
 
 // Update will apply the updates to the doc with the given id.
+//
+// https://docs.opensearch.org/latest/api-reference/document-apis/update-document/
 func Update[T ~string](
 	ctx context.Context,
 	client opensearchapi.DocumentClient,
@@ -270,7 +285,7 @@ func Update[T ~string](
 	return nil
 }
 
-// UpdateOption is a functional option to apply to an update request.
+// UpdateOption is a functional option to apply to an [Update] request.
 type UpdateOption func(*opensearchapi.UpdateBody)
 
 // WithDocAsUpsert will add the doc as a new document if not found. Otherwise, the doc will be updated.
@@ -289,6 +304,8 @@ func WithUpdateDetectNoop(value bool) UpdateOption {
 }
 
 // Delete performs a document deletion request.
+//
+// https://docs.opensearch.org/latest/api-reference/document-apis/delete-document/
 func Delete[T ~string](
 	ctx context.Context,
 	client opensearchapi.DocumentClient,
@@ -327,7 +344,7 @@ func Delete[T ~string](
 	return nil
 }
 
-// DeleteOption is a functional option applied to a delete request.
+// DeleteOption is a functional option applied to a [Delete] request.
 type DeleteOption func(*opensearchapi.DeleteParams)
 
 // WithDeleteSeqNo option ensures the deletion will only happen if the document has the given sequence number.
@@ -345,13 +362,15 @@ func WithDeletePrimaryTerm(term int) DeleteOption {
 }
 
 // WithDeleteRefresh option sets the refresh value for the delete operation.
-func WithDeleteRefresh(refresh Refresh) DeleteOption {
+func WithDeleteRefresh(refresh opensearchapi.Refresh) DeleteOption {
 	return func(r *opensearchapi.DeleteParams) {
-		r.Refresh = string(refresh)
+		r.Refresh = refresh
 	}
 }
 
 // DeleteByQuery performs a delete by query request on the given index with the given options.
+//
+// https://docs.opensearch.org/latest/api-reference/document-apis/delete-by-query/
 func DeleteByQuery(ctx context.Context, client Client, index string, options ...DeleteByQueryOption) error {
 	// Set any specified options for the request.
 	body := &opensearchapi.DeleteByQueryBody{}
@@ -384,6 +403,7 @@ func DeleteByQuery(ctx context.Context, client Client, index string, options ...
 	return nil
 }
 
+// DeleteByQueryOption is a functional option applied to a [DeleteByQuery] request.
 type DeleteByQueryOption func(*opensearchapi.DeleteByQueryBody)
 
 // WithDeleteByQuery option specifies the query used to select documents to delete.

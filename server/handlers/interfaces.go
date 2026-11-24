@@ -15,7 +15,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/service"
 )
@@ -38,11 +38,6 @@ type ImageCache interface {
 	SaveThumbnail(ctx context.Context, id string, data []byte) error
 	GetScreenshot(ctx context.Context, key string, buf *bytes.Buffer) error
 	SaveScreenshot(ctx context.Context, id string, data []byte) error
-}
-
-type ElasticService interface {
-	GetIndexRO(name service.Index) string
-	GetIndexRW(name service.Index) string
 }
 
 type FeedService interface {
@@ -98,7 +93,7 @@ type ArticleService interface {
 	FilterArticles(
 		ctx context.Context,
 		filters *models.ListFilters,
-		extraQueries ...query.Option,
+		extraQueries ...search.QueryOption,
 	) (models.Articles, models.Subscriptions, models.Pagination, error)
 	FilterGeoArticles(
 		ctx context.Context,
@@ -107,7 +102,7 @@ type ArticleService interface {
 	CountArticles(
 		ctx context.Context,
 		filters *models.ListFilters,
-		extraQueries ...query.Option,
+		extraQueries ...search.QueryOption,
 	) (int64, error)
 	CountGeoArticles(
 		ctx context.Context,
@@ -134,8 +129,8 @@ type ItemService interface {
 	GetTopItemCategoriesForSearchResults(ctx context.Context, request *models.SearchRequest) (models.Categories, error)
 	CountSearchResults(ctx context.Context, request *models.SearchRequest) (int64, error)
 	SuggestItems(ctx context.Context, request *models.SearchRequest) (models.Items, error)
-	GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (models.CategoryCounts, error)
-	GetTopLanguageCountsForItems(ctx context.Context, itemsQuery query.Option) (map[string]int64, error)
+	GetTopCategoriesForItems(ctx context.Context, itemsQuery search.QueryOption) (models.CategoryCounts, error)
+	GetTopLanguageCountsForItems(ctx context.Context, itemsQuery search.QueryOption) (map[string]int64, error)
 	GetArticleRemoteContent(ctx context.Context, article *models.Article) error
 }
 

@@ -13,16 +13,13 @@ import (
 	"slices"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-syndication/sanitization"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/opensearch/doc"
-	ossearch "github.com/immanent-tech/foragd/providers/opensearch/search"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
 	"github.com/immanent-tech/foragd/schema"
 )
 
@@ -63,10 +60,10 @@ func (s *ItemService) GetNextArticle(
 	}
 
 	// filters are query clauses that filter the results.
-	filters := make([]query.Option, 0)
+	filters := make([]search.QueryOption, 0)
 	// exclusions are query clauses that exclude some results.
-	exclusions := make([]query.Option, 0)
-	exclusions = append(exclusions, query.Term("item_id", currentID))
+	exclusions := make([]search.QueryOption, 0)
+	exclusions = append(exclusions, search.TermQuery("item_id", currentID))
 
 	// Define filters/exclusions based on subscription(s).
 	allSubscriptions := models.SubscriptionsFromCtx(ctx)
@@ -77,40 +74,45 @@ func (s *ItemService) GetNextArticle(
 	if subscription == nil {
 		return nil, fmt.Errorf("get article subscription: %w", models.ErrNotFound)
 	}
-	filters = append(filters, query.Term("feed_id", subscription.GetFeedID()))
+	filters = append(filters, search.TermQuery("feed_id", subscription.GetFeedID()))
 	filters = append(filters,
-		query.Bool(
+		search.BoolQuery(
 			ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
-			query.Should(BuildItemQueries(user, view, models.Subscriptions{subscription})...)),
+			search.WithBoolShould(BuildItemQueries(user, view, models.Subscriptions{subscription})...),
+		),
 	)
 
 	// Define filters and sorting based on direction.
 	var sort models.Sort
 	switch direction {
 	case "next":
-		filters = append(filters, query.Bool(
-			query.Should(
-				query.Since("published", ts),
-				query.Since("updated", ts),
+		filters = append(filters,
+			search.BoolQuery(
+				search.WithBoolShould(
+					search.SinceQuery("published", ts),
+					search.SinceQuery("updated", ts),
+				),
 			),
-		))
+		)
 		sort = models.SortOldestFirst
 	case "prev":
-		filters = append(filters, query.Bool(
-			query.Should(
-				query.Before("published", ts),
-				query.Before("updated", ts),
+		filters = append(filters,
+			search.BoolQuery(
+				search.WithBoolShould(
+					search.BeforeQuery("published", ts),
+					search.BeforeQuery("updated", ts),
+				),
 			),
-		))
+		)
 		sort = models.SortNewestFirst
 	}
 
 	// Find the next item and generate an article.
 	items, _, err := s.QueryItems(
 		ctx,
-		query.Bool(
-			query.Filter(filters...),
-			query.MustNot(exclusions...),
+		search.BoolQuery(
+			search.WithBoolFilter(filters...),
+			search.WithBoolMustNot(exclusions...),
 		),
 		1,
 		&sort,
@@ -120,7 +122,7 @@ func (s *ItemService) GetNextArticle(
 		return nil, fmt.Errorf("search items: %w", err)
 	}
 	if len(items) == 0 {
-		return nil, fmt.Errorf("search items: %w", elastic.ErrNotFound)
+		return nil, fmt.Errorf("search items: %w", models.ErrNotFound)
 	}
 	articles, err := GenerateArticles(ctx, items)
 	if err != nil {
@@ -131,11 +133,11 @@ func (s *ItemService) GetNextArticle(
 }
 
 // FilterArticles returns a [models.Articles] slice (and a [models.Subscriptions] slice) of articles that match the
-// given [models.ListFilters]. An additional array of [query.Option] can be passed to further filter items matched.
+// given [models.ListFilters]. An additional array of [search.QueryOption] can be passed to further filter items matched.
 func (s *ItemService) FilterArticles(
 	ctx context.Context,
 	filters *models.ListFilters,
-	extraQueries ...query.Option,
+	extraQueries ...search.QueryOption,
 ) (models.Articles, models.Subscriptions, models.Pagination, error) {
 	user, subscriptions, err := getUserAndSubscriptions(ctx)
 	if err != nil {
@@ -186,11 +188,15 @@ func (s *ItemService) FilterGeoArticles(
 	filters *models.ListFilters,
 ) (models.Articles, models.Subscriptions, models.Pagination, error) {
 	// Filter to items with geo data.
-	return s.FilterArticles(ctx, filters, query.Bool(
-		query.Filter(
-			query.Exists("geo"),
+	return s.FilterArticles(
+		ctx,
+		filters,
+		search.BoolQuery(
+			search.WithBoolFilter(
+				search.ExistsQuery("geo"),
+			),
 		),
-	))
+	)
 }
 
 // CountArticles returns a count of items that match the given [models.ListFilters]. An additional array of
@@ -198,7 +204,7 @@ func (s *ItemService) FilterGeoArticles(
 func (s *ItemService) CountArticles(
 	ctx context.Context,
 	filters *models.ListFilters,
-	extraQueries ...query.Option,
+	extraQueries ...search.QueryOption,
 ) (int64, error) {
 	user, subscriptions, err := getUserAndSubscriptions(ctx)
 	if err != nil {
@@ -212,25 +218,28 @@ func (s *ItemService) CountArticles(
 		subscriptions = subscriptions.FilterByIDs(filters.GetSubscriptions()...)
 	}
 
-	count, err := elastic.Count(
-		ctx,
-		s.esc.GetIndexRO(ItemsIndex),
-		generateArticlesQuery(
-			user,
-			subscriptions,
-			filters,
-			slices.Concat([]query.Option{
-				query.Bool(
-					query.Should(
-						query.Since("published", time.Now().UTC().Add(-5*time.Minute)),
-						query.Since("updated", time.Now().UTC().Add(-5*time.Minute)),
+	since := time.Now().UTC().Add(-5 * time.Minute)
+
+	count, err := search.Count(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithCountQuery(
+			generateArticlesQuery(
+				user,
+				subscriptions,
+				filters,
+				slices.Concat([]search.QueryOption{
+					search.BoolQuery(
+						search.WithBoolShould(
+							search.SinceQuery("published", since),
+							search.SinceQuery("updated", since),
+						),
 					),
-				),
-			},
-				extraQueries,
-			)...,
+				},
+					extraQueries,
+				)...,
+			),
 		),
 	)
+
 	if err != nil {
 		return 0, fmt.Errorf("count items: %w", err)
 	}
@@ -243,11 +252,12 @@ func (s *ItemService) CountGeoArticles(
 	ctx context.Context,
 	filters *models.ListFilters,
 ) (int64, error) {
-	return s.CountArticles(ctx, filters, query.Bool(
-		query.Filter(
-			query.Exists("geo"),
-		),
-	))
+	return s.CountArticles(ctx, filters,
+		search.BoolQuery(
+			search.WithBoolFilter(
+				search.ExistsQuery("geo"),
+			),
+		))
 }
 
 // generateArticlesQuery creates the base query for finding articles matching the given [models.ListFilters]. An
@@ -256,29 +266,27 @@ func generateArticlesQuery(
 	user *models.User,
 	subscriptions models.Subscriptions,
 	filters *models.ListFilters,
-	extraQueries ...query.Option,
-) query.Option {
+	extraQueries ...search.QueryOption,
+) search.QueryOption {
 	// Build article query.
-	return query.Bool(
-		query.Filter(
-			slices.Concat(
-				[]query.Option{
-					// Must match these feed IDs.
-					query.Terms("feed_id", subscriptions.GetFeedIDs()),
-					// Must match these categories.
-					query.Terms("categories.raw", filters.GetCategories()),
-					// Must have matching language.
-					query.Term("language", filters.GetLanguage()),
-					// Must match these global article filters.
-					query.Bool(ArticleFiltersQueryClause(user.GetSettings().GlobalFilters)),
-					// Must match this additional query.
-				},
-				// Must match one of the subscription filter clauses.
-				BuildItemQueries(user, filters.GetView(), subscriptions),
-				// Any additional queries passed in.
-				extraQueries,
-			)...,
-		),
+	clauses := []search.QueryOption{
+		// Must match these feed IDs.
+		search.TermsQuery("feed_id", subscriptions.GetFeedIDs()),
+		// Must match these categories.
+		search.TermsQuery("categories.raw", filters.GetCategories()),
+		// Must have matching language.
+		search.TermQuery("language", filters.GetLanguage()),
+	}
+	// Must match one of the subscription filter clauses.
+	clauses = append(clauses, BuildItemQueries(user, filters.GetView(), subscriptions)...)
+	if articleFilters := ArticleFiltersQueryClause(user.GetSettings().GlobalFilters); articleFilters != nil {
+		clauses = append(clauses, search.BoolQuery(articleFilters))
+	}
+	if len(extraQueries) > 0 {
+		clauses = append(clauses, extraQueries...)
+	}
+	return search.BoolQuery(
+		search.WithBoolFilter(clauses...),
 	)
 }
 
@@ -298,30 +306,22 @@ func (s *ItemService) FindSimilarArticles(
 		return nil, fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 	}
 
-	// Build the More Like This query.
-	// TODO: tweak values and fields for optimum results matching...
-	var (
-		minTermFreq   = 1
-		minDocFreq    = 2
-		minWordLen    = 3
-		maxQueryTerms = 25
-	)
-	mlt := query.NewMoreLikeThisQuery("similar_articles")
-	mlt.LikeDocs(itemIDs...)
-	mlt.Fields = []string{"title", "description", "content", "categories.raw", "author"}
-	mlt.MinTermFreq = &minTermFreq
-	mlt.MaxQueryTerms = &maxQueryTerms
-	mlt.MinDocFreq = &minDocFreq
-	mlt.MinWordLength = &minWordLen
 	// Build query
-	similarQuery := query.Bool(
-		query.Filter(
-			query.Bool(
-				query.Should(BuildItemQueries(user, models.ViewUnread, allSubscriptions)...),
+	similarQuery := search.BoolQuery(
+		search.WithBoolFilter(
+			search.BoolQuery(
+				search.WithBoolShould(BuildItemQueries(user, models.ViewUnread, allSubscriptions)...),
 			),
 		),
-		query.Must(
-			mlt.ToQueryOption(),
+		search.WithBoolMust(
+			search.MoreLikeThisQuery(
+				[]string{"title", "description", "content", "categories.raw", "author"},
+				search.WithMoreLikeThisQueryLikeDocIDs(itemIDs...),
+				search.WithMoreLikeThisQueryMinTermFreq(1),
+				search.WithMoreLikeThisQueryMinDocFreq(2),
+				search.WithMoreLikeThisQueryMinWordLen(3),
+				search.WithMoreLikeThisQueryMaxQueryTerms(25),
+			),
 		),
 	)
 	// Query for similar articles.
@@ -340,17 +340,7 @@ func (s *ItemService) FindSimilarArticles(
 
 // ArchiveArticle will index the given article content to the article archive for permanent storage.
 func (s *ItemService) ArchiveArticle(ctx context.Context, article *models.ArticleArchive) error {
-	if s.osc != nil {
-		if err := doc.Create(ctx, s.osc.Doc, s.osc.IndexWriteAlias(schema.FavoritesIndex), article); err != nil {
-			return fmt.Errorf("archive article: %w", err)
-		}
-	}
-	if err := elastic.CreateDoc(
-		ctx,
-		s.esc.GetIndexRW(FavoritesIndex),
-		article.ItemID,
-		article,
-	); err != nil {
+	if err := doc.Create(ctx, s.osc.Doc, s.osc.IndexWriteAlias(schema.FavoritesIndex), article); err != nil {
 		return fmt.Errorf("archive article: %w", err)
 	}
 	return nil
@@ -363,23 +353,12 @@ func (s *ItemService) UnarchiveArticle(
 	itemID models.ItemID,
 ) error {
 	// Set up the query to match the user's favorited article.
-	if s.osc != nil {
-		if err := doc.DeleteByQuery(ctx, s.osc, s.osc.IndexWriteAlias(schema.ItemsIndex), doc.WithDeleteByQuery(
-			ossearch.BoolQuery(ossearch.WithBoolFilter(
-				ossearch.TermQuery("user_id", userID),
-				ossearch.TermQuery("item_id", itemID),
-			)),
-		)); err != nil {
-			return fmt.Errorf("unarchive article: %w", err)
-		}
-	}
-	query := query.Bool(
-		query.Filter(
-			query.Term("user_id", userID),
-			query.Term("item_id", itemID),
-		),
-	)
-	if err := elastic.DeleteDocs(ctx, s.esc.GetIndexRW(FavoritesIndex), query); err != nil {
+	if err := doc.DeleteByQuery(ctx, s.osc, s.osc.IndexWriteAlias(schema.ItemsIndex), doc.WithDeleteByQuery(
+		search.BoolQuery(search.WithBoolFilter(
+			search.TermQuery("user_id", userID),
+			search.TermQuery("item_id", itemID),
+		)),
+	)); err != nil {
 		return fmt.Errorf("unarchive article: %w", err)
 	}
 
@@ -488,28 +467,40 @@ func (s *ItemService) GetArticleRemoteContent(
 	return nil
 }
 
-func ArticleFiltersQueryClause(filters *models.ArticleFilters) query.BoolOption {
+func ArticleFiltersQueryClause(filters *models.ArticleFilters) search.BoolQueryOption {
 	if filters == nil {
 		return nil
 	}
 	if filters.IsEmpty() {
 		return nil
 	}
-	return query.Must(
-		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(filters.Text),
-			query.WithSimpleQueryStringFields("title", "description", "content"),
-			query.WithSimpleQueryStringOperator(&operator.And),
-		),
-		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(filters.Authors),
-			query.WithSimpleQueryStringFields("authors", "contributors"),
-			query.WithSimpleQueryStringOperator(&operator.And),
-		),
-		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(filters.Categories),
-			query.WithSimpleQueryStringFields("categories"),
-			query.WithSimpleQueryStringOperator(&operator.And),
-		),
-	)
+	clauses := make([]search.QueryOption, 0)
+	if filters.Text != nil && *filters.Text != "" {
+		clauses = append(clauses,
+			search.SimpleQueryStringQuery(
+				*filters.Text,
+				[]string{"title", "description", "content"},
+				search.WithSimpleQueryStringQueryOperator(search.OperatorAnd),
+			),
+		)
+	}
+	if filters.Authors != nil && *filters.Authors != "" {
+		clauses = append(clauses,
+			search.SimpleQueryStringQuery(
+				*filters.Authors,
+				[]string{"authors", "contributors"},
+				search.WithSimpleQueryStringQueryOperator(search.OperatorAnd),
+			),
+		)
+	}
+	if filters.Categories != nil && *filters.Categories != "" {
+		clauses = append(clauses,
+			search.SimpleQueryStringQuery(
+				*filters.Categories,
+				[]string{"categories"},
+				search.WithSimpleQueryStringQueryOperator(search.OperatorAnd),
+			),
+		)
+	}
+	return search.WithBoolMust(clauses...)
 }

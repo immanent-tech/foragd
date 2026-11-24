@@ -1,206 +1,228 @@
 {
-  // See https://go.microsoft.com/fwlink/?LinkId=733558
-  // for the documentation about the tasks.json format
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "frontend: check for package updates",
-      "type": "shell",
-      "command": "npx npm-check-updates -u",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "dedicated",
-        "showReuseMessage": true,
-        "clear": false
-      }
-    },
-    {
-      "label": "server:run",
-      "type": "shell",
-      "command": "npm run server:run",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "dedicated",
-        "showReuseMessage": true,
-        "clear": false
-      }
-    },
-    {
-      "label": "scheduler:run",
-      "type": "shell",
-      "command": "npm run scheduler:run",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "dedicated",
-        "showReuseMessage": true,
-        "clear": false
-      }
-    },
-    {
-      "label": "elastic: update mappings",
-      "type": "shell",
-      "command": "dotenv -f .env.${input:environment} run go run main.go elastic indices update ${input:objects}",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "dedicated",
-        "showReuseMessage": true,
-        "clear": false
-      },
-      "options": {
-        "shell": {
-          "executable": "/usr/bin/fish",
-          "args": ["-c"]
-        }
-      }
-    },
-    {
-      "label": "elastic: migrate indices",
-      "type": "shell",
-      "command": "dotenv -f .env.${input:environment} run go run main.go elastic indices migrate ${input:objects}",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "dedicated",
-        "showReuseMessage": true,
-        "clear": false
-      },
-      "options": {
-        "shell": {
-          "executable": "/usr/bin/fish",
-          "args": ["-c"]
-        }
-      }
-    },
-    {
-      "label": "elastic: create indices",
-      "type": "shell",
-      "command": "dotenv -f .env.${input:environment} run go run main.go elastic indices create ${input:objects}",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "dedicated",
-        "showReuseMessage": true,
-        "clear": false
-      },
-      "options": {
-        "shell": {
-          "executable": "/usr/bin/fish",
-          "args": ["-c"]
-        }
-      }
-    },
-    {
-      "label": "elastic: update ilm",
-      "type": "shell",
-      "command": "dotenv -f .env.${input:environment} run go run main.go --log-level=debug --no-log-file elastic ilm update ${input:objects}",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "dedicated",
-        "showReuseMessage": true,
-        "clear": false
-      },
-      "options": {
-        "shell": {
-          "executable": "/usr/bin/fish",
-          "args": ["-c"]
-        }
-      }
-    },
-    {
-      "label": "email:run",
-      "type": "shell",
-      "command": "dotenv -f ../.env.development run maizzle serve",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
-        "showReuseMessage": true,
-        "clear": false
-      },
-      "options": {
-        "cwd": "${workspaceFolder}/email",
-        "shell": {
-          "executable": "/usr/bin/fish",
-          "args": ["-c"]
-        }
-      }
-    },
-    {
-      "label": "email:build",
-      "type": "shell",
-      "command": "dotenv -f ../.env.production run go tool mage build",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
-        "showReuseMessage": true,
-        "clear": false
-      },
-      "options": {
-        "shell": {
-          "executable": "/usr/bin/fish",
-          "args": ["-c"]
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "frontend: check for package updates",
+            "type": "shell",
+            "command": "npx npm-check-updates -u",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            }
         },
-        "cwd": "${workspaceFolder}/email"
-      }
-    },
-    {
-      "label": "email:install",
-      "type": "shell",
-      "command": "dotenv -f ../.env.production run go tool mage install",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
-        "showReuseMessage": true,
-        "clear": false
-      },
-      "options": {
-        "shell": {
-          "executable": "/usr/bin/fish",
-          "args": ["-c"]
+        {
+            "label": "server:run",
+            "type": "shell",
+            "command": "npm run server:run",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            }
         },
-        "cwd": "${workspaceFolder}/email"
-      }
-    }
-  ],
-  "inputs": [
-    {
-      "type": "promptString",
-      "id": "objects",
-      "description": "list of objects to update (leave blank for all available)"
-    },
-    {
-      "type": "pickString",
-      "id": "environment",
-      "description": "choose envrionment",
-      "options": ["production", "development"],
-      "default": "development"
-    }
-  ]
+        {
+            "label": "scheduler:run",
+            "type": "shell",
+            "command": "npm run scheduler:run",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "elastic: update mappings",
+            "type": "shell",
+            "command": "dotenv -f .env.${input:environment} run go run main.go elastic indices update ${input:objects}",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "shell": {
+                    "executable": "/usr/bin/fish",
+                    "args": [
+                        "-c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "elastic: migrate indices",
+            "type": "shell",
+            "command": "dotenv -f .env.${input:environment} run go run main.go elastic indices migrate ${input:objects}",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "shell": {
+                    "executable": "/usr/bin/fish",
+                    "args": [
+                        "-c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "elastic: create indices",
+            "type": "shell",
+            "command": "dotenv -f .env.${input:environment} run go run main.go elastic indices create ${input:objects}",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "shell": {
+                    "executable": "/usr/bin/fish",
+                    "args": [
+                        "-c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "elastic: update ilm",
+            "type": "shell",
+            "command": "dotenv -f .env.${input:environment} run go run main.go --log-level=debug --no-log-file elastic ilm update ${input:objects}",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "shell": {
+                    "executable": "/usr/bin/fish",
+                    "args": [
+                        "-c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "email:run",
+            "type": "shell",
+            "command": "dotenv -f ../.env.development run maizzle serve",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/email",
+                "shell": {
+                    "executable": "/usr/bin/fish",
+                    "args": [
+                        "-c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "email:build",
+            "type": "shell",
+            "command": "dotenv -f ../.env.production run go tool mage build",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "shell": {
+                    "executable": "/usr/bin/fish",
+                    "args": [
+                        "-c"
+                    ]
+                },
+                "cwd": "${workspaceFolder}/email"
+            }
+        },
+        {
+            "label": "email:install",
+            "type": "shell",
+            "command": "dotenv -f ../.env.production run go tool mage install",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "shell": {
+                    "executable": "/usr/bin/fish",
+                    "args": [
+                        "-c"
+                    ]
+                },
+                "cwd": "${workspaceFolder}/email"
+            }
+        },
+        {
+            "label": "opensearch:tunnel prod",
+            "type": "process",
+            "command": "gcloud compute start-iap-tunnel opensearch-cluster-node-0 9200 --local-host-port=localhost:9201 --zone us-central1-a"
+        }
+    ],
+    "inputs": [
+        {
+            "type": "promptString",
+            "id": "objects",
+            "description": "list of objects to update (leave blank for all available)"
+        },
+        {
+            "type": "pickString",
+            "id": "environment",
+            "description": "choose envrionment",
+            "options": [
+                "production",
+                "development"
+            ],
+            "default": "development"
+        }
+    ]
 }

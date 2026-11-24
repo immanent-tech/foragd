@@ -15,6 +15,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/immanent-tech/foragd/models"
@@ -86,7 +87,7 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 		jq.osc.Doc,
 		jq.osc.IndexWriteAlias(schema.SchedulerIndex),
 		serialized,
-		doc.WithIndexRefresh(doc.RefreshWaitFor),
+		doc.WithIndexRefresh(opensearchapi.RefreshWaitFor),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
@@ -140,6 +141,9 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	)
 	if err != nil {
 		return nil, fmt.Errorf("head: %w", err)
+	}
+	if len(resp.Hits.Hits) == 0 {
+		return nil, ErrNoJobFound
 	}
 
 	jobs, _, err := resp.ExtractHits[*jobs.SerializedJob]()
@@ -273,7 +277,7 @@ func (jq *JobQueue) deleteJob(ctx context.Context, job *jobs.SerializedJob) erro
 		jq.osc.Doc,
 		jq.osc.IndexWriteAlias(schema.SchedulerIndex),
 		job.GetID(),
-		doc.WithDeleteRefresh(doc.RefreshWaitFor),
+		doc.WithDeleteRefresh(opensearchapi.RefreshWaitFor),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrDeleteJobFailed, err)
 	}

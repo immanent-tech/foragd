@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"net/http"
 	"net/url"
 	"sync"
 
@@ -73,4 +74,18 @@ type closeOnce struct {
 func (c *closeOnce) do(f func() error) error {
 	c.once.Do(func() { c.err = f() })
 	return c.err
+}
+
+func isNotFound(err error) bool {
+	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+		return apiErr.StatusCode == http.StatusNotFound
+	}
+	return false
+}
+
+func isConflict(err error) bool {
+	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+		return apiErr.StatusCode == http.StatusConflict
+	}
+	return false
 }

@@ -6,51 +6,59 @@
 package schema
 
 import (
+	"encoding/json"
+
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 
 	"github.com/immanent-tech/foragd/providers/opensearch/indices"
 )
 
-var ItemsMappings = indices.NewMappings(
-	indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("@timestamp"),
-	indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("created"),
-	indices.WithMapping("feed_id", indices.WithKeywordIgnoreAbove(32)),
-	indices.WithMapping("item_id", indices.WithKeywordIgnoreAbove(32)),
-	indices.WithMapping("feed_title",
-		indices.WithTextMappingProperties(
-			indices.WithMapping("exact",
-				indices.WithTextMappingAnalyzer(englishExactAnalyzer),
+var ItemsMappings = func(modelID string) indices.Mappings {
+	return indices.NewMappings(
+		indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("@timestamp"),
+		indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("created"),
+		indices.WithMapping("feed_id", indices.WithKeywordIgnoreAbove(32)),
+		indices.WithMapping("item_id", indices.WithKeywordIgnoreAbove(32)),
+		indices.WithMapping("feed_title",
+			indices.WithTextMappingProperties(
+				indices.WithMapping("exact",
+					indices.WithTextMappingAnalyzer(englishExactAnalyzer),
+				),
+				indices.WithMapping[opensearchapi.CommonMappingSearchAsYouTypeProperty]("search"),
 			),
-			indices.WithMapping[opensearchapi.CommonMappingSearchAsYouTypeProperty]("search"),
 		),
-	),
-	indices.WithMapping("content",
-		indices.WithTextMappingAnalyzer(htmlAnalyzer),
-	),
-	indices.WithMapping("extension_type", indices.WithKeywordIgnoreAbove(256)),
-	indices.WithMapping[opensearchapi.CommonMappingFlatObjectProperty]("extension_data"),
-	indices.WithMapping("geo",
-		indices.WithObjectMappingDynamic(opensearchapi.NewCommonMappingDynamicFromBool(false)),
-		indices.WithObjectMappingProperties(
-			indices.WithMapping[opensearchapi.CommonMappingGeoPointProperty]("point"),
+		indices.WithMapping("content",
+			indices.WithTextMappingAnalyzer(htmlAnalyzer),
 		),
-	),
-	indices.WithMapping("comments_url", indices.WithKeywordIgnoreAbove(256)),
-	indices.WithMapping("comments_rss", indices.WithKeywordIgnoreAbove(256)),
-)
+		indices.WithMapping("content_semantic",
+			indices.WithSemanticMappingModelID(modelID)),
+		indices.WithMapping("extension_type", indices.WithKeywordIgnoreAbove(256)),
+		indices.WithMapping[opensearchapi.CommonMappingFlatObjectProperty]("extension_data"),
+		indices.WithMapping("geo",
+			indices.WithObjectMappingDynamic(opensearchapi.NewCommonMappingDynamicFromBool(false)),
+			indices.WithObjectMappingProperties(
+				indices.WithMapping[opensearchapi.CommonMappingGeoPointProperty]("point"),
+			),
+		),
+		indices.WithMapping("comments_url", indices.WithKeywordIgnoreAbove(256)),
+		indices.WithMapping("comments_rss", indices.WithKeywordIgnoreAbove(256)),
+	)
+}
 
 // ItemsComponentTemplate is a component template containing [ItemMappings].
-var ItemsComponentTemplate = indices.NewComponentTemplateRequest(ItemsIndex.String(),
-	indices.WithIndexSettings(
-		indices.WithMappings(ItemsMappings),
-		indices.WithAnalyzer(englishExactAnalyzer),
-		indices.WithAnalyzer(htmlAnalyzer),
-		indices.WithTokenizer(emailTokenizer),
-		indices.WithReplicas("2"),
-		indices.WithKNN(),
-		// indices.WithDefaultPipeline(ItemsIndex.String()+"-pipeline"),
-	),
-)
+var ItemsComponentTemplate = func(modelID string) opensearchapi.ClusterPutComponentTemplateReq {
+	return indices.NewComponentTemplateRequest(ItemsIndex.String(),
+		indices.WithIndexSettings(
+			indices.WithMappings(ItemsMappings(modelID)),
+			indices.WithAnalyzer(englishExactAnalyzer),
+			indices.WithAnalyzer(htmlAnalyzer),
+			indices.WithTokenizer(emailTokenizer),
+			indices.WithReplicas("2"),
+			indices.WithKNN(),
+			indices.WithDefaultPipeline(ItemsIndex.String()+"-pipeline"),
+		),
+	)
+}
 
 // ItemsIndexTemplate is a index template for [models.Item].
 var ItemsIndexTemplate = indices.NewIndexTemplateRequest(ItemsIndex.String(),
@@ -101,15 +109,18 @@ var ItemsISM = opensearchapi.ISMPolicy{
 			Actions: []opensearchapi.ISMAction{
 				{ForceMerge: &opensearchapi.ISMActionForceMerge{MaxNumSegments: new(1)}},
 			},
-			// Transitions: []opensearchapi.ISMTransition{
-			// 	{StateName: new("delete"), Conditions: map[string]jsonx.RawMessage{}},
-			// },
+			Transitions: []opensearchapi.ISMTransition{
+				{
+					StateName:  new("delete"),
+					Conditions: map[string]json.RawMessage{"min_index_age": json.RawMessage(`"1y"`)},
+				},
+			},
 		},
-		// {
-		// 	Name: new("delete"),
-		// 	Actions: []opensearchapi.ISMAction{
-		// 		{Delete: &opensearchapi.ISMActionDelete{}},
-		// 	},
-		// },
+		{
+			Name: new("delete"),
+			Actions: []opensearchapi.ISMAction{
+				{Delete: &opensearchapi.ISMActionDelete{}},
+			},
+		},
 	},
 }

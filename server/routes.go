@@ -193,7 +193,7 @@ func buildRouter(services *services, appCfg *config.AppConfig) *chi.Mux {
 		// Manual login refresh.
 		r.Get("/login/refresh", handlerMgr.HandleRefreshToken(services.auth))
 		r.With(handlerMgr.AllSubscriptionsCtx(services.subscriptions)).
-			Get("/home", handlerMgr.HandleHome(&service.Home{}))
+			Get("/home", handlerMgr.HandleHome(service.NewHomeService(services.osc)))
 		// Searching.
 		r.Route("/search", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeSearchParams(services.session))

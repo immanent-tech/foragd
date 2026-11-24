@@ -8,6 +8,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -22,10 +23,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
-	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-resty/resty/v2"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
@@ -47,15 +44,13 @@ import (
 	"github.com/immanent-tech/go-base/pkg/zyte"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/bulk"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/results"
 	"github.com/immanent-tech/foragd/providers/google/news"
 	"github.com/immanent-tech/foragd/providers/google/youtube"
 	"github.com/immanent-tech/foragd/providers/ollama"
 	"github.com/immanent-tech/foragd/providers/opensearch"
-	osbulk "github.com/immanent-tech/foragd/providers/opensearch/bulk"
+	"github.com/immanent-tech/foragd/providers/opensearch/bulk"
+	"github.com/immanent-tech/foragd/providers/opensearch/doc"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
 	"github.com/immanent-tech/foragd/schema"
 )
 
@@ -95,16 +90,16 @@ func (ec *feedCacheExpiryCalculator) ExpireAfterRead(entry otter.Entry[models.Fe
 type FeedService struct {
 	*otter.Cache[models.FeedID, *models.Feed]
 
-	esc     *ElasticService
 	osc     *opensearch.Client
-	indexer *osbulk.Indexer
+	indexer *bulk.Indexer
 
-	itemSvc *ItemService
+	itemSvc    *ItemService
+	httpClient *resty.Client
+	ollama     Classifier
+	logger     *LogIndexer
 
 	loader     otter.LoaderFunc[models.FeedID, *models.Feed]
 	bulkLoader otter.BulkLoaderFunc[models.FeedID, *models.Feed]
-	httpClient *resty.Client
-	ollama     Classifier
 
 	closer closeOnce
 }
@@ -112,40 +107,54 @@ type FeedService struct {
 func LoadFeedsService(
 	ctx context.Context,
 	osc *opensearch.Client,
-	indexer *osbulk.Indexer,
+	indexer *bulk.Indexer,
 	httpClient *resty.Client,
 	classifier Classifier,
 	itemSvc *ItemService,
 ) (*FeedService, error) {
-	svc, err := LoadElasticService()
-	if err != nil {
-		return nil, fmt.Errorf("load elastic service: %w", err)
+	if osc == nil {
+		return nil, errors.New("no opensearch client")
 	}
-	index := svc.GetIndexRO(FeedsIndex)
-
+	if httpClient == nil {
+		return nil, errors.New("no http client")
+	}
+	if itemSvc == nil {
+		return nil, errors.New("no item service")
+	}
 	return &FeedService{
 		Cache: otter.Must(&otter.Options[models.FeedID, *models.Feed]{
 			MaximumSize:      30_000,
 			ExpiryCalculator: &feedCacheExpiryCalculator{},
 		}),
-		esc:     svc,
 		osc:     osc,
 		indexer: indexer,
+		logger:  NewLogIndexer(indexer),
 		loader: otter.LoaderFunc[models.FeedID, *models.Feed](
 			func(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-				feed, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, index, id)
-				if err != nil {
-					return nil, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
+				feed, err := doc.Get[models.FeedID, *models.Feed](
+					ctx,
+					osc.Doc,
+					osc.IndexReadAlias(schema.FeedsIndex),
+					id,
+				)
+				switch {
+				case err == nil:
+					return feed, nil
+				case isNotFound(err):
+					return nil, fmt.Errorf("get doc: %w: %w", otter.ErrNotFound, err)
+				default:
+					return nil, fmt.Errorf("get doc: %w", err)
 				}
-				return feed, nil
 			},
 		),
 		bulkLoader: otter.BulkLoaderFunc[models.FeedID, *models.Feed](
 			func(ctx context.Context, keys []models.FeedID) (map[models.FeedID]*models.Feed, error) {
-				fetched, err := elastic.GetDocs[models.FeedID, *models.Feed](
+				fetched, err := doc.GetDocs[models.FeedID, *models.Feed](
 					ctx,
-					index,
-					keys...)
+					osc.Doc,
+					osc.IndexReadAlias(schema.FeedsIndex),
+					keys...,
+				)
 				if err != nil {
 					return nil, fmt.Errorf("mget feeds: %w", err)
 				}
@@ -182,14 +191,13 @@ func (s *FeedService) Close() error {
 
 // GetFeed retrieves a feed with the given FeedID.
 func (s *FeedService) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-	ctx = context.WithValue(ctx, "feeds_index", s.esc.GetIndexRO(FeedsIndex))
 	switch feed, err := s.Get(ctx, id, s.loader); {
-	case err != nil && !errors.Is(err, elastic.ErrNotFound):
-		return nil, fmt.Errorf("get feed: %w", err)
-	case errors.Is(err, elastic.ErrNotFound):
+	case err == nil:
+		return feed, nil
+	case errors.Is(err, otter.ErrNotFound):
 		return nil, models.ErrNotFound
 	default:
-		return feed, nil
+		return nil, fmt.Errorf("get feed: %w", err)
 	}
 }
 
@@ -215,60 +223,46 @@ func (s *FeedService) GetFeeds(ctx context.Context, ids ...models.FeedID) (model
 
 // GetAllFeedsExcept retrieves a [models.Feeds] slice containing all feeds except those with the given [models.FeedID].
 func (s *FeedService) GetAllFeedsExcept(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
-	allFeeds, err := elastic.SearchAll[*models.Feed](
-		ctx,
-		s.esc.GetIndexRO(FeedsIndex),
-		query.Bool(
-			query.MustNot(
-				query.Terms("feed_id", ids),
-			),
+	feeds, err := s.searchAllFeeds(ctx, search.BoolQuery(
+		search.WithBoolMustNot(
+			search.TermsQuery("feed_id", ids),
 		),
-		5000,
-	)
+	))
 	if err != nil {
-		return nil, fmt.Errorf("search feeds: %w", err)
+		return nil, fmt.Errorf("search all: %w", err)
 	}
-	return allFeeds, nil
+	return feeds, nil
 }
 
 // GetUnclassifiedFeeds returns a [models.Feeds] slice containing feeds with any categories (or "Uncategorized").
 func (s *FeedService) GetUnclassifiedFeeds(ctx context.Context) (models.Feeds, error) {
-	allFeeds, err := elastic.SearchAll[*models.Feed](
-		ctx,
-		s.esc.GetIndexRO(FeedsIndex),
-		query.Bool(
-			query.Filter(
-				query.Term("categories.raw", "Uncategorized"),
+	feeds, err := s.searchAllFeeds(ctx,
+		search.BoolQuery(
+			search.WithBoolFilter(
+				search.TermQuery("categories.raw", "Uncategorized"),
 			),
 		),
-		10000,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("search all feeds: %w", err)
+		return nil, fmt.Errorf("search all: %w", err)
 	}
-	return allFeeds, nil
+
+	return feeds, nil
 }
 
 // GetNewFeedsSince retrieves a [models.Feeds] slice containing all feeds created since the given timestamp.
 func (s *FeedService) GetNewFeedsSince(ctx context.Context, ts time.Time) (models.Feeds, error) {
-	feeds, err := elastic.SearchAll[*models.Feed](
-		ctx,
-		s.esc.GetIndexRO(FeedsIndex),
-		// query.Since("created_at", state.Checkpoint),
-		// Consider a feed new if it has either:
-		// - last_fetched value of the ts
-		// - missing last_fetched field
-		query.Bool(
-			query.Should(
-				query.Before("last_fetched", ts),
-				query.Bool(
-					query.MustNot(
-						query.Exists("last_fetched"),
+	feeds, err := s.searchAllFeeds(ctx,
+		search.BoolQuery(
+			search.WithBoolShould(
+				search.BeforeQuery("last_fetched", ts),
+				search.BoolQuery(
+					search.WithBoolMustNot(
+						search.ExistsQuery("last_fetched"),
 					),
 				),
 			),
 		),
-		5000,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("search all: %w", err)
@@ -278,55 +272,43 @@ func (s *FeedService) GetNewFeedsSince(ctx context.Context, ts time.Time) (model
 }
 
 // GetFeedsByURLs retrieves a [models.Feeds] slice containing all feeds that have a source matching one of the given URLs.
-func (s FeedService) GetFeedsByURLs(ctx context.Context, urls ...string) (models.Feeds, error) {
-	var terms []query.Option
+func (s *FeedService) GetFeedsByURLs(ctx context.Context, urls ...string) (models.Feeds, error) {
+	var terms []search.QueryOption
 	for url := range slices.Values(urls) {
-		terms = append(terms, query.Term("source_urls", url))
+		terms = append(terms, search.TermQuery("source_urls", url))
 		// Also match url with trailing slash.
 		if !strings.HasSuffix(url, "/") {
-			terms = append(terms, query.Term("source_urls", url+"/"))
+			terms = append(terms, search.TermQuery("source_urls", url+"/"))
 		}
 	}
 	// Find any existing feed.
-	feeds, err := elastic.SearchAll[*models.Feed](ctx,
-		s.esc.GetIndexRO(FeedsIndex),
-		query.Bool(
-			query.Filter(
-				query.Bool(
-					query.Should(terms...),
+	feeds, err := s.searchAllFeeds(ctx,
+		search.BoolQuery(
+			search.WithBoolFilter(
+				search.BoolQuery(
+					search.WithBoolShould(terms...),
 				),
 			),
 		),
-		5000,
 	)
 	if err != nil {
-		return nil, models.NewAPIError(http.StatusInternalServerError, err)
+		return nil, fmt.Errorf("search all: %w", err)
 	}
 	return feeds, nil
 }
 
 // AddFeed adds a new feed to Elasticsearch and the cache.
 func (s *FeedService) AddFeed(ctx context.Context, feed *models.Feed) error {
-	if s.indexer != nil {
-		if err := s.indexer.Add(
-			ctx,
-			osbulk.NewAction(
-				osbulk.ActionCreate,
-				osbulk.ToIndex(s.osc.IndexWriteAlias(schema.FeedsIndex)),
-				osbulk.WithDoc(feed),
-			),
-		); err != nil {
-			return fmt.Errorf("bulk add feed: %w", err)
-		}
-	}
-	if err := bulk.AddAction(ctx,
+	if err := s.indexer.Add(
+		ctx,
 		bulk.NewAction(
-			feed,
-			bulk.AsOperation[models.FeedID](bulk.OpCreate),
-			bulk.ToIndex[models.FeedID](s.esc.GetIndexRW(FeedsIndex)),
+			bulk.ActionCreate,
+			bulk.ToIndex(s.osc.IndexWriteAlias(schema.FeedsIndex)),
+			bulk.WithID(feed.GetID()),
+			bulk.WithDoc(feed),
 		),
 	); err != nil {
-		return fmt.Errorf("add feed: %w", err)
+		return fmt.Errorf("bulk add feed: %w", err)
 	}
 	if _, ok := s.Set(feed.GetID(), feed); !ok {
 		slogctx.FromCtx(ctx).Warn("Unable to cache new feed.",
@@ -338,25 +320,7 @@ func (s *FeedService) AddFeed(ctx context.Context, feed *models.Feed) error {
 
 // UpdateFeed applies the given updates to a Feed. Any cached version of the feed is invalidated.
 func (s *FeedService) UpdateFeed(ctx context.Context, feed *models.Feed) error {
-	if s.indexer != nil {
-		if err := s.indexer.Add(
-			ctx,
-			osbulk.NewAction(
-				osbulk.ActionIndex,
-				osbulk.ToIndex(s.osc.IndexWriteAlias(schema.FeedsIndex)),
-				osbulk.WithDoc(feed),
-			),
-		); err != nil {
-			return fmt.Errorf("bulk add feed: %w", err)
-		}
-	}
-	if err := bulk.AddAction(ctx,
-		bulk.NewAction(
-			feed,
-			bulk.AsOperation[models.FeedID](bulk.OpIndex),
-			bulk.ToIndex[models.FeedID](s.esc.GetIndexRW(FeedsIndex)),
-		),
-	); err != nil {
+	if err := doc.Index(ctx, s.osc.Doc, s.osc.IndexWriteAlias(schema.FeedsIndex), feed); err != nil {
 		return fmt.Errorf("update feed: %w", err)
 	}
 	// Set replaces the entry; Set() respects TTL from ExpireAfterUpdate.
@@ -379,7 +343,10 @@ func (s *FeedService) UpdateFeedItems(
 ) (time.Time, error) {
 	// If there are not items, just return.
 	if len(newData.GetItems()) == 0 {
-		if err := newFeedStatusMsg(oldData.GetID(), logWithStatusCode(http.StatusNoContent)).log(ctx); err != nil {
+		if err := s.logger.Log(
+			ctx,
+			NewFeedStatusMsg(oldData.GetID(), logWithStatusCode(http.StatusNoContent)),
+		); err != nil {
 			slogctx.Error(ctx, "Unable to write feed status.",
 				slog.Any("error", err))
 		}
@@ -403,11 +370,11 @@ func (s *FeedService) UpdateFeedItems(
 				slog.Int("updated", len(itemStates.Updated)),
 				slog.Int("unchanged", len(itemStates.Unchanged)),
 			)
-			if err := newFeedStatusMsg(
+			if err := s.logger.Log(ctx, NewFeedStatusMsg(
 				oldData.GetID(),
 				logWithStatusCode(http.StatusOK),
 				logWithItemIDs(updates.GetIDs()...),
-			).log(ctx); err != nil {
+			)); err != nil {
 				slogctx.Error(ctx, "Unable to write feed status.",
 					slog.Any("error", err))
 			}
@@ -415,7 +382,10 @@ func (s *FeedService) UpdateFeedItems(
 			return updates.SortByTimestamp()[0].GetTimestamp(), nil
 		}
 	}
-	if err := newFeedStatusMsg(oldData.GetID(), logWithStatusCode(http.StatusNoContent)).log(ctx); err != nil {
+	if err := s.logger.Log(
+		ctx,
+		NewFeedStatusMsg(oldData.GetID(), logWithStatusCode(http.StatusNoContent)),
+	); err != nil {
 		slogctx.Error(ctx, "Unable to write feed status.",
 			slog.Any("error", err))
 	}
@@ -582,43 +552,40 @@ func (s *FeedService) SuggestYoutubeFeeds(ctx context.Context, text string) (*mo
 	}
 	var feeds models.Feeds
 	// Try to find existing feeds that match the query.
-	resp, err := elastic.Search[*models.Feed](
-		ctx,
-		s.esc.GetIndexRO(FeedsIndex),
-		elastic.WithQuery[*search.Search](
-			query.Bool(
-				query.MustNot(
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.FeedsIndex),
+		search.WithQuery(
+			search.BoolQuery(
+				search.WithBoolMustNot(
 					// User must not already be subscribed.
-					query.Terms("feed_id", allSubscriptions.GetFeedIDs()),
+					search.TermsQuery("feed_id", allSubscriptions.GetFeedIDs()),
 				),
-				query.Should(
+				search.WithBoolShould(
 					// Match source_urls (preferred) or url.
-					query.Terms(
-						"source_urls",
-						urls,
-						query.WithQueryBoost[*query.TermsQuery](10.0),
-					),
-					query.Terms(
-						"url",
-						urls,
-					),
+					search.TermsQuery("source_urls", urls, search.WithQueryBoost(10.0)),
+					search.TermsQuery("url", urls),
 				),
 			),
 		),
-		elastic.WithSort[*search.Search](
-			NewFeedSortOptions(new(models.SortMostRelevant))...,
-		),
-		elastic.WithSize[*search.Search](5),
+		search.WithSort(feedSortOptions(new(models.SortMostRelevant))),
+		search.WithTrackTotalHits(false),
+		search.WithSize(5),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("search feeds: %w", err)
 	}
 
 	// If existing feeds are found, return the results
-	if len(resp.Results) > 0 {
-		feeds = resp.Results
+	if len(resp.Hits.Hits) > 0 {
+		var (
+			feeds models.Feeds
+			err   error
+		)
+		feeds, _, err = resp.ExtractHits[*models.Feed]()
+		if err != nil {
+			return nil, fmt.Errorf("extract feeds: %w", err)
+		}
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := getFeedLatestItems(ctx, s.esc, 3, feeds.GetIDs())
+		latestItems, err := s.getFeedLatestItems(ctx, 3, feeds.GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -664,46 +631,44 @@ func (s *FeedService) SuggestGoogleNewsFeeds(
 		return nil, fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 	}
 
-	var feeds models.Feeds
 	// Try to find existing feeds that match the query.
-	resp, err := elastic.Search[*models.Feed](
-		ctx,
-		s.esc.GetIndexRO(FeedsIndex),
-		elastic.WithQuery[*search.Search](
-			query.Bool(
-				query.MustNot(
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.FeedsIndex),
+		search.WithQuery(
+			search.BoolQuery(
+				search.WithBoolMustNot(
 					// User must not already be subscribed.
-					query.Terms("feed_id", allSubscriptions.GetFeedIDs()),
+					search.TermsQuery("feed_id", allSubscriptions.GetFeedIDs()),
 				),
-				query.Should(
-					query.Term("domain.raw", "news.google.com", query.WithQueryBoost[*query.TermQuery](20.0)),
+				search.WithBoolFilter(
+					search.TermQuery("domain.raw", "news.google.com"),
+				),
+				search.WithBoolShould(
 					// Match source_urls (preferred) or url.
-					query.Term(
-						"source_urls",
-						newsURL.String(),
-						query.WithQueryBoost[*query.TermQuery](10.0),
-					),
-					query.Term(
-						"url",
-						newsURL.String(),
-					),
+					search.TermQuery("source_urls", newsURL.String(), search.WithQueryBoost(10.0)),
+					search.TermQuery("url", newsURL.String()),
 				),
 			),
 		),
-		elastic.WithSort[*search.Search](
-			NewFeedSortOptions(new(models.SortMostRelevant))...,
-		),
-		elastic.WithSize[*search.Search](5),
+		search.WithSort(feedSortOptions(new(models.SortMostRelevant))),
+		search.WithTrackTotalHits(false),
+		search.WithSize(5),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("search feeds: %w", err)
 	}
 
 	// If existing feeds are found, return the results
-	if len(resp.Results) > 0 {
-		feeds = resp.Results
+	if len(resp.Hits.Hits) > 0 {
+		var (
+			feeds models.Feeds
+			err   error
+		)
+		feeds, _, err = resp.ExtractHits[*models.Feed]()
+		if err != nil {
+			return nil, fmt.Errorf("extract feeds: %w", err)
+		}
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := getFeedLatestItems(ctx, s.esc, 3, feeds.GetIDs())
+		latestItems, err := s.getFeedLatestItems(ctx, 3, feeds.GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -735,10 +700,10 @@ func (s *FeedService) SuggestGoogleNewsFeeds(
 	}
 	// Always fetch item summaries for Google News feeds.
 	newFeed.SetDirectFetchOptions(models.SetDirectFetchWithItemSummaries(true))
-	feeds = append(feeds, newFeed)
+	// feeds = append(feeds, newFeed)
 	return &models.SuggestFeedsResults{
-		Text:        text,
-		Feeds:       feeds,
+		Text: text,
+		// Feeds:       feeds,
 		LatestItems: latestItems,
 	}, nil
 }
@@ -763,72 +728,66 @@ func (s *FeedService) SuggestFeeds(
 	}
 
 	// Find the top 5 feeds that match the user's query and which they are not already subscribed to.
-	var feedSearchQuery query.Option
+	var feedSearchQuery search.QueryOption
 	switch {
 	case strings.HasPrefix(request.Text, "http"):
 		parsedURL, err := url.Parse(request.Text)
 		if err != nil {
 			return nil, fmt.Errorf("malformed URL %s: %w", request.Text, err)
 		}
-		feedSearchQuery = query.Bool(
-			query.MustNot(
+		feedSearchQuery = search.BoolQuery(
+			search.WithBoolMustNot(
 				// User must not already be subscribed.
-				query.Terms("feed_id", allSubscriptions.GetFeedIDs()),
+				search.TermsQuery("feed_id", allSubscriptions.GetFeedIDs()),
 				// Exclude google news custom feeds.
-				query.Term("domain.raw", "news.google.com"),
+				search.TermQuery("domain.raw", "news.google.com"),
 			),
-			query.Should(
+			search.WithBoolShould(
 				// For URLs, match with and without a trailing slash. Boost source_URLs over URL.
-				query.Term(
+				search.TermsQuery(
 					"source_urls",
-					strings.TrimSuffix(parsedURL.String(), "/"),
-					query.WithQueryBoost[*query.TermQuery](10.0),
+					[]string{strings.TrimSuffix(parsedURL.String(), "/"), parsedURL.String()},
+					search.WithQueryBoost(10.0),
 				),
-				query.Term(
+				search.TermsQuery(
 					"url",
-					strings.TrimSuffix(parsedURL.String(), "/"),
-					query.WithQueryBoost[*query.TermQuery](5.0),
+					[]string{strings.TrimSuffix(parsedURL.String(), "/"), parsedURL.String()},
+					search.WithQueryBoost(5.0),
 				),
-				query.Term("source_urls", parsedURL.String(), query.WithQueryBoost[*query.TermQuery](10.0)),
-				query.Term("url", parsedURL.String(), query.WithQueryBoost[*query.TermQuery](5.0)),
 				// Match the URL domain.
-				query.Term("domain.raw", parsedURL.Hostname(), query.WithQueryBoost[*query.TermQuery](15.0)),
+				search.TermQuery(
+					"domain.raw",
+					parsedURL.Hostname(),
+					search.WithQueryBoost(15.0),
+				),
 			),
 		)
 	default:
-		feedSearchQuery = query.Bool(
-			query.MustNot(
+		feedSearchQuery = search.BoolQuery(
+			search.WithBoolMustNot(
 				// User must not already be subscribed.
-				query.Terms("feed_id", allSubscriptions.GetFeedIDs()),
+				search.TermsQuery("feed_id", allSubscriptions.GetFeedIDs()),
 				// Exclude google news custom feeds.
-				query.Term("domain.raw", "news.google.com"),
+				search.TermQuery("domain.raw", "news.google.com"),
 			),
-			query.Must(
+			search.WithBoolMust(
 				// Must match any category filters.
-				query.Terms("categories.raw", request.Categories),
+				search.TermsQuery("categories.raw", request.Categories),
 			),
-			query.Should(
-				// Exact match text on title with significant boost.
-				query.Term(
-					"title.exact",
-					request.Text,
-					query.WithQueryBoost[*query.TermQuery](10.0),
-				),
+			search.WithBoolShould(
+				search.TermQuery("title.exact", request.Text, search.WithQueryBoost(10.0)),
 				// Title or description contains text, with boost for title.
-				query.MultiMatch(
+				search.MultiMatchQuery(
 					request.Text,
 					[]string{"title^5", "customisation.title^4", "description", "customisation.description"},
-					query.WithFuzziness[*query.MultiMatchQuery]("AUTO"),
+					search.WithMultiMatchFuzziness("AUTO"),
 				),
-				// Match phrase in description.
-				query.Match("description", request.Text),
-				query.Match("customisation.description", request.Text),
 				// Match an existing subscription category.
-				query.Match("categories", request.Text),
-				query.Term("categories.raw", "Uncategorized"),
+				search.MatchQuery("categories", request.Text),
+				search.TermQuery("categories.raw", "Uncategorized"),
 				// Try to match the domain.
-				query.Match("domain", request.Text),
-				query.Term("domain.raw", request.Text, query.WithQueryBoost[*query.TermQuery](15.0)),
+				search.MatchQuery("domain", request.Text),
+				search.TermQuery("domain.raw", request.Text, search.WithQueryBoost(15.0)),
 			),
 		)
 	}
@@ -839,28 +798,34 @@ func (s *FeedService) SuggestFeeds(
 		LatestItems: make(map[models.FeedID]models.Items, 3),
 	}
 
-	// Try to find existing feeds that match the query.
-	resp, err := elastic.Search[*models.Feed](
-		ctx,
-		s.esc.GetIndexRO(FeedsIndex),
-		elastic.WithQuery[*search.Search](feedSearchQuery),
-		elastic.WithSize[*search.Search](request.Count),
-		elastic.WithSort[*search.Search](NewFeedSortOptions(new(models.SortMostRelevant))...),
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.FeedsIndex),
+		search.WithQuery(feedSearchQuery),
+		search.WithSort(feedSortOptions(new(models.SortMostRelevant))),
+		search.WithSize(request.Count),
+		search.WithTrackTotalHits(false),
 	)
 	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to find feed suggestions.",
-			slog.Any("error", err),
-		)
+		return nil, fmt.Errorf("search feeds: %w", err)
 	}
-	if len(resp.Results) > 0 {
+
+	if len(resp.Hits.Hits) > 0 {
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := getFeedLatestItems(ctx, s.esc, 3, models.Feeds(resp.Results).GetIDs())
+		var (
+			feeds models.Feeds
+			err   error
+		)
+		feeds, _, err = resp.ExtractHits[*models.Feed]()
+		if err != nil {
+			return nil, fmt.Errorf("extract feeds: %w", err)
+		}
+		// Retrieve the latest 3 articles for each feed.
+		latestItems, err := s.getFeedLatestItems(ctx, 3, feeds.GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
 			)
 		}
-		suggestions.Feeds = resp.Results
+		suggestions.Feeds = feeds
 		suggestions.LatestItems = latestItems
 	}
 
@@ -981,146 +946,54 @@ func (s *FeedService) ClassifyFeed(ctx context.Context, feed *models.Feed) error
 	return nil
 }
 
-// DiscoverFeedURL attempts to find a feed URL within a HTML page.
-//
-// There are a couple of "canonical" places the feed URL is located. Firstly, as per the RSS spec, look for a link
-// element with rel="alternate" and type="application/rss+xml". Secondly, check for a link element with a URL that ends
-// with feed, rss or atom, which would indicate a feed URL.
-//
-//nolint:gocognit
-func DiscoverFeedURL(sourceURL *url.URL, content []byte) (string, error) {
-	page, err := html.Parse(bytes.NewReader(content))
+func (s *FeedService) searchAllFeeds(ctx context.Context, queries ...search.QueryOption) (models.Feeds, error) {
+	resp, err := search.SearchAll(ctx, s.osc, s.osc.IndexReadAlias(schema.FeedsIndex), 2500, queries)
 	if err != nil {
-		return "", fmt.Errorf("parse html: %w", err)
+		return nil, fmt.Errorf("search feeds: %w", err)
 	}
-
-	// Check if its a Medium blog with a custom domain. If so, just return the original URL with the path replaced with
-	// `/feed`.
-	//
-	// https://help.medium.com/hc/en-us/articles/214874118-Using-RSS-feeds-of-profiles-publications-and-topics
-	if htmlx.CheckMediumSignals(page) > 0 {
-		sourceURL.Path = "/feed"
-		return sourceURL.String(), nil
-	}
-
-	// RSS feed auto-discovery.
-	//
-	// https://www.rssboard.org/rss-autodiscovery
-	findCanonicalLinkAttribute := func(elem *html.Node) string {
-		// Needs to have attributes rel="alternate".
-		if !slices.ContainsFunc(
-			elem.Attr,
-			func(a html.Attribute) bool { return a.Key == "rel" && a.Val == "alternate" },
-		) {
-			return ""
-		}
-		// Needs to have type="{feedMimeType}".
-		if !slices.ContainsFunc(
-			elem.Attr,
-			func(a html.Attribute) bool { return a.Key == "type" && slices.Contains(feeds.MimeTypesFeed, a.Val) },
-		) {
-			return ""
-		}
-		// Return the href attribute value.
-		for a := range slices.Values(elem.Attr) {
-			if a.Key == "href" {
-				return a.Val
-			}
-		}
-		return ""
-	}
-
-	// Commonly used links based on path.
-	findCommonFeedURL := func(elem *html.Node) string {
-		for a := range slices.Values(elem.Attr) {
-			// href attribute should contain a well-known substring.
-			if a.Key == "href" &&
-				(strings.HasSuffix(a.Val, "feed") || strings.Contains(a.Val, "rss") || strings.Contains(a.Val, "atom")) {
-				return a.Val
-			}
-		}
-		return ""
-	}
-	var findURL func(*html.Node) string
-	findURL = func(n *html.Node) string {
-		if n.Type == html.ElementNode && (n.Data == "a" || n.Data == "link") {
-			if foundURL := findCanonicalLinkAttribute(n); foundURL != "" {
-				return foundURL
-			}
-			if foundURL := findCommonFeedURL(n); foundURL != "" {
-				return foundURL
-			}
-		}
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			if foundURL := findURL(c); foundURL != "" {
-				return foundURL
-			}
-		}
-		return ""
-	}
-
-	foundURL := findURL(page)
-	if foundURL == "" {
-		return "", fmt.Errorf("%w: no url found", htmlx.ErrParseURL)
-	}
-
-	// Parse the discovered URL.
-	feedURL, err := url.Parse(foundURL)
+	feeds, err := resp.ExtractHits[*models.Feed]()
 	if err != nil {
-		return foundURL, fmt.Errorf("discover feed url: %w", err)
+		return nil, fmt.Errorf("extract feeds: %w", err)
 	}
-	// Check whether the URL is absolute.
-	if !feedURL.IsAbs() {
-		// Try to create an absolute URL for the feed.
-		feedURL, err = url.Parse(sourceURL.String())
-		if err != nil {
-			return "", fmt.Errorf("discover feed url: %w", err)
-		}
-		feedURL.Path, err = url.JoinPath("/", foundURL)
-		if err != nil {
-			return "", fmt.Errorf("discover feed url: %w", err)
-		}
-	}
-	return feedURL.String(), nil
+	return feeds, nil
 }
 
 // getFeedLatestItems fetches the most recent count items for each given feed. An optional query clause can be specified
 // that will be added to the bool filter clause of the query to apply additional filtering to the items.
-func getFeedLatestItems(
+func (s *FeedService) getFeedLatestItems(
 	ctx context.Context,
-	svc *ElasticService,
 	count int,
 	feedIDs []models.FeedID,
 ) (map[models.FeedID]models.Items, error) {
-	resp, err := elastic.Search[*models.Item](ctx,
-		svc.GetIndexRO(ItemsIndex),
-		elastic.WithQuery[*search.Search](
-			query.Bool(
-				query.Filter(
-					query.Terms("feed_id", feedIDs),
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithQuery(
+			search.BoolQuery(
+				search.WithBoolFilter(
+					search.TermsQuery("feed_id", feedIDs),
 				),
 			),
 		),
-		elastic.WithAggregations[*search.Search](
-			elastic.Aggs{
-				"feed": estypes.Aggregations{
-					Terms: &estypes.TermsAggregation{
-						Field: new("feed_id"),
-						Size:  new(len(feedIDs)),
-					},
-					Aggregations: map[string]estypes.Aggregations{
-						"latest_items": {
-							TopHits: &estypes.TopHitsAggregation{
-								Size: &count,
-								Sort: NewItemSortCombinations(new(models.SortNewestFirst)),
-							},
-						},
-					},
-				},
-			},
+		search.WithAggregation(
+			"feed",
+			search.TermsAggregation(
+				search.WithTermsAggregationField("feed_id"),
+				search.WithTermsAggregationSize(len(feedIDs)),
+			),
+			search.WithChildAggregation(
+				"latest_items",
+				search.TopHitsAggregation(
+					search.WithTopHitsAggregationSize(count),
+					search.WithTopHitsAggregationSort(
+						ItemSortCombinations(new(models.SortNewestFirst))),
+				),
+			),
 		),
-		elastic.WithSize[*search.Search](0),
-		elastic.WithDocSorting[*search.Search](),
+		search.WithSearchParameters(
+			search.WithSortParams("_doc"),
+		),
+		search.WithTrackTotalHits(false),
+		search.WithTrackScores(false),
+		search.WithSize(0),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("fetch latest articles: %w", err)
@@ -1128,95 +1001,100 @@ func getFeedLatestItems(
 	feedsLatestItems := make(map[models.FeedID]models.Items)
 	var wg sync.WaitGroup
 	var mu sync.Mutex
-	// Extract the feed aggregation.
-	feedsAgg, hasFeedAgg, err := elastic.ExtractAggregation[*estypes.StringTermsAggregate](
-		resp.Aggregations,
-		"feed",
-	)
-	if !hasFeedAgg || err != nil {
-		return nil, fmt.Errorf("extract feed aggregation: %w", err)
+	// Extract the feed aggregation. We need to use a custom type as we cannot access nested aggregations from the typed
+	// API at the moment.
+	type latestItemsAggs struct {
+		Aggregations struct {
+			Feed struct {
+				Buckets []struct {
+					Key         string `json:"key"`
+					LatestItems struct {
+						Hits struct {
+							Hits []struct {
+								ID     string          `json:"_id"`
+								Source json.RawMessage `json:"_source"`
+							} `json:"hits"`
+						} `json:"hits"`
+					} `json:"latest_items"`
+				} `json:"buckets"`
+			} `json:"feed"`
+		} `json:"aggregations"`
 	}
-	// Loop over the feed buckets.
-	feedBuckets, err := elastic.ExtractBuckets[estypes.StringTermsBucket](feedsAgg.Buckets)
-	if err != nil {
-		return nil, fmt.Errorf("extract feed aggregation buckets: %w", err)
+	var latestItems latestItemsAggs
+	if err := json.NewDecoder(resp.RawBody()).Decode(&latestItems); err != nil {
+		return nil, fmt.Errorf("extract aggregation results: %w", err)
 	}
-	for bucket := range slices.Values(feedBuckets) {
-		if feedID, ok := bucket.Key.(models.FeedID); ok {
-			wg.Go(func() {
-				if feedID == "" {
-					return
-				}
-				// Get the subscription with this feedID.
-				if !slices.Contains(feedIDs, feedID) {
-					slogctx.FromCtx(ctx).
-						Warn("Could not match feed in aggregation result to a subscription.",
-							slog.String("feed_id", feedID),
-						)
-					return
-				}
-				// Extract the latest articles aggregation.
-				latestItemsAggs, hasLatestItemsAgg, err := elastic.ExtractAggregation[*estypes.TopHitsAggregate](
-					bucket.Aggregations,
-					"latest_items",
-				)
-				if !hasLatestItemsAgg || err != nil {
-					slogctx.FromCtx(ctx).Warn("Could not extract aggregation.",
-						slog.String("aggregation", "latest_items"),
+	for bucket := range slices.Values(latestItems.Aggregations.Feed.Buckets) {
+		feedID := bucket.Key
+		if feedID == "" {
+			continue
+		}
+		wg.Go(func() {
+			// Get the subscription with this feedID.
+			if !slices.Contains(feedIDs, feedID) {
+				slogctx.FromCtx(ctx).
+					Warn("Could not match feed in aggregation result to a subscription.",
+						slog.String("feed_id", feedID),
+					)
+				return
+			}
+			var (
+				items models.Items
+			)
+			// Extract the latest items.
+			//
+			// * Note that the "latest_items" aggregation applies _source filtering,
+			// * so only the given fields will be populated in the models.Item object.
+			// Loop through the hits, extracting the source into the required type.
+			for hit := range slices.Values(bucket.LatestItems.Hits.Hits) {
+				source, err := opensearch.ExtractSource[*models.Item](hit.Source)
+				if err != nil {
+					slogctx.Warn(
+						ctx,
+						"Could not extract latest item.",
+						slog.String("feed_id", feedID),
 						slog.Any("error", err),
 					)
-					return
+					continue
 				}
-				var (
-					items models.Items
-				)
-
-				// Extract the latest items.
-				//
-				// * Note that the "latest_items" aggregation applies _source filtering,
-				// * so only the given fields will be populated in the models.Item object.
-				items, _, err = results.ExtractSourceFromHits[*models.Item](latestItemsAggs.Hits.Hits)
-				if err != nil {
-					slogctx.FromCtx(ctx).
-						Warn("Unable to extract latest articles from elastic.",
-							slog.Any("error", err),
-						)
-					return
-				}
-				// Ensure proper sorting.
-				items = items.SortByTimestamp()
-				mu.Lock()
-				feedsLatestItems[feedID] = items
-				mu.Unlock()
-			})
-		}
+				items = append(items, source)
+			}
+			// Ensure proper sorting.
+			items = items.SortByTimestamp()
+			mu.Lock()
+			feedsLatestItems[feedID] = items
+			mu.Unlock()
+		})
 	}
 
 	wg.Wait()
 	return feedsLatestItems, nil
 }
 
-func getFeedLastUpdates(
+func (s *FeedService) getFeedLastUpdates(
 	ctx context.Context,
-	svc *ElasticService,
 	ids ...models.FeedID,
 ) (map[models.FeedID]time.Time, error) {
-	sort := models.SortNewestFirst
-	resp, err := elastic.Search[*models.Item](
-		ctx,
-		svc.GetIndexRO(ItemsIndex),
-		elastic.WithQuery[*search.Search](query.Terms("feed_id", ids)),
-		elastic.WithSize[*search.Search](len(ids)),
-		elastic.WithCollapse[*search.Search]("feed_id"),
-		elastic.WithSort[*search.Search](NewItemSortOptions(&sort)...),
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithQuery(
+			search.TermsQuery("feed_id", ids),
+		),
+		search.WithSize(len(ids)),
+		search.WithCollapse("feed_id"),
+		search.WithSort(ItemSortCombinations(new(models.SortNewestFirst))),
+		search.WithTrackScores(false),
+		search.WithTrackTotalHits(false),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get feed last updates: %w", err)
+		return nil, fmt.Errorf("search items: %w", err)
+	}
+	items, _, err := resp.ExtractHits[*models.Item]()
+	if err != nil {
+		return nil, fmt.Errorf("extract items: %w", err)
 	}
 
 	updates := make(map[models.FeedID]time.Time)
-
-	for item := range slices.Values(resp.Results) {
+	for item := range slices.Values(items) {
 		updates[item.GetFeedID()] = item.GetTimestamp()
 	}
 
@@ -1225,91 +1103,89 @@ func getFeedLastUpdates(
 
 // GetFeedSubscriptionStats fetches the stats for FeedSubscriptions and returns a map of the SubscriptionID to
 // SubscriptionStats that can be used to lookup the stats pertaining to a particular subscription.
-func getFeedAverageDailyUpdates(
+func (s *FeedService) getFeedAverageDailyUpdates(
 	ctx context.Context,
-	svc *ElasticService,
 	ids ...models.FeedID,
 ) (map[models.FeedID]float64, error) {
-	// Build query.
-	query := query.Bool(
-		query.WithBoolQueryName("feed_stats_query"),
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.Terms("feed_id", ids),
-			// Must be published within last month.
-			query.Bool(
-				query.Should(
-					query.Since("published", time.Now().UTC().Add(-24*30*time.Hour)),
-					query.Since("updated", time.Now().UTC().Add(-24*30*time.Hour)),
+	// Round to yesterday.
+	since := time.Now().UTC().Add(-24 * 30 * time.Hour).Format(time.DateOnly)
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithQuery(
+			search.BoolQuery(
+				search.WithBoolFilter(
+					// Must match any of the given feed IDs.
+					search.TermsQuery("feed_id", ids),
+					search.BoolQuery(
+						search.WithBoolShould(
+							search.SinceQuery("published", since),
+							search.SinceQuery("updated", since),
+						),
+					),
 				),
 			),
 		),
-	)
-	// Build elastic.
-	termsField := "feed_id"
-	termsCount := len(ids)
-	dateHistoField := "@timestamp"
-	dateFormat := "yyyy-MM-dd"
-	aggs := elastic.Aggs{
-		"feed": estypes.Aggregations{
-			Terms: &estypes.TermsAggregation{
-				Field: &termsField,
-				Size:  &termsCount,
-			},
-			Aggregations: map[string]estypes.Aggregations{
-				"updates_per_day": {
-					DateHistogram: &estypes.DateHistogramAggregation{
-						Field:            &dateHistoField,
-						CalendarInterval: &calendarinterval.Day,
-						Format:           &dateFormat,
-					},
-				},
-				"avg_daily_updates": {
-					AvgBucket: &estypes.AverageBucketAggregation{
-						BucketsPath: "updates_per_day._count",
-					},
-				},
-			},
-		},
-	}
-
-	resp, err := elastic.Search[*models.Item](ctx,
-		svc.GetIndexRO(ItemsIndex),
-		elastic.WithQuery[*search.Search](query),
-		elastic.WithAggregations[*search.Search](aggs),
-		elastic.WithSize[*search.Search](len(ids)),
-		elastic.WithDocSorting[*search.Search](),
+		search.WithAggregation(
+			"feed",
+			search.TermsAggregation(
+				search.WithTermsAggregationField("feed_id"),
+				search.WithTermsAggregationSize(len(ids)),
+			),
+			search.WithChildAggregation(
+				"updates_per_day",
+				search.DateHistogramAggregation(
+					"@timestamp",
+					search.WithDateHistogramAggregationCalendarInterval("day"),
+					search.WithDateHistogramAggregationFormat("yyyy-MM-dd"),
+				),
+			),
+			search.WithChildAggregation(
+				"avg_daily_updates",
+				search.AverageBucketAggregation(
+					search.WithPipelineAggregationBucketsPath("updates_per_day._count"),
+				),
+			),
+		),
+		search.WithSize(0),
+		search.WithTrackTotalHits(false),
+		search.WithTrackScores(false),
+		search.WithSort(search.NewSortOptions(search.WithSortField("_doc"))),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get feed stats: Feed aggregation invalid: %w", models.ErrInvalidAPIResult)
+		return nil, fmt.Errorf("aggregate feeds: %w", err)
 	}
-	feedStats, ok := resp.Aggregations["feed"].(*estypes.StringTermsAggregate)
-	if !ok {
-		return nil, fmt.Errorf("unable to get feed stats: Feed aggregation invalid: %w", models.ErrInvalidAPIResult)
+
+	// Extract the feed aggregation. We need to use a custom type as we cannot access nested aggregations from the typed
+	// API at the moment.
+	type avgDailyUpdatesAgg struct {
+		Aggregations struct {
+			Feed struct {
+				Buckets []struct {
+					Key           string `json:"key"`
+					UpdatesPerDay struct {
+						Buckets []struct {
+							Key      string `json:"key_as_string"`
+							DocCount int    `json:"doc_count"`
+						} `json:"buckets"`
+					} `json:"updates_per_day"`
+					AvgDailyUpdates struct {
+						Value float64 `json:"value"`
+					} `json:"avg_daily_updates"`
+				} `json:"buckets"`
+			} `json:"feed"`
+		} `json:"aggregations"`
 	}
-	feedStatsBuckets, ok := feedStats.Buckets.([]estypes.StringTermsBucket)
-	if !ok {
-		return nil, fmt.Errorf("unable to get feed stats: Feed aggregation invalid: %w", models.ErrInvalidAPIResult)
+	var dailyUpdates avgDailyUpdatesAgg
+	if err := json.NewDecoder(resp.RawBody()).Decode(&dailyUpdates); err != nil {
+		return nil, fmt.Errorf("extract aggregation results: %w", err)
 	}
 
 	stats := make(map[models.FeedID]float64)
-
-	// Loop through the aggregation results and extract the daily updates metric for each feed.
-	for feed := range slices.Values(feedStatsBuckets) {
-		var feedID models.FeedID
-		feedID, ok = feed.Key.(string)
-		if !ok {
-			slogctx.FromCtx(ctx).Debug("Unable to extract feed ID for aggregation", slog.Any("feed_id", feed.Key))
+	for feed := range slices.Values(dailyUpdates.Aggregations.Feed.Buckets) {
+		if feed.Key == "" {
 			continue
 		}
-		var updatesResult *estypes.SimpleValueAggregate
-		updatesResult, ok = feed.Aggregations["avg_daily_updates"].(*estypes.SimpleValueAggregate)
-		if !ok {
-			slogctx.FromCtx(ctx).
-				Debug("Unable to extract avg_daily_updates agg for subscription", slog.String("feed_id", feedID))
-			continue
-		}
-		stats[feedID] = float64(*updatesResult.Value)
+		feedID := feed.Key
+		stats[feedID] = feed.AvgDailyUpdates.Value
 	}
 
 	return stats, nil
@@ -1788,102 +1664,45 @@ func NewFeedFromZyteResponse(ctx context.Context, resp *zyte.Response) (*models.
 	return feed, nil
 }
 
-// FeedSorting contains the sort options for sorting item search results.
-type FeedSorting struct {
-	Updated   string `json:"updated"`
-	Published string `json:"published"`
-	FeedID    string `json:"feed_id"`
-}
-
-// SortCombinationsCaster is required to allow FeedSorting to be used as Elasticsearch sort values.
-func (s *FeedSorting) SortCombinationsCaster() *estypes.SortCombinations {
-	c := estypes.SortCombinations(s)
-	return &c
-}
-
-func NewFeedSortOptions(sort *models.Sort) []estypes.SortCombinationsVariant {
+func feedSortOptions(sort *models.Sort) *search.Sorting {
 	if sort == nil {
-		return []estypes.SortCombinationsVariant{&estypes.SortOptions{Doc_: estypes.NewScoreSort()}}
+		return search.NewSortOptions(search.WithSortField("_doc"))
 	}
-	var opts []estypes.SortCombinationsVariant
 	switch *sort {
 	case models.SortNewestFirst:
-		opts = append(opts, &FeedSorting{
-			Updated:   "desc",
-			Published: "desc",
-			FeedID:    "desc",
-		})
+		return search.NewSortOptions(
+			search.WithSortField("published", search.WithFieldSortOrder(search.SortOrderDesc)),
+			search.WithSortField("updated", search.WithFieldSortOrder(search.SortOrderDesc)),
+			search.WithSortField("feed_id", search.WithFieldSortOrder(search.SortOrderDesc)),
+		)
 	case models.SortOldestFirst:
-		opts = append(opts, &FeedSorting{
-			Updated:   "asc",
-			Published: "asc",
-			FeedID:    "asc",
-		})
+		return search.NewSortOptions(
+			search.WithSortField("published", search.WithFieldSortOrder(search.SortOrderAsc)),
+			search.WithSortField("updated", search.WithFieldSortOrder(search.SortOrderAsc)),
+			search.WithSortField("feed_id", search.WithFieldSortOrder(search.SortOrderAsc)),
+		)
 	case models.SortMostRelevant:
-		opts = append(opts, &estypes.SortOptions{
-			Score_: &estypes.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&FeedSorting{
-				Updated:   "asc",
-				Published: "asc",
-				FeedID:    "asc",
-			},
+		return search.NewSortOptions(
+			search.WithSortField("_score", search.WithFieldSortOrder(search.SortOrderDesc)),
+			search.WithSortField("published", search.WithFieldSortOrder(search.SortOrderDesc)),
+			search.WithSortField("updated", search.WithFieldSortOrder(search.SortOrderDesc)),
+			search.WithSortField("feed_id", search.WithFieldSortOrder(search.SortOrderDesc)),
 		)
 	default:
-		opts = append(opts, &estypes.SortOptions{
-			Doc_: estypes.NewScoreSort(),
-		})
-	}
-	return opts
-}
-
-func NewFeedSortCombinations(sort *models.Sort) []estypes.SortCombinations {
-	var opts []estypes.SortCombinations
-	switch *sort {
-	case models.SortNewestFirst:
-		opts = append(opts, &FeedSorting{
-			Updated:   "desc",
-			Published: "desc",
-			FeedID:    "desc",
-		})
-	case models.SortOldestFirst:
-		opts = append(opts, &FeedSorting{
-			Updated:   "asc",
-			Published: "asc",
-			FeedID:    "asc",
-		})
-	case models.SortMostRelevant:
-		opts = append(opts, &estypes.SortOptions{
-			Score_: &estypes.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&FeedSorting{
-				Updated:   "asc",
-				Published: "asc",
-				FeedID:    "asc",
-			},
+		return search.NewSortOptions(
+			search.WithSortField("_doc"),
 		)
-	default:
-		opts = append(opts, &estypes.SortOptions{
-			Doc_: estypes.NewScoreSort(),
-		})
 	}
-	return opts
 }
 
-type feedStatusLogMsg struct {
+type FeedStatusMsg struct {
 	*models.FeedStatus
 
 	Labels map[string]string `json:"labels"`
 }
 
-func newFeedStatusMsg(id models.FeedID, options ...func(*feedStatusLogMsg)) *feedStatusLogMsg {
-	msg := &feedStatusLogMsg{
+func NewFeedStatusMsg(id models.FeedID, options ...func(*FeedStatusMsg)) *FeedStatusMsg {
+	msg := &FeedStatusMsg{
 		FeedStatus: &models.FeedStatus{
 			Timestamp: time.Now().UTC(),
 			FeedID:    id,
@@ -1898,33 +1717,20 @@ func newFeedStatusMsg(id models.FeedID, options ...func(*feedStatusLogMsg)) *fee
 	return msg
 }
 
-func (l *feedStatusLogMsg) log(ctx context.Context) error {
-	if err := bulk.AddAction(ctx,
-		bulk.NewAction(
-			l,
-			bulk.AsOperation[string](bulk.OpIndex),
-			bulk.ToIndex[string]("logs"),
-		),
-	); err != nil {
-		return fmt.Errorf("add bulk action: %w", err)
-	}
-	return nil
-}
-
-func logWithItemIDs(itemIDs ...models.ItemID) func(*feedStatusLogMsg) {
-	return func(fslm *feedStatusLogMsg) {
+func logWithItemIDs(itemIDs ...models.ItemID) func(*FeedStatusMsg) {
+	return func(fslm *FeedStatusMsg) {
 		fslm.Items = itemIDs
 	}
 }
 
-func logWithStatusCode(code int) func(*feedStatusLogMsg) {
-	return func(fslm *feedStatusLogMsg) {
+func logWithStatusCode(code int) func(*FeedStatusMsg) {
+	return func(fslm *FeedStatusMsg) {
 		fslm.StatusCode = code
 	}
 }
 
-func logZyteError(ctx context.Context, indexer *osbulk.Indexer, err error, feedURL string, feedID models.FeedID) {
-	logMsg := newFeedStatusMsg(feedID)
+func logZyteError(ctx context.Context, indexer *bulk.Indexer, err error, feedURL string, feedID models.FeedID) {
+	logMsg := NewFeedStatusMsg(feedID)
 	logMsg.FeedStatus.URL = feedURL
 	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 		logMsg.StatusCode = apiErr.StatusCode
@@ -1933,25 +1739,19 @@ func logZyteError(ctx context.Context, indexer *osbulk.Indexer, err error, feedU
 		logMsg.StatusCode = http.StatusInternalServerError
 		logMsg.StatusMessage = new(err.Error())
 	}
-	if err := logMsg.log(ctx); err != nil {
+	id := "log_" + strconv.FormatUint(xxh3.Hash([]byte(time.Now().String()+feedID+*logMsg.StatusMessage)), 10)
+	if err := indexer.Add(
+		ctx,
+		bulk.NewAction(bulk.ActionCreate, bulk.ToIndex("logs"), bulk.WithID(id), bulk.WithDoc(logMsg)),
+	); err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
 			slog.Any("error", err),
 		)
-	}
-	if indexer != nil {
-		if err := indexer.Add(
-			ctx,
-			osbulk.NewAction(osbulk.ActionCreate, osbulk.ToIndex("logs"), osbulk.WithDoc(logMsg)),
-		); err != nil {
-			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
-				slog.Any("error", err),
-			)
-		}
 	}
 }
 
-func logGeneralError(ctx context.Context, indexer *osbulk.Indexer, err error, feedURL string, feedID models.FeedID) {
-	logMsg := newFeedStatusMsg(feedID)
+func logGeneralError(ctx context.Context, indexer *bulk.Indexer, err error, feedURL string, feedID models.FeedID) {
+	logMsg := NewFeedStatusMsg(feedID)
 	logMsg.FeedStatus.URL = feedURL
 	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 		logMsg.StatusCode = apiErr.StatusCode
@@ -1960,19 +1760,116 @@ func logGeneralError(ctx context.Context, indexer *osbulk.Indexer, err error, fe
 		logMsg.StatusCode = http.StatusInternalServerError
 		logMsg.StatusMessage = new(err.Error())
 	}
-	if err := logMsg.log(ctx); err != nil {
+	id := "log_" + strconv.FormatUint(xxh3.Hash([]byte(time.Now().String()+feedID+*logMsg.StatusMessage)), 10)
+	if err := indexer.Add(
+		ctx,
+		bulk.NewAction(bulk.ActionCreate, bulk.ToIndex("logs"), bulk.WithID(id), bulk.WithDoc(logMsg)),
+	); err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
 			slog.Any("error", err),
 		)
 	}
-	if indexer != nil {
-		if err := indexer.Add(
-			ctx,
-			osbulk.NewAction(osbulk.ActionCreate, osbulk.ToIndex("logs"), osbulk.WithDoc(logMsg)),
-		); err != nil {
-			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
-				slog.Any("error", err),
-			)
+}
+
+// DiscoverFeedURL attempts to find a feed URL within a HTML page.
+//
+// There are a couple of "canonical" places the feed URL is located. Firstly, as per the RSS spec, look for a link
+// element with rel="alternate" and type="application/rss+xml". Secondly, check for a link element with a URL that ends
+// with feed, rss or atom, which would indicate a feed URL.
+//
+//nolint:gocognit
+func DiscoverFeedURL(sourceURL *url.URL, content []byte) (string, error) {
+	page, err := html.Parse(bytes.NewReader(content))
+	if err != nil {
+		return "", fmt.Errorf("parse html: %w", err)
+	}
+
+	// Check if its a Medium blog with a custom domain. If so, just return the original URL with the path replaced with
+	// `/feed`.
+	//
+	// https://help.medium.com/hc/en-us/articles/214874118-Using-RSS-feeds-of-profiles-publications-and-topics
+	if htmlx.CheckMediumSignals(page) > 0 {
+		sourceURL.Path = "/feed"
+		return sourceURL.String(), nil
+	}
+
+	// RSS feed auto-discovery.
+	//
+	// https://www.rssboard.org/rss-autodiscovery
+	findCanonicalLinkAttribute := func(elem *html.Node) string {
+		// Needs to have attributes rel="alternate".
+		if !slices.ContainsFunc(
+			elem.Attr,
+			func(a html.Attribute) bool { return a.Key == "rel" && a.Val == "alternate" },
+		) {
+			return ""
+		}
+		// Needs to have type="{feedMimeType}".
+		if !slices.ContainsFunc(
+			elem.Attr,
+			func(a html.Attribute) bool { return a.Key == "type" && slices.Contains(feeds.MimeTypesFeed, a.Val) },
+		) {
+			return ""
+		}
+		// Return the href attribute value.
+		for a := range slices.Values(elem.Attr) {
+			if a.Key == "href" {
+				return a.Val
+			}
+		}
+		return ""
+	}
+
+	// Commonly used links based on path.
+	findCommonFeedURL := func(elem *html.Node) string {
+		for a := range slices.Values(elem.Attr) {
+			// href attribute should contain a well-known substring.
+			if a.Key == "href" &&
+				(strings.HasSuffix(a.Val, "feed") || strings.Contains(a.Val, "rss") || strings.Contains(a.Val, "atom")) {
+				return a.Val
+			}
+		}
+		return ""
+	}
+	var findURL func(*html.Node) string
+	findURL = func(n *html.Node) string {
+		if n.Type == html.ElementNode && (n.Data == "a" || n.Data == "link") {
+			if foundURL := findCanonicalLinkAttribute(n); foundURL != "" {
+				return foundURL
+			}
+			if foundURL := findCommonFeedURL(n); foundURL != "" {
+				return foundURL
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			if foundURL := findURL(c); foundURL != "" {
+				return foundURL
+			}
+		}
+		return ""
+	}
+
+	foundURL := findURL(page)
+	if foundURL == "" {
+		return "", fmt.Errorf("%w: no url found", htmlx.ErrParseURL)
+	}
+
+	// Parse the discovered URL.
+	feedURL, err := url.Parse(foundURL)
+	if err != nil {
+		return foundURL, fmt.Errorf("discover feed url: %w", err)
+	}
+	// Check whether the URL is absolute.
+	if !feedURL.IsAbs() {
+		// Try to create an absolute URL for the feed.
+		feedURL, err = url.Parse(sourceURL.String())
+		if err != nil {
+			return "", fmt.Errorf("discover feed url: %w", err)
+		}
+		feedURL.Path, err = url.JoinPath("/", foundURL)
+		if err != nil {
+			return "", fmt.Errorf("discover feed url: %w", err)
 		}
 	}
+	return feedURL.String(), nil
 }

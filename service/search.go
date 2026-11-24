@@ -9,15 +9,12 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
-	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
+	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/retriever"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
+	"github.com/immanent-tech/foragd/schema"
 )
 
 // buildSearchResultsQuery generates a query that can be used to fetch appropriate results for a given SearchRequest
@@ -26,8 +23,8 @@ func buildSearchResultsQuery(
 	ctx context.Context,
 	user *models.User,
 	request *models.SearchRequest,
-	clause query.Option,
-) query.Option {
+	clause search.QueryOption,
+) search.QueryOption {
 	// Get user subscriptions.
 	allSubscriptions := models.SubscriptionsFromCtx(ctx)
 	if len(allSubscriptions) == 0 {
@@ -36,36 +33,28 @@ func buildSearchResultsQuery(
 	}
 	subscriptions := allSubscriptions.FilterByIDs(request.Subscriptions...)
 
-	return query.Bool(
-		query.Must(
-			query.Bool(
-				query.WithBoolQueryName("search-filters"),
-				query.Filter(
-					query.Bool(
+	return search.BoolQuery(
+		search.WithBoolMust(
+			search.BoolQuery(
+				search.WithBoolFilter(
+					search.BoolQuery(
 						// Must satisfy user global filters.
 						ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
 						// Must be in the given user subscriptions.
-						query.Should(BuildItemQueries(user, request.View, subscriptions)...),
-					),
-					// Must be published/updated since the given time.
-					query.Bool(
-						query.Should(
-							query.Since("published", request.Since()),
-							query.Since("updated", request.Since()),
+						search.WithBoolShould(
+							BuildItemQueries(user, request.View, subscriptions)...,
 						),
 					),
 				),
-				query.Should(
+				search.WithBoolShould(
 					// Boost items that are from a favorite subscription.
-					query.Terms(
+					search.TermsQuery(
 						"feed_id",
 						subscriptions.FilterByView(models.ViewFavorites).GetFeedIDs(),
-						query.WithQueryName[*query.TermsQuery]("boost-favorites"),
-						query.WithQueryBoost[*query.TermsQuery](2.0),
+						search.WithQueryBoost(2.0),
 					),
-					// Boost documents closer to the current time.
-					query.Distance("published", request.Pivot(), "now"),
-					query.Distance("updated", request.Pivot(), "now"),
+					search.DistanceFeatureDateQuery("published", "now", request.Pivot()),
+					search.DistanceFeatureDateQuery("updated", "now", request.Pivot()),
 				),
 			),
 			clause,
@@ -73,27 +62,27 @@ func buildSearchResultsQuery(
 	)
 }
 
-func standardSearchResultsClause(search *models.SearchRequest) query.Option {
+func standardSearchResultsClause(request *models.SearchRequest) search.QueryOption {
 	// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
 	// search suggestion).
-	return query.Bool(
-		query.Must(
-			query.Bool(
-				query.Should(
+	return search.BoolQuery(
+		search.WithBoolMust(
+			search.BoolQuery(
+				search.WithBoolShould(
 					// Boost match title exactly.
-					query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
+					search.TermQuery("title.exact", request.Text, search.WithQueryBoost(10.0)),
 					// Simple query string across most fields. Boost title and description matches.
-					query.SimpleQueryString(
-						query.WithSimpleQueryStringText(&search.Text),
-						query.WithSimpleQueryStringFields(
+					search.SimpleQueryStringQuery(
+						request.Text,
+						[]string{
 							"title^3",
 							"description^2",
 							"content",
 							"categories",
 							"authors",
 							"contributors",
-						),
-						query.WithSimpleQueryStringOperator(&operator.And),
+						},
+						search.WithSimpleQueryStringQueryOperator(search.OperatorAnd),
 					),
 				),
 			),
@@ -101,21 +90,20 @@ func standardSearchResultsClause(search *models.SearchRequest) query.Option {
 	)
 }
 
-func semanticSearchResultsClause(search *models.SearchRequest) query.Option {
+func semanticSearchResultsClause(request *models.SearchRequest) search.QueryOption {
 	// Perform semantic search on content field for text.
-	return query.Match("content_semantic", search.Text)
+	return search.MatchQuery("content_semantic", request.Text)
 }
 
-func searchSuggestionsClause(search *models.SearchRequest) query.Option {
+func searchSuggestionsClause(request *models.SearchRequest) search.QueryOption {
 	// Must match at least one of in title, description, content.
-	return query.Bool(
-		query.Must(
-			query.Bool(
-				query.Should(
-					query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
-					query.SearchAsYouType(search.Text, "title"),
-					query.SearchAsYouType(search.Text, "description"),
-					query.MatchPhrase("content", search.Text),
+	return search.BoolQuery(
+		search.WithBoolMust(
+			search.BoolQuery(
+				search.WithBoolShould(
+					search.TermQuery("title.exact", request.Text, search.WithQueryBoost(10.0)),
+					search.SearchAsYouTypeQuery(request.Text, "title"),
+					search.SearchAsYouTypeQuery(request.Text, "description"),
 				),
 			),
 		),
@@ -126,37 +114,42 @@ func searchSuggestionsClause(search *models.SearchRequest) query.Option {
 // [models.Pagination] values are optional.
 func (s *ItemService) QueryItems(
 	ctx context.Context,
-	query query.Option,
+	query search.QueryOption,
 	count int,
 	sort *models.Sort,
 	pagination *string,
 ) (models.Items, string, error) {
-	searchAfter, err := elastic.DecodePagination(pagination)
+	searchAfter, err := search.DecodePagination(pagination)
 	if err != nil {
 		return nil, "", models.ErrInvalidParams
 	}
 	// Perform search.
-	resp, err := elastic.Search[*models.Item](ctx,
-		s.esc.GetIndexRO(ItemsIndex),
-		elastic.WithQuery[*search.Search](query),
-		elastic.WithSort[*search.Search](NewItemSortOptions(sort)...),
-		elastic.WithSearchAfter[*search.Search](searchAfter...),
-		elastic.WithSize[*search.Search](count),
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithQuery(query),
+		search.WithSize(count),
+		search.WithSort(ItemSortCombinations(sort)),
+		search.WithSearchAfter(searchAfter),
 	)
 	if err != nil {
 		return nil, "", models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("search items: %w", err))
 	}
+	items, lastSortValue, err := resp.ExtractHits[*models.Item]()
+	if err != nil {
+		return nil, "", models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("extract items: %w", err))
+	}
+
 	// Parse last search after value into pagination.
-	newPagination, err := elastic.EncodePagination[string](resp.Pagination)
+	newPagination, err := search.EncodePagination[string](lastSortValue)
 	if err != nil {
 		return nil, "", models.ErrInvalidParams
 	}
+
 	// Update cache.
-	for item := range slices.Values(resp.Results) {
+	for item := range slices.Values(items) {
 		s.Invalidate(item.GetID())
 		s.Set(item.GetID(), item)
 	}
-	return resp.Results, newPagination, nil
+	return items, newPagination, nil
 }
 
 func (s *ItemService) SuggestItems(
@@ -197,39 +190,31 @@ func (s *ItemService) RetrieveItems(
 
 	filter := buildSearchResultsQuery(ctx, user, request, nil)
 
-	// Perform search.
-	resp, err := elastic.Search[*models.Item](ctx,
-		s.esc.GetIndexRO(ItemsIndex),
-		elastic.WithRetriever[*search.Search](
-			retriever.WithReciprocalRankFusionRetriever(
-				retriever.WithRankWindowSize(150),
-				retriever.WithQueryFilters(filter),
-				retriever.WithChildRetrievers(
-					retriever.WithStandardRetriever(
-						"retriever-regular",
-						standardSearchResultsClause(request),
-					),
-					retriever.WithStandardRetriever(
-						"retriver-semantic",
-						semanticSearchResultsClause(request),
-					),
-				),
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithQuery(
+			search.HybridQuery(
+				filter,
+				standardSearchResultsClause(request),
+				// semanticSearchResultsClause(request),
 			),
 		),
-		// elastic.WithSort(NewItemSortOptions(sort)...),
-		elastic.WithFrom[*search.Search](request.GetFrom()),
-		elastic.WithSize[*search.Search](request.GetCount()),
+		search.WithFrom(request.GetFrom()),
+		search.WithSize(request.GetCount()),
 	)
 	if err != nil {
 		return nil, models.Pagination{}, fmt.Errorf("search items: %w", err)
 	}
+	items, _, err := resp.ExtractHits[*models.Item]()
+	if err != nil {
+		return nil, models.Pagination{}, fmt.Errorf("extract items: %w", err)
+	}
 	// Update cache.
-	for item := range slices.Values(resp.Results) {
+	for item := range slices.Values(items) {
 		s.Invalidate(item.GetID())
 		s.Set(item.GetID(), item)
 	}
 	// Parse last search after value into pagination.
-	return resp.Results, models.Pagination{From: request.GetFrom() + request.GetCount()}, nil
+	return items, models.Pagination{From: request.GetFrom() + request.GetCount()}, nil
 }
 
 // CountSearchResults will return an approximate count of the number of items that would match the given
@@ -246,32 +231,27 @@ func (s *ItemService) CountSearchResults(ctx context.Context, request *models.Se
 	filter := buildSearchResultsQuery(ctx, user, request, nil)
 
 	// Perform search.
-	resp, err := elastic.Search[*models.Item](ctx,
-		s.esc.GetIndexRO(ItemsIndex),
-		elastic.WithRetriever[*search.Search](
-			retriever.WithReciprocalRankFusionRetriever(
-				retriever.WithRankWindowSize(150),
-				retriever.WithQueryFilters(filter),
-				retriever.WithChildRetrievers(
-					retriever.WithStandardRetriever(
-						"retriever-regular",
-						standardSearchResultsClause(request),
-					),
-					retriever.WithStandardRetriever(
-						"retriver-semantic",
-						semanticSearchResultsClause(request),
-					),
-				),
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithQuery(
+			search.HybridQuery(
+				filter,
+				standardSearchResultsClause(request),
+				// semanticSearchResultsClause(request),
 			),
 		),
-		elastic.WithSize[*search.Search](0),
-		elastic.WithTrackHits[*search.Search](true),
+		search.WithSize(0),
+		search.WithTrackTotalHits(true),
 	)
 	if err != nil {
 		return 0, fmt.Errorf("search items: %w", err)
 	}
 
-	return resp.Hits.Total.Value, nil
+	hits, err := resp.Hits.Total.Int64()
+	if err != nil {
+		return 0, fmt.Errorf("get total hits: %w", err)
+	}
+
+	return hits, nil
 }
 
 // GetTopItemCategoriesForSearchResults returns a [models.Categories] slice containing the top categories from items
@@ -288,66 +268,38 @@ func (s *ItemService) GetTopItemCategoriesForSearchResults(
 	filter := buildSearchResultsQuery(ctx, user, request, standardSearchResultsClause(request))
 
 	// Perform aggregation.
-	resp, err := elastic.Search[*models.Item](ctx,
-		s.esc.GetIndexRO(ItemsIndex),
-		elastic.WithRetriever[*search.Search](
-			retriever.WithReciprocalRankFusionRetriever(
-				retriever.WithRankWindowSize(150),
-				retriever.WithQueryFilters(filter),
-				retriever.WithChildRetrievers(
-					retriever.WithStandardRetriever(
-						"retriever-regular",
-						standardSearchResultsClause(request),
-					),
-					retriever.WithStandardRetriever(
-						"retriver-semantic",
-						semanticSearchResultsClause(request),
-					),
-				),
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithQuery(
+			search.HybridQuery(
+				filter,
+				standardSearchResultsClause(request),
+				// semanticSearchResultsClause(request),
 			),
 		),
-		// elastic.WithQueryOptions[*elastic.SearchRequest](
-		// 	// Use the original search query but filter out common categories.
-		// 	query.Bool(
-		// 		query.Must(filter),
-		// 		query.MustNot(
-		// 			query.Terms(
-		// 				"categories.raw",
-		// 				slices.Concat(models.CommonCategoryFilters, []string{""}),
-		// 			),
-		// 		),
-		// 	),
-		// ),
-		elastic.WithAggregations[*search.Search](
-			elastic.Aggs{
-				"TopCategories": estypes.Aggregations{
-					Terms: &estypes.TermsAggregation{
-						Field: new("categories.raw"),
-						Size:  new(10),
-					},
-				},
-			},
+		search.WithSize(0),
+		search.WithAggregation(
+			"TopCategories",
+			search.TermsAggregation(
+				search.WithTermsAggregationField("categories.raw"),
+				search.WithTermsAggregationSize(10),
+			),
 		),
-		elastic.WithSize[*search.Search](0),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("aggregate articles: %w", err)
 	}
 
-	topCategoriesAgg, isTopCategoriesAgg := resp.Aggregations["TopCategories"].(*estypes.StringTermsAggregate)
-	if !isTopCategoriesAgg {
-		return nil, fmt.Errorf("extract aggregation: %w", models.ErrInvalidAPIResult)
-	}
-	topCategoriesBuckets, isTopCategoriesBuckets := topCategoriesAgg.Buckets.([]estypes.StringTermsBucket)
-	if !isTopCategoriesBuckets {
-		return nil, fmt.Errorf("extract buckets: %w", models.ErrInvalidAPIResult)
+	categoriesAgg, err := resp.ExtractAggregation[opensearchapi.CommonAggregationsStringTermsAggregate]("TopCategories")
+	if err != nil {
+		return nil, fmt.Errorf("extract aggregation: %w", err)
 	}
 
-	categories := make(models.Categories, 0, len(topCategoriesBuckets))
-	for bucket := range slices.Values(topCategoriesBuckets) {
-		if category, isCategoryBucket := bucket.Key.(models.Category); isCategoryBucket {
-			categories = append(categories, category)
+	categories := make(models.Categories, 0, len(categoriesAgg.Buckets))
+	for bucket := range slices.Values(categoriesAgg.Buckets) {
+		if bucket.Key == "" {
+			continue
 		}
+		categories = append(categories, bucket.Key)
 	}
-	return categories, nil
+	return nil, nil
 }

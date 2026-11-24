@@ -27,8 +27,8 @@ type Inspectable interface {
 
 func GenerateAPIError(msg string, resp Inspectable) *models.APIError {
 	if r := resp.Inspect().Response; r != nil && r.IsError() {
-		err := opensearch.ParseError(resp.Inspect().Response)
-		return models.NewAPIError(resp.Inspect().Response.StatusCode, fmt.Errorf("%s: %w", msg, err))
+		err := opensearch.ParseError(r)
+		return models.NewAPIError(r.StatusCode, fmt.Errorf("%s: %w", msg, err))
 	}
 	return models.NewAPIError(http.StatusInternalServerError, errors.New("unknown error"))
 }

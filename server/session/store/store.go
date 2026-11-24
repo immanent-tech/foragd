@@ -19,13 +19,10 @@ import (
 	"go.opentelemetry.io/otel"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/providers/opensearch/doc"
 	"github.com/immanent-tech/foragd/providers/opensearch/search"
 	"github.com/immanent-tech/foragd/schema"
-	"github.com/immanent-tech/foragd/service"
 )
 
 const (
@@ -60,16 +57,11 @@ func (s UserSession) GetID() string {
 
 // Store satisfies the session store interface for storing sessions in Elastic.
 type Store struct {
-	esc *service.ElasticService
 	osc *opensearch.Client
 }
 
 func New(ctx context.Context, osc *opensearch.Client) (*Store, error) {
-	esc, err := service.LoadElasticService()
-	if err != nil {
-		return nil, fmt.Errorf("load elastic service: %w", err)
-	}
-	store := &Store{esc: esc, osc: osc}
+	store := &Store{osc: osc}
 	go store.startClearExpiredSessionsWorker(ctx)
 	return store, nil
 }
@@ -77,22 +69,13 @@ func New(ctx context.Context, osc *opensearch.Client) (*Store, error) {
 // DeleteCtx should remove the session token and corresponding data from the session store. If the token does not exist
 // then Delete should be a no-op and return nil (not an error).
 func (s *Store) DeleteCtx(ctx context.Context, token string) error {
-	if s.osc != nil {
-		if err := doc.Delete(ctx, s.osc.Doc, s.osc.IndexWriteAlias(schema.SessionsIndex), token); err != nil {
-			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
-				if apiErr.HTTPStatus() == http.StatusNotFound {
-					return nil
-				}
+	if err := doc.Delete(ctx, s.osc.Doc, s.osc.IndexWriteAlias(schema.SessionsIndex), token); err != nil {
+		if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+			if apiErr.HTTPStatus() == http.StatusNotFound {
+				return nil
 			}
-			return fmt.Errorf("delete doc: %w", err)
 		}
-	}
-	if err := elastic.DeleteDoc(
-		ctx,
-		s.esc.GetIndexRW(service.SessionsIndex),
-		token,
-	); err != nil {
-		return fmt.Errorf("could not delete session: %w", err)
+		return fmt.Errorf("delete doc: %w", err)
 	}
 	return nil
 }
@@ -111,9 +94,9 @@ func (s *Store) FindCtx(ctx context.Context, token string) ([]byte, bool, error)
 	spanCtx, span := tracer.Start(ctx, "session-find")
 	defer span.End()
 
-	session, err := elastic.GetDoc[string, UserSession](spanCtx, s.esc.GetIndexRO(service.SessionsIndex), token)
+	session, err := doc.Get[string, UserSession](spanCtx, s.osc.Doc, s.osc.IndexReadAlias(schema.SessionsIndex), token)
 	if err != nil {
-		if errors.Is(err, elastic.ErrNotFound) {
+		if apiErr, ok := errors.AsType[*models.APIError](err); ok && apiErr.StatusCode == http.StatusNotFound {
 			return nil, false, nil
 		}
 		return nil, false, fmt.Errorf("get doc: %w", err)
@@ -146,13 +129,8 @@ func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry
 		Expiry:    expiry,
 	}
 
-	if s.osc != nil {
-		if err := doc.Index(ctx, s.osc.Doc, s.osc.IndexWriteAlias(schema.SessionsIndex), session); err != nil {
-			return fmt.Errorf("index doc: %w", err)
-		}
-	}
-	if err := elastic.IndexDoc(spanCtx, s.esc.GetIndexRW(service.SessionsIndex), token, session); err != nil {
-		return fmt.Errorf("could not commit session: %w", err)
+	if err := doc.Index(spanCtx, s.osc.Doc, s.osc.IndexWriteAlias(schema.SessionsIndex), session); err != nil {
+		return fmt.Errorf("index doc: %w", err)
 	}
 
 	return nil
@@ -168,19 +146,29 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 // key should be the session token and the map value should be the session data. If no active sessions exist this should
 // return an empty (not nil) map.
 func (s *Store) AllCtx(ctx context.Context) (map[string][]byte, error) {
-	const defaultPaginationSize = 500
-	sessions, err := elastic.SearchAll[UserSession](
-		ctx,
-		s.esc.GetIndexRO(service.SessionsIndex),
-		query.Since("expiry", time.Now().UTC()),
-		defaultPaginationSize,
+	spanCtx, span := tracer.Start(ctx, "session-all")
+	defer span.End()
+
+	resp, err := search.SearchAll(
+		spanCtx,
+		s.osc,
+		s.osc.IndexReadAlias(schema.SessionsIndex),
+		2500,
+		[]search.QueryOption{search.SinceQuery("expiry", time.Now().UTC())},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to find active sessions: %w", err)
+		return nil, fmt.Errorf("search all: %w", err)
+	}
+
+	sessions, err := resp.ExtractHits[UserSession]()
+	if err != nil {
+		return nil, fmt.Errorf("extract all: %w", err)
+	}
+	if len(sessions) == 0 {
+		return nil, nil
 	}
 
 	data := make(map[string][]byte, len(sessions))
-
 	for session := range slices.Values(sessions) {
 		data[session.Token] = session.Data
 	}
@@ -212,20 +200,11 @@ func (s *Store) startClearExpiredSessionsWorker(ctx context.Context) {
 			case <-t.C:
 				slogctx.Info(ctx, "Deleting expired sessions.")
 				// Delete all sessions with an expiry older than now.
-				if s.osc != nil {
-					if err := doc.DeleteByQuery(
-						ctx,
-						s.osc,
-						s.osc.IndexWriteAlias(schema.SessionsIndex),
-						doc.WithDeleteByQuery(search.BeforeQuery("expiry", time.Now().UTC())),
-					); err != nil {
-						slogctx.Error(ctx, "Delete expired sessions failed.", slog.Any("error", err))
-					}
-				}
-				if err := elastic.DeleteDocs(
+				if err := doc.DeleteByQuery(
 					ctx,
-					s.esc.GetIndexRW(service.SessionsIndex),
-					query.Before("expiry", time.Now().UTC()),
+					s.osc,
+					s.osc.IndexWriteAlias(schema.SessionsIndex),
+					doc.WithDeleteByQuery(search.BeforeQuery("expiry", time.Now().UTC())),
 				); err != nil {
 					slogctx.Error(ctx, "Delete expired sessions failed.", slog.Any("error", err))
 				}

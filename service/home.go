@@ -7,139 +7,134 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"slices"
 	"sync"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/results"
+	"github.com/immanent-tech/foragd/providers/opensearch"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
+	"github.com/immanent-tech/foragd/schema"
 )
 
-type Home struct{}
+type Home struct {
+	osc *opensearch.Client
+}
+
+func NewHomeService(osc *opensearch.Client) *Home {
+	return &Home{osc: osc}
+}
 
 func (s *Home) AggregateSubscriptions(
 	ctx context.Context,
 	user *models.User,
 	subscriptions models.Subscriptions,
 ) (models.CategoryCounts, models.CategoryCounts, models.Articles, error) {
-	svc, err := LoadElasticService()
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("load elastic service: %w", err)
-	}
 	// Don't perform aggregations if there is no data to aggregate.
 	if len(subscriptions.GetFeedIDs()) == 0 {
 		return nil, nil, nil, nil
 	}
-	// Fetch aggregation data.
-	termsField := "categories.raw"
-	// Aggregation definition for fetching the top 10 item categories across all subscriptions.
-	sampleField := "feed_id"
-	defaultMaxDocsPerValue := 1
-	shardSize := 200
-	topCategoryHitsCount := 3
-	lastestArticlesCount := 10
-	maxDocCount := int64(3)
 
 	// Perform the request.
-	resp, err := elastic.Search[*models.Item](
-		ctx,
-		svc.GetIndexRO(ItemsIndex),
-		// Query is adapted from service.FilterArticles query to boost favorites and return unread only.
-		elastic.WithQuery[*search.Search](
-			query.Bool(
-				query.Filter(
-					query.Terms(
-						"feed_id",
-						subscriptions.GetFeedIDs(),
-						query.WithQueryName[*query.TermsQuery]("match-feed-id"),
-					),
-					query.Bool(
-						query.Should(
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithQuery(
+			search.BoolQuery(
+				search.WithBoolFilter(
+					search.TermsQuery("feed_id", subscriptions.GetFeedIDs()),
+					search.BoolQuery(
+						search.WithBoolShould(
 							BuildItemQueries(user, models.ViewUnread, subscriptions)...),
 					),
 				),
 			),
 		),
-		elastic.WithAggregations[*search.Search](
-			elastic.Aggs{
-				// top_categories_sample: diversified sampler to ensure top categories not dominated by single overwhelming
-				// source.
-				"top_categories_sample": types.Aggregations{
-					DiversifiedSampler: &types.DiversifiedSamplerAggregation{
-						Field:           &sampleField,
-						MaxDocsPerValue: &defaultMaxDocsPerValue,
-						ShardSize:       &shardSize,
-					},
-					Aggregations: map[string]types.Aggregations{
-						// top_categories: the top categories across all subscriptions.
-						"top_categories": {
-							Terms: &types.TermsAggregation{
-								Field:   &termsField,
-								Exclude: slices.Concat(models.CommonCategoryFilters, []string{""}),
-							},
-							Aggregations: map[string]types.Aggregations{
-								"top_article_hits": {
-									TopHits: &types.TopHitsAggregation{
-										Size: &topCategoryHitsCount,
-									},
-								},
-								// top_articles: the top scoring article for each top category.
-								// "top_articles": {
-								// 	Filter: query.Build(query.Bool(
-								// 		query.MustNot(
-								// 			query.Terms("item_id", data.LatestArticles.GetIDs()...),
-								// 		),
-								// 	)),
-								// 	Aggregations: map[string]types.Aggregations{
-								// 		"top_article_hits": {
-								// 			TopHits: &types.TopHitsAggregation{
-								// 				Size: &topHitsCount,
-								// 			},
-								// 		},
-								// 	},
-								// },
-							},
-						},
-						"latest_articles_sample": {
-							TopHits: &types.TopHitsAggregation{
-								Size: &lastestArticlesCount,
-							},
-						},
-					},
-				},
-				// Aggregation definition for fetching the rare item categories across all subscriptions.
-				"rare_categories": types.Aggregations{
-					RareTerms: &types.RareTermsAggregation{
-						Field:       &termsField,
-						MaxDocCount: &maxDocCount,
-						Exclude:     models.CommonCategoryFilters,
-					},
-				},
-			},
+		search.WithAggregation(
+			"top_categories_sample",
+			search.DiversifiedSamplerAggregation(
+				search.WithDiversifiedSamplerAggregationField("feed_id"),
+				search.WithDiversifiedSamplerAggregationMaxDocsPerValue(1),
+				search.WithDiversifiedSamplerAggregationShardSize(200),
+			),
+			search.WithChildAggregation(
+				"top_categories",
+				search.TermsAggregation(
+					search.WithTermsAggregationField("categories.raw"),
+					search.WithTermsAggregationExclude(models.CommonCategoryFilters...),
+				),
+				search.WithChildAggregation(
+					"top_article_hits",
+					search.TopHitsAggregation(
+						search.WithTopHitsAggregationSize(3),
+					),
+				),
+			),
+			search.WithChildAggregation(
+				"latest_articles_sample",
+				search.TopHitsAggregation(
+					search.WithTopHitsAggregationSize(10),
+				),
+			),
 		),
-		elastic.WithSize[*search.Search](0),
-		elastic.WithDocSorting[*search.Search](),
+		search.WithAggregation(
+			"rare_categories",
+			search.RareTermsAggregation(
+				search.WithRareTermsAggregationField("categories.raw"),
+				search.WithRareTermsAggregationMaxDocCount(3),
+				search.WithRareTermsAggregationExclude(models.CommonCategoryFilters...),
+			),
+		),
+		search.WithSize(0),
+		search.WithTrackTotalHits(false),
+		search.WithTrackScores(false),
+		search.WithSort(search.NewSortOptions(search.WithSortField("_doc"))),
 	)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("aggregate: %w", err)
 	}
-
-	// slogctx.FromCtx(req.Context()).Debug("Performed home aggregations.",
-	// 	slog.Duration("took", time.Since(start)))
-
-	topCategoriesSamplerAgg, found, err := elastic.ExtractAggregation[*types.SamplerAggregate](
-		resp.Aggregations,
-		"top_categories_sample",
-	)
-	if !found || err != nil {
-		return nil, nil, nil, fmt.Errorf("extract aggregation: %w", err)
+	// Extract the feed aggregation. We need to use a custom type as we cannot access nested aggregations from the typed
+	// API at the moment.
+	type homeAggs struct {
+		Aggregations struct {
+			TopCategoriesSample struct {
+				DocCount             int64 `json:"doc_count"`
+				LatestArticlesSample struct {
+					Hits struct {
+						Hits []struct {
+							ID     string          `json:"_id"`
+							Source json.RawMessage `json:"_source"`
+						} `json:"hits"`
+					} `json:"hits"`
+				} `json:"latest_articles_sample"`
+				TopCategories struct {
+					Buckets []struct {
+						Key            string `json:"key"`
+						DocCount       int64  `json:"doc_count"`
+						TopArticleHits struct {
+							Hits struct {
+								Hits []struct {
+									ID     string          `json:"_id"`
+									Source json.RawMessage `json:"_source"`
+								} `json:"hits"`
+							} `json:"hits"`
+						} `json:"top_article_hits"`
+					} `json:"buckets"`
+				} `json:"top_categories"`
+			} `json:"top_categories_sample"`
+			RareCategories struct {
+				Buckets []struct {
+					Key      string `json:"key"`
+					DocCount int64  `json:"doc_count"`
+				} `json:"buckets"`
+			} `json:"rare_categories"`
+		} `json:"aggregations"`
+	}
+	var homeAggsResults homeAggs
+	if err := json.NewDecoder(resp.RawBody()).Decode(&homeAggsResults); err != nil {
+		return nil, nil, nil, fmt.Errorf("extract aggregation results: %w", err)
 	}
 
 	var wg sync.WaitGroup
@@ -147,93 +142,59 @@ func (s *Home) AggregateSubscriptions(
 	// Get the top categories.
 	topCategories := make(models.CategoryCounts, 0)
 	wg.Go(func() {
-		if topCategoriesAgg, foundTopCategoriesAgg, err := elastic.ExtractAggregation[*types.StringTermsAggregate](
-			topCategoriesSamplerAgg.Aggregations,
-			"top_categories",
-		); foundTopCategoriesAgg &&
-			err == nil {
-			if categoryBuckets, ok := topCategoriesAgg.Buckets.([]types.StringTermsBucket); ok {
-				// Generate categories from aggregation.
-				for category := range slices.Values(categoryBuckets) {
-					var value string
-					if value, ok = category.Key.(string); !ok {
-						continue
-					}
-					// // Get top articles.
-					// topHitsAgg, found, err := elastic.ExtractAggregation[*types.TopHitsAggregate](
-					// 	category.Aggregations,
-					// 	"top_article_hits",
-					// )
-					// if !found || err != nil {
-					// 	continue
-					// }
-					// var items models.Items
-					// if items, _, err = results.ExtractSourceFromHits[*models.Item](
-					// 	topHitsAgg.Hits.Hits,
-					// ); err != nil {
-					// 	continue
-					// }
-					// var articles models.Articles
-					// if articles, err = service.GenerateArticles(req.Context(), items); err != nil {
-					// 	continue
-					// }
-					newCategory := models.CategoryCount{Category: value, Count: int(category.DocCount)}
-					topCategories = append(topCategories, newCategory)
-				}
-				// // Remove duplicate articles.
-				// slices.SortFunc(data.TopArticles, func(a, b *models.Article) int {
-				// 	return strings.Compare(a.GetID(), b.GetID())
-				// })
+		for categoryBucket := range slices.Values(homeAggsResults.Aggregations.TopCategoriesSample.TopCategories.Buckets) {
+			if categoryBucket.Key == "" {
+				continue
 			}
+			newCategory := models.CategoryCount{Category: categoryBucket.Key, Count: int(categoryBucket.DocCount)}
+			topCategories = append(topCategories, newCategory)
 		}
 	})
 
 	// Get the rare categories.
 	rareCategories := make(models.CategoryCounts, 0)
 	wg.Go(func() {
-		if rareCategoriesAgg, found, err := elastic.ExtractAggregation[*types.StringRareTermsAggregate](
-			resp.Aggregations,
-			"rare_categories",
-		); found && err == nil {
-			// Generate category counts from buckets.
-			if rareCategoryBuckets, ok := rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket); ok {
-				for category := range slices.Values(rareCategoryBuckets) {
-					rareCategories = append(
-						rareCategories,
-						models.CategoryCount{Category: category.Key, Count: int(category.DocCount)},
-					)
-				}
-				rareCategories.Sort()
-				if len(rareCategories) > 10 {
-					rareCategories = rareCategories[:10]
-				}
+		for rareCategoryBucket := range slices.Values(homeAggsResults.Aggregations.RareCategories.Buckets) {
+			if rareCategoryBucket.Key == "" {
+				continue
 			}
+			rareCategories = append(
+				rareCategories,
+				models.CategoryCount{Category: rareCategoryBucket.Key, Count: int(rareCategoryBucket.DocCount)},
+			)
+		}
+		rareCategories.Sort()
+		if len(rareCategories) > 10 {
+			rareCategories = rareCategories[:10]
 		}
 	})
 
 	// Get the latest articles.
 	latestArticles := make(models.Articles, 0)
 	wg.Go(func() {
-		if latestArticlesSampleAgg, found, err := elastic.ExtractAggregation[*types.TopHitsAggregate](
-			topCategoriesSamplerAgg.Aggregations,
-			"latest_articles_sample",
-		); found && err == nil {
-			var items models.Items
-			if items, _, err = results.ExtractSourceFromHits[*models.Item](
-				latestArticlesSampleAgg.Hits.Hits,
-			); err != nil {
-				slogctx.Warn(ctx, "Could not extract latest items from aggregation.",
+		var (
+			items models.Items
+		)
+		for hit := range slices.Values(homeAggsResults.Aggregations.TopCategoriesSample.LatestArticlesSample.Hits.Hits) {
+			source, err := opensearch.ExtractSource[*models.Item](hit.Source)
+			if err != nil {
+				slogctx.Warn(
+					ctx,
+					"Could not extract latest item.",
 					slog.Any("error", err),
 				)
+				continue
 			}
-			var articles models.Articles
-			if articles, err = GenerateArticles(ctx, items); err != nil {
-				slogctx.Warn(ctx, "Could not generate articles from items.",
-					slog.Any("error", err),
-				)
-			}
-			latestArticles = articles
+			items = append(items, source)
 		}
+		items = items.SortByTimestamp()
+		var articles models.Articles
+		if articles, err = GenerateArticles(ctx, items); err != nil {
+			slogctx.Warn(ctx, "Could not generate articles from items.",
+				slog.Any("error", err),
+			)
+		}
+		latestArticles = articles
 	})
 
 	wg.Wait()

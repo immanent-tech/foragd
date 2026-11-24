@@ -66,6 +66,10 @@ type IndexConfig struct {
 // NewIndexConfig generates an [IndexConfig] for the given [opensearch.Index]. This includes the appropriate
 // canonical index name, index/component templates and read/write aliases for the index.
 func NewIndexConfig(osc *opensearch.Client, index opensearch.Index) (IndexConfig, error) {
+	mlc, err := ml.NewClient(osc)
+	if err != nil {
+		return IndexConfig{}, fmt.Errorf("create ml client: %w", err)
+	}
 	var (
 		indexName         string
 		indexTemplate     opensearchapi.IndicesPutIndexTemplateReq
@@ -83,7 +87,7 @@ func NewIndexConfig(osc *opensearch.Client, index opensearch.Index) (IndexConfig
 	case ItemsIndex:
 		indexName = osc.IndexCanonicalName(index)
 		indexTemplate = ItemsIndexTemplate
-		componentTemplate = ItemsComponentTemplate
+		componentTemplate = ItemsComponentTemplate(mlc.GetModelID())
 		readAlias = osc.IndexReadAlias(index)
 		writeAlias = osc.IndexWriteAlias(index)
 	case UsersIndex:

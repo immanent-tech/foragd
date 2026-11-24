@@ -15,7 +15,7 @@ import (
 	"github.com/immanent-tech/go-base/server/forms"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -86,8 +86,8 @@ func (m *Manager) ListCategories(subSvc SubscriptionsService, itemSvc ItemServic
 			// Get categories for items.
 			counts, err := itemSvc.GetTopCategoriesForItems(
 				req.Context(),
-				query.Bool(
-					query.Filter(service.BuildItemQueries(user, filters.GetView(), subscriptions)...),
+				search.BoolQuery(
+					search.WithBoolFilter(service.BuildItemQueries(user, filters.GetView(), subscriptions)...),
 				),
 			)
 			if err != nil {
@@ -186,8 +186,8 @@ func (m *Manager) ListLanguages(subSvc SubscriptionsService, itemSvc ItemService
 			// Get categories for items.
 			counts, err := itemSvc.GetTopLanguageCountsForItems(
 				req.Context(),
-				query.Bool(
-					query.Filter(service.BuildItemQueries(user, filters.GetView(), subscriptions)...),
+				search.BoolQuery(
+					search.WithBoolFilter(service.BuildItemQueries(user, filters.GetView(), subscriptions)...),
 				),
 			)
 			if err != nil {

@@ -19,7 +19,6 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
 )
 
 const updateFeedJobTimeout = 25 * time.Minute
@@ -94,7 +93,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	// Retrieve the feed details.
 	details, err := services.Feeds.GetFeed(ctx, data.FeedID)
 	switch {
-	case err != nil && errors.Is(err, elastic.ErrNotFound):
+	case err != nil && errors.Is(err, models.ErrNotFound):
 		if err := services.Scheduler.DeleteJob(job.getJobKey()); err != nil {
 			slogctx.FromCtx(ctx).Error("Cannot remove job for missing feed", slog.Any("error", err))
 		} // adapt to your job type

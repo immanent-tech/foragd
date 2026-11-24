@@ -7,9 +7,11 @@ package search
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"slices"
 	"strings"
 
@@ -74,6 +76,20 @@ func WithSize(size int) SearchOption {
 	}
 }
 
+// WithSort option sets the sorting of the results.
+func WithSort(sort *Sorting) SearchOption {
+	return func(req *opensearchapi.SearchReq) {
+		req.Body.Sort = new(opensearchapi.NewSortFromSortCombinations(sort.ToSortCombinations()))
+	}
+}
+
+// WithFrom option sets the starting document offset. Needs to be non-negative.
+func WithFrom(from int) SearchOption {
+	return func(req *opensearchapi.SearchReq) {
+		req.Body.From = &from
+	}
+}
+
 // WithTrackTotalHits option sets whether total hits will be calculated. Disabling when not needed will increase
 // performance.
 func WithTrackTotalHits(value bool) SearchOption {
@@ -93,6 +109,9 @@ func WithTrackScores(value bool) SearchOption {
 // WithQuery option sets the query used to find search results.
 func WithQuery(options ...QueryOption) SearchOption {
 	return func(req *opensearchapi.SearchReq) {
+		if len(options) == 0 {
+			return
+		}
 		query := &opensearchapi.CommonQueryDSLQueryContainer{}
 		for option := range slices.Values(options) {
 			option(query)
@@ -112,6 +131,15 @@ func WithAggregation(name string, options ...AggregationOption) SearchOption {
 			option(&agg)
 		}
 		req.Body.Aggregations[name] = agg
+	}
+}
+
+// WithCollapse will group results by the given field.
+func WithCollapse(field string) SearchOption {
+	return func(req *opensearchapi.SearchReq) {
+		req.Body.Collapse = &opensearchapi.SearchFieldCollapse{
+			Field: field,
+		}
 	}
 }
 
@@ -365,6 +393,9 @@ func SearchAll(
 		WithQuery(queries...)(loopReq)
 		WithSearchAfter(searchAfter)(loopReq)
 		WithSearchParameters(WithSortParams("_doc"))(loopReq)
+		WithTrackTotalHits(false)(loopReq)
+		WithTrackScores(false)(loopReq)
+		WithSize(paginationSize)(loopReq)
 
 		// Set additional options.
 		for option := range slices.Values(options) {
@@ -471,6 +502,24 @@ func (r *SearchAllResponse) ExtractHits[T any]() ([]T, error) {
 	return allHits, warnings
 }
 
+func (r *SearchAllResponse) TotalHits() int64 {
+	var hits int64
+	for resp := range slices.Values(r.Responses) {
+		if resp == nil {
+			continue
+		}
+		if resp.Hits.Total == nil {
+			continue
+		}
+		h, err := resp.Hits.Total.Int64()
+		if err != nil {
+			continue
+		}
+		hits += h
+	}
+	return hits
+}
+
 func Count(ctx context.Context, client Client, index string, options ...CountOption) (int64, error) {
 	// Apply specified options.
 	body := &opensearchapi.CountBody{}
@@ -516,4 +565,55 @@ func WithCountQuery(options ...QueryOption) CountOption {
 		}
 		req.Query = query
 	}
+}
+
+// EncodePagination will take sort values returned from a query, marshal them to
+// JSON, then HTML-escape the string into a Pagination object, which is
+// safe for use in API query parameters.
+func EncodePagination[T ~string](sortValues SearchAfter) (T, error) {
+	if len(sortValues) == 0 {
+		return "", nil
+	}
+	// Marshal sort values into json.
+	data, err := json.Marshal(sortValues)
+	if err != nil {
+		return "", fmt.Errorf("could not encode pagination values: %w", err)
+	}
+	// Return as HTML encoded string.
+	return T(url.QueryEscape(string(data))), nil
+}
+
+// DecodePagination will take a Pagination object, HTML-unescape the
+// string then unmarshal it back into sort values.
+func DecodePagination[T ~string](pagination *T) (SearchAfter, error) {
+	if pagination == nil || *pagination == "" {
+		return nil, nil
+	}
+	// Unescape HTML encoded data.
+	data, err := url.QueryUnescape(string(*pagination))
+	if err != nil {
+		return nil, fmt.Errorf("could not decode pagination values: %w", err)
+	}
+	// Unmarshal sort values.
+	var values []any
+	err = json.Unmarshal([]byte(data), &values)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode pagination values: %w", err)
+	}
+	casted := make(SearchAfter, 0, len(values))
+	for v := range slices.Values(values) {
+		switch r := v.(type) {
+		case string:
+			casted = append(casted, opensearchapi.NewFieldValueFromString(r))
+		case float64:
+			casted = append(casted, opensearchapi.NewFieldValueFromFloat64(r))
+		case bool:
+			casted = append(casted, opensearchapi.NewFieldValueFromBool(r))
+		default:
+			casted = nil
+		}
+	}
+
+	// Return sort values.
+	return casted, nil
 }

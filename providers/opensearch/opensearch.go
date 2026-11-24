@@ -6,19 +6,12 @@
 package opensearch
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/http"
-	"os"
-	"sync"
 
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/immanent-tech/go-base/config"
-	"github.com/opensearch-project/opensearch-go/v5"
-	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
 )
 
 type Doc[T ~string] interface {
@@ -32,80 +25,6 @@ func NewRequestHeaders(ctx context.Context) http.Header {
 	headers := make(http.Header)
 	headers.Set(ReqIDHeader, middleware.GetReqID(ctx))
 	return headers
-}
-
-// Client hold the underlying OpenSearch client and provides methods for interacting with OpenSearch.
-type Client struct {
-	*opensearchapi.Client
-
-	settings    Settings
-	environment string
-}
-
-var GetClient = sync.OnceValues(func() (*Client, error) {
-	appCfg, err := config.LoadAppConfig()
-	if err != nil {
-		return nil, fmt.Errorf("load app config: %w", err)
-	}
-
-	cfg, err := loadConfigOnce()
-	if err != nil {
-		return nil, fmt.Errorf("load config: %w", err)
-	}
-	var caFile []byte
-	if cfg.CAFile != "" {
-		var err error
-		caFile, err = os.ReadFile(cfg.CAFile)
-		if err != nil {
-			return nil, fmt.Errorf("read ca file: %w", err)
-		}
-	}
-
-	client, err := opensearchapi.NewClient(opensearchapi.Config{
-		Client: opensearch.Config{
-			Addresses:          cfg.Hosts,
-			Username:           cfg.User,
-			Password:           cfg.Password,
-			InsecureSkipVerify: cfg.SkipTLSVerification,
-			CACert:             caFile,
-		},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("create client: %w", err)
-	}
-
-	slog.Debug("Loaded Opensearch client")
-
-	return &Client{
-		Client: client, environment: appCfg.GetAppEnvironment().String(),
-		settings: cfg.Settings,
-	}, nil
-})
-
-func (c *Client) Close() error {
-	if err := c.Client.Close(); err != nil {
-		return fmt.Errorf("close client: %w", err)
-	}
-	return nil
-}
-
-// ApplyClusterSettings applies any cluster settings read from the config to the cluster. Generally, this should only be
-// called when a new cluster is used or when the settings have changed.
-func (c *Client) ApplyClusterSettings(ctx context.Context) error {
-	var body bytes.Buffer
-	if err := json.NewEncoder(&body).Encode(map[string]any{
-		"persistent": c.settings,
-	}); err != nil {
-		return fmt.Errorf("encode cluster settings: %w", err)
-	}
-	resp, err := c.Cluster.PutSettings(ctx, &opensearchapi.ClusterPutSettingsReq{
-		BodyReader: &body,
-		Header:     NewRequestHeaders(ctx),
-	})
-	if err != nil {
-		HandleError("put cluster settings", resp, err)
-	}
-	return nil
 }
 
 // ExtractSource extracts the `_source` field from the raw response.

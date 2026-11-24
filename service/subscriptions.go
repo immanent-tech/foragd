@@ -7,6 +7,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -19,9 +20,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
-	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -31,14 +29,10 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/bulk"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/results"
 	"github.com/immanent-tech/foragd/providers/opensearch"
-	osbulk "github.com/immanent-tech/foragd/providers/opensearch/bulk"
+	"github.com/immanent-tech/foragd/providers/opensearch/bulk"
 	"github.com/immanent-tech/foragd/providers/opensearch/doc"
-	ossearch "github.com/immanent-tech/foragd/providers/opensearch/search"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
 	"github.com/immanent-tech/foragd/schema"
 )
 
@@ -46,9 +40,8 @@ import (
 type SubscriptionService struct {
 	*otter.Cache[models.UserID, *UserSubscriptions]
 
-	esc     *ElasticService
 	osc     *opensearch.Client
-	indexer *osbulk.Indexer
+	indexer *bulk.Indexer
 
 	itemsSvc *ItemService
 	feedsSvc *FeedService
@@ -125,15 +118,27 @@ func (s *UserSubscriptions) bulkGet(
 func LoadSubscriptionsService(
 	ctx context.Context,
 	osc *opensearch.Client,
-	indexer *osbulk.Indexer,
+	indexer *bulk.Indexer,
 	itemsSvc *ItemService,
 	feedsSvc *FeedService,
 	usersSvc *UserService,
 ) (*SubscriptionService, error) {
-	svc, err := LoadElasticService()
-	if err != nil {
-		return nil, fmt.Errorf("load elastic service: %w", err)
+	if osc == nil {
+		return nil, errors.New("no opensearch client")
 	}
+	if indexer == nil {
+		return nil, errors.New("no indexer")
+	}
+	if itemsSvc == nil {
+		return nil, errors.New("no items service")
+	}
+	if feedsSvc == nil {
+		return nil, errors.New("no feeds service")
+	}
+	if usersSvc == nil {
+		return nil, errors.New("no users service")
+	}
+
 	return &SubscriptionService{
 		Cache: otter.Must(
 			&otter.Options[models.UserID, *UserSubscriptions]{
@@ -141,11 +146,11 @@ func LoadSubscriptionsService(
 				ExpiryCalculator: otter.ExpiryAccessing[models.UserID, *UserSubscriptions](time.Hour),
 			},
 		),
-		esc:      svc,
 		osc:      osc,
 		itemsSvc: itemsSvc,
 		feedsSvc: feedsSvc,
 		usersSvc: usersSvc,
+		indexer:  indexer,
 		userLoader: otter.LoaderFunc[models.UserID, *UserSubscriptions](
 			func(
 				ctx context.Context,
@@ -159,22 +164,24 @@ func LoadSubscriptionsService(
 					return nil, fmt.Errorf("create subscriptions cache: %w", err)
 				}
 				start := time.Now()
-				// Execute query.
-				var (
-					subscriptions models.Subscriptions
-				)
-				subscriptions, err = elastic.SearchAll[*models.Subscription](
+
+				resp, err := search.SearchAll(
 					ctx,
-					svc.GetIndexRO(SubscriptionsIndex),
-					query.Term("user_id", userID),
+					osc,
+					osc.IndexReadAlias(schema.SubscriptionsIndex),
 					3000,
+					[]search.QueryOption{search.TermQuery("user_id", userID)},
+					search.WithTrackTotalHits(false),
+					search.WithSort(search.NewSortOptions(search.WithSortField("_doc"))),
 				)
 				if err != nil {
-					return nil, ElasticsearchToAPIError(err)
+					return nil, fmt.Errorf("search all user subscriptions: %w", err)
 				}
 
-				if len(subscriptions) == 0 {
-					return nil, otter.ErrNotFound
+				var subscriptions models.Subscriptions
+				subscriptions, err = resp.ExtractHits[*models.Subscription]()
+				if err != nil {
+					return nil, fmt.Errorf("extract user subscriptions: %w", err)
 				}
 
 				// Get the feeds associated with the subscriptions.
@@ -214,16 +221,20 @@ func LoadSubscriptionsService(
 					userID: userID,
 					loader: otter.LoaderFunc[models.SubscriptionID, *models.Subscription](
 						func(ctx context.Context, id models.SubscriptionID) (*models.Subscription, error) {
-							subscription, err := elastic.GetDoc[models.SubscriptionID, *models.Subscription](
+							subscription, err := doc.Get[models.SubscriptionID, *models.Subscription](
 								ctx,
-								svc.GetIndexRO(SubscriptionsIndex),
+								osc.Doc,
+								osc.IndexReadAlias(schema.SubscriptionsIndex),
 								id,
 							)
-							if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-								return nil, fmt.Errorf("get subscriptions: %w", ElasticsearchToAPIError(err))
-							}
-							if errors.Is(err, elastic.ErrNotFound) {
-								return nil, otter.ErrNotFound
+							if err != nil {
+								if apiErr, ok := errors.AsType[*models.APIError](
+									err,
+								); ok &&
+									apiErr.StatusCode == http.StatusNotFound {
+									return nil, otter.ErrNotFound
+								}
+								return nil, fmt.Errorf("get subscriptions: %w", err)
 							}
 
 							// Get and set the feed associated with the subscriptions.
@@ -235,11 +246,10 @@ func LoadSubscriptionsService(
 
 							// For group subscriptions, load the grouped subscriptions.
 							if subscription.Type == models.SubscriptionTypeGroup {
-								grouped, err := elastic.GetDocs[models.SubscriptionID, *models.Subscription](
+								grouped, err := getSubscriptionDocs(
 									ctx,
-									svc.GetIndexRO(SubscriptionsIndex),
-									subscription.GroupData.GetGroupedSubscriptionIDs()...,
-								)
+									osc,
+									subscription.GroupData.GetGroupedSubscriptionIDs()...)
 								if err != nil {
 									return nil, fmt.Errorf("get grouped subscriptions: %w", err)
 								}
@@ -252,17 +262,9 @@ func LoadSubscriptionsService(
 							ctx context.Context,
 							ids []models.SubscriptionID,
 						) (map[models.SubscriptionID]*models.Subscription, error) {
-							var (
-								subscriptions models.Subscriptions
-								err           error
-							)
-							subscriptions, err = elastic.GetDocs[models.SubscriptionID, *models.Subscription](
-								ctx,
-								svc.GetIndexRO(SubscriptionsIndex),
-								ids...,
-							)
+							subscriptions, err := getSubscriptionDocs(ctx, osc, ids...)
 							if err != nil {
-								return nil, fmt.Errorf("get subscriptions: %w", ElasticsearchToAPIError(err))
+								return nil, fmt.Errorf("get subscriptions: %w", err)
 							}
 
 							// Get the feeds associated with the subscriptions.
@@ -278,11 +280,10 @@ func LoadSubscriptionsService(
 								subscription.Feed = feeds.FindByID(subscription.GetFeedID())
 								// For group subscriptions, load the grouped subscriptions.
 								if subscription.Type == models.SubscriptionTypeGroup {
-									grouped, err := elastic.GetDocs[models.SubscriptionID, *models.Subscription](
+									grouped, err := getSubscriptionDocs(
 										ctx,
-										svc.GetIndexRO(SubscriptionsIndex),
-										subscription.GroupData.GetGroupedSubscriptionIDs()...,
-									)
+										osc,
+										subscription.GroupData.GetGroupedSubscriptionIDs()...)
 									if err != nil {
 										return nil, fmt.Errorf("get grouped subscriptions: %w", err)
 									}
@@ -447,29 +448,17 @@ func (s *SubscriptionService) RemoveSubscriptions(
 	if user == nil {
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
-	if s.osc != nil {
-		if err := doc.DeleteByQuery(ctx, s.osc, s.osc.IndexWriteAlias(schema.SubscriptionsIndex),
-			doc.WithDeleteByQuery(
-				ossearch.BoolQuery(
-					ossearch.WithBoolFilter(
-						ossearch.TermQuery("user_id", user.GetID()),
-						ossearch.TermsQuery("subscription_id", ids),
-					),
+	if err := doc.DeleteByQuery(ctx, s.osc, s.osc.IndexWriteAlias(schema.SubscriptionsIndex),
+		doc.WithDeleteByQuery(
+			search.BoolQuery(
+				search.WithBoolFilter(
+					search.TermQuery("user_id", user.GetID()),
+					search.TermsQuery("subscription_id", ids),
 				),
-			),
-		); err != nil {
-			return fmt.Errorf("delete by query: %w", err)
-		}
-	}
-	if err := elastic.DeleteDocs(ctx, s.esc.GetIndexRW(SubscriptionsIndex),
-		query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-				query.Terms("subscription_id", ids),
 			),
 		),
 	); err != nil {
-		return ElasticsearchToAPIError(err)
+		return fmt.Errorf("delete by query: %w", err)
 	}
 	// Remove the subscriptions from the cache.
 	if subscriptionsCache, ok := s.GetIfPresent(user.GetID()); ok {
@@ -489,31 +478,19 @@ func (s *SubscriptionService) UpdateSubscriptions(
 	ctx, span := tracer.Start(ctx, "UpdateSubscriptions")
 	defer span.End()
 
-	if s.indexer != nil {
-		for subscription := range slices.Values(subscriptions) {
-			if err := s.indexer.Add(ctx,
-				osbulk.NewAction(
-					osbulk.ActionIndex,
-					osbulk.ToIndex(s.osc.IndexWriteAlias(schema.SubscriptionsIndex)),
-					osbulk.WithDoc(subscription),
-				)); err != nil {
-				return fmt.Errorf("update subscription %s: %w", subscription.GetID(), err)
-			}
-		}
-		if err := s.indexer.Flush(ctx); err != nil {
-			return fmt.Errorf("flush updates: %w", err)
+	for subscription := range slices.Values(subscriptions) {
+		if err := s.indexer.Add(ctx,
+			bulk.NewAction(
+				bulk.ActionIndex,
+				bulk.ToIndex(s.osc.IndexWriteAlias(schema.SubscriptionsIndex)),
+				bulk.WithID(subscription.GetID()),
+				bulk.WithDoc(subscription),
+			)); err != nil {
+			return fmt.Errorf("update subscription %s: %w", subscription.GetID(), err)
 		}
 	}
-
-	if err := bulk.IndexDocuments(ctx, s.esc.GetIndexRW(SubscriptionsIndex), subscriptions...); err != nil {
-		return ElasticsearchToAPIError(err)
-	}
-	if err := bulk.Flush(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		slogctx.Warn(ctx, "Could not flush bulk indexer after subscription updates. Info might be stale.",
-			slog.Any("error", err),
-		)
+	if err := s.indexer.Flush(ctx); err != nil {
+		return fmt.Errorf("flush updates: %w", err)
 	}
 
 	// Update the subscription dynamic info
@@ -631,43 +608,37 @@ func (s *SubscriptionService) GetSubscriptionSuggestions(
 	}
 
 	// Perform search.
-	resp, err := elastic.Search[*models.Subscription](
-		ctx,
-		s.esc.GetIndexRO(SubscriptionsIndex),
-		elastic.WithQuery[*search.Search](
-			query.Bool(
-				query.Filter(
-					query.Term("user_id", user.GetID()),
-					// query.Bool(
-					// 	query.Should(
-					// 		query.Term("type", models.SubscriptionTypeEmail),
-					// 		query.Term("type", models.SubscriptionTypeFeed),
-					// 	),
-					// ),
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.SubscriptionsIndex),
+		search.WithQuery(
+			search.BoolQuery(
+				search.WithBoolFilter(
+					search.TermQuery("user_id", user.GetID()),
 				),
-				query.Must(
-					query.Bool(
-						query.Should(
-							query.SearchAsYouType(text, "customisation.nickname"),
-						),
-					),
+				search.WithBoolMust(
+					search.SearchAsYouTypeQuery(text, "customisation.nickname"),
 				),
-				query.MustNot(
-					query.Terms("subscription_id", ignoredSubscriptions),
+				search.WithBoolMustNot(
+					search.TermsQuery("subscription_id", ignoredSubscriptions),
 				),
 			),
 		),
-		elastic.WithSort[*search.Search](newSubscriptionSortOptions(new(models.SortMostRelevant))...),
-		elastic.WithSize[*search.Search](count),
+		search.WithSort(subscriptionSortOptions(new(models.SortMostRelevant))),
+		search.WithSize(count),
+		search.WithTrackTotalHits(false),
+		search.WithTrackScores(false),
 	)
 	if err != nil {
 		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("search subscriptions: %w", err))
 	}
-	if len(resp.Results) == 0 {
+	subscriptions, _, err := resp.ExtractHits[*models.Subscription]()
+	if err != nil {
+		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("extract subscriptions: %w", err))
+	}
+
+	if len(subscriptions) == 0 {
 		return nil, fmt.Errorf("search subscriptions: %w", models.ErrNotFound)
 	}
 
-	subscriptions := resp.Results
 	if err = s.UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
 		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("add dynamic info: %w", err))
 	}
@@ -691,13 +662,13 @@ func (s *SubscriptionService) GetSubscriptionCategorySuggestions(
 	}
 
 	// Query items for feeds and append top categories from items.
-	topCategoriesQuery := query.Bool(
-		query.Filter(
+	topCategoriesQuery := search.BoolQuery(
+		search.WithBoolFilter(
 			// Must match any of the given feed IDs.
-			query.Terms("feed_id", feedIDs),
+			search.TermsQuery("feed_id", feedIDs),
 		),
-		query.MustNot(
-			query.Terms(
+		search.WithBoolMustNot(
+			search.TermsQuery(
 				"categories.raw",
 				slices.Concat(models.CommonCategoryFilters, excludedCategories),
 			),
@@ -909,7 +880,7 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 	var lastUpdate map[models.FeedID]time.Time
 	fetchJobs.Go(func() error {
 		var err error
-		lastUpdate, err = getFeedLastUpdates(jobCtx, s.esc, subscriptions.GetFeedIDs()...)
+		lastUpdate, err = s.feedsSvc.getFeedLastUpdates(jobCtx, subscriptions.GetFeedIDs()...)
 		if err != nil {
 			return fmt.Errorf("get last update: %w", err)
 		}
@@ -921,7 +892,7 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 		// Get average daily updates per feed
 		fetchJobs.Go(func() error {
 			var err error
-			avgDailyUpdates, err = getFeedAverageDailyUpdates(jobCtx, s.esc, subscriptions.GetFeedIDs()...)
+			avgDailyUpdates, err = s.feedsSvc.getFeedAverageDailyUpdates(jobCtx, subscriptions.GetFeedIDs()...)
 			if err != nil {
 				return fmt.Errorf("get average daily updates: %w", err)
 			}
@@ -1014,130 +985,125 @@ func (s *SubscriptionService) getFeedSubscriptionLatestItems(
 	feedIDs := subscriptions.GetFeedIDs()
 
 	// globalFilters filter out results before aggregations.
-	globalFilters := []query.Option{
-		query.Terms("feed_id", feedIDs),
-		query.Bool(ArticleFiltersQueryClause(user.GetSettings().GlobalFilters)),
+	globalFilters := []search.QueryOption{
+		search.TermsQuery("feed_id", feedIDs),
+		search.BoolQuery(ArticleFiltersQueryClause(user.GetSettings().GlobalFilters)),
 	}
 
 	// Build queries for the filter buckets aggregation.
-	subscriptionFilters := make(map[string]*estypes.Query)
+	subscriptionFilters := make(map[string]search.QueryOption)
 	for subscription := range slices.Values(subscriptions) {
 		switch view {
 		case models.ViewAll:
-			subscriptionFilters[subscription.GetFeedID()] = query.Build(
-				allItemsForSubscriptionClause(subscription, user.GetMaxHistory()),
+			subscriptionFilters[subscription.GetFeedID()] = AllItemsForSubscriptionClause(
+				subscription,
+				user.GetMaxHistory(),
 			)
 		case models.ViewRead:
-			subscriptionFilters[subscription.GetFeedID()] = query.Build(
-				readItemsForSubscriptionClause(subscription, user.GetMaxHistory()),
+			subscriptionFilters[subscription.GetFeedID()] = ReadItemsForSubscriptionClause(
+				subscription,
+				user.GetMaxHistory(),
 			)
 		case models.ViewUnread:
 			fallthrough
 		default:
-			subscriptionFilters[subscription.GetFeedID()] = query.Build(
-				unreadItemsForSubscriptionClause(subscription, user.GetMaxHistory()),
+			subscriptionFilters[subscription.GetFeedID()] = UnreadItemsForSubscriptionClause(
+				subscription,
+				user.GetMaxHistory(),
 			)
 		}
 	}
-
-	resp, err := elastic.Search[*models.Item](ctx,
-		s.esc.GetIndexRO(ItemsIndex),
-		elastic.WithQuery[*search.Search](
-			query.Bool(
-				query.Filter(
-					globalFilters...,
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithQuery(
+			search.BoolQuery(
+				search.WithBoolFilter(globalFilters...),
+			),
+		),
+		search.WithAggregation(
+			"feed",
+			search.FiltersAggregation(
+				search.WithFiltersAggregationFilters(subscriptionFilters),
+			),
+			search.WithChildAggregation(
+				"latest_items",
+				search.TopHitsAggregation(
+					search.WithTopHitsAggregationSize(count),
+					search.WithTopHitsAggregationSort(
+						ItemSortCombinations(new(models.SortNewestFirst))),
 				),
 			),
 		),
-		elastic.WithAggregations[*search.Search](
-			elastic.Aggs{
-				"feed": estypes.Aggregations{
-					Filters: &estypes.FiltersAggregation{
-						Filters: subscriptionFilters,
-					},
-					Aggregations: map[string]estypes.Aggregations{
-						"latest_items": {
-							TopHits: &estypes.TopHitsAggregation{
-								Size: &count,
-								Sort: NewItemSortCombinations(new(models.SortNewestFirst)),
-							},
-						},
-					},
-				},
-			},
-		),
-		elastic.WithSize[*search.Search](0),
-		elastic.WithDocSorting[*search.Search](),
+		search.WithSize(0),
+		search.WithSort(search.NewSortOptions(search.WithSortField("_doc"))),
+		search.WithTrackTotalHits(false),
+		search.WithTrackScores(false),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("fetch latest articles: %w", err)
 	}
+	// Extract the feed aggregation. We need to use a custom type as we cannot access nested aggregations from the typed
+	// API at the moment.
+	type latestItemsAggs struct {
+		Aggregations struct {
+			Feed struct {
+				Buckets map[string]struct {
+					DocCount    int `json:"doc_count"`
+					LatestItems struct {
+						Hits struct {
+							Hits []struct {
+								ID     string          `json:"_id"`
+								Source json.RawMessage `json:"_source"`
+							} `json:"hits"`
+						} `json:"hits"`
+					} `json:"latest_items"`
+				} `json:"buckets"`
+			} `json:"feed"`
+		} `json:"aggregations"`
+	}
+	var latestItemsResults latestItemsAggs
+	if err := json.NewDecoder(resp.RawBody()).Decode(&latestItemsResults); err != nil {
+		return nil, fmt.Errorf("extract aggregation results: %w", err)
+	}
+
 	latestItems := make(map[models.FeedID]models.Items)
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-	// Extract the feed aggregation.
-	feedsAgg, hasFeedAgg, err := elastic.ExtractAggregation[*estypes.FiltersAggregate](
-		resp.Aggregations,
-		"feed",
-	)
-	if !hasFeedAgg || err != nil {
-		return nil, fmt.Errorf("extract feed aggregation: %w", err)
-	}
-	// Loop over the feed buckets.
-	feedBuckets, err := elastic.ExtractBucketsAsMap[estypes.FiltersBucket](feedsAgg.Buckets)
-	if err != nil {
-		return nil, fmt.Errorf("extract feed aggregation buckets: %w", err)
-	}
-	for feedID, bucket := range feedBuckets {
-		wg.Go(func() {
-			if feedID == "" {
-				return
-			}
-			// Get the subscription with this feedID.
-			if !slices.Contains(feedIDs, feedID) {
-				slogctx.FromCtx(ctx).
-					Warn("Could not match feed in aggregation result to a subscription.",
-						slog.String("feed_id", feedID),
-					)
-				return
-			}
-			// Extract the latest articles aggregation.
-			latestItemsAggs, hasLatestItemsAgg, err := elastic.ExtractAggregation[*estypes.TopHitsAggregate](
-				bucket.Aggregations,
-				"latest_items",
-			)
-			if !hasLatestItemsAgg || err != nil {
-				slogctx.FromCtx(ctx).Warn("Could not extract aggregation.",
-					slog.String("aggregation", "latest_items"),
+	for feedID, hits := range latestItemsResults.Aggregations.Feed.Buckets {
+		if feedID == "" {
+			continue
+		}
+		// Get the subscription with this feedID.
+		if !slices.Contains(feedIDs, feedID) {
+			slogctx.FromCtx(ctx).
+				Warn("Could not match feed in aggregation result to a subscription.",
+					slog.String("feed_id", feedID),
+				)
+			continue
+		}
+		var (
+			items models.Items
+		)
+		// Extract the latest items.
+		//
+		// * Note that the "latest_items" aggregation applies _source filtering,
+		// * so only the given fields will be populated in the models.Item object.
+		// Loop through the hits, extracting the source into the required type.
+		for hit := range slices.Values(hits.LatestItems.Hits.Hits) {
+			source, err := opensearch.ExtractSource[*models.Item](hit.Source)
+			if err != nil {
+				slogctx.Warn(
+					ctx,
+					"Could not extract latest item.",
+					slog.String("feed_id", feedID),
 					slog.Any("error", err),
 				)
-				return
+				continue
 			}
-			var (
-				items models.Items
-			)
-
-			// Extract the latest items.
-			//
-			// * Note that the "latest_items" aggregation applies _source filtering,
-			// * so only the given fields will be populated in the models.Item object.
-			items, _, err = results.ExtractSourceFromHits[*models.Item](latestItemsAggs.Hits.Hits)
-			if err != nil {
-				slogctx.FromCtx(ctx).
-					Warn("Unable to extract latest articles from elastic.",
-						slog.Any("error", err),
-					)
-				return
-			}
-			// Ensure proper sorting.
-			items = items.SortByTimestamp()
-			mu.Lock()
-			latestItems[feedID] = items
-			mu.Unlock()
-		})
+			items = append(items, source)
+		}
+		// Ensure proper sorting.
+		items = items.SortByTimestamp()
+		latestItems[feedID] = items
 	}
 
-	wg.Wait()
 	return latestItems, nil
 }
 
@@ -1245,67 +1211,65 @@ func (s *SubscriptionService) getSubscriptionUnreadCounts(
 	}
 
 	// Generate clauses for aggregation filter buckets.
-	subscriptionFilters := make(map[string]*estypes.Query)
+	subscriptionFilters := make(map[string]search.QueryOption)
 	for subscription := range slices.Values(subscriptions) {
-		subscriptionFilters[subscription.GetFeedID()] = query.Build(
-			unreadItemsForSubscriptionClause(subscription, user.GetMaxHistory()),
+		// Ignore subscriptions with no feed ID (i.e., group subscriptions).
+		if subscription.GetFeedID() == "" {
+			continue
+		}
+		subscriptionFilters[subscription.GetFeedID()] = UnreadItemsForSubscriptionClause(
+			subscription,
+			user.GetMaxHistory(),
 		)
 	}
 
 	feedIDs := subscriptions.GetFeedIDs()
 
 	// Perform aggregation.
-	resp, err := elastic.Search[*models.Item](ctx,
-		s.esc.GetIndexRO(ItemsIndex),
-		elastic.WithQuery[*search.Search](
-			query.Bool(
-				query.Filter(
-					query.Terms(
-						"feed_id",
-						feedIDs,
-						query.WithQueryName[*query.TermsQuery]("match-feed-id"),
-					),
-					query.Bool(
-						ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
-					),
+	resp, err := search.Search(ctx, s.osc, s.osc.IndexReadAlias(schema.ItemsIndex),
+		search.WithQuery(
+			search.BoolQuery(
+				search.WithBoolFilter(
+					search.TermsQuery("feed_id", feedIDs),
+					search.BoolQuery(ArticleFiltersQueryClause(user.GetSettings().GlobalFilters)),
 				),
 			),
 		),
-		elastic.WithAggregations[*search.Search](
-			elastic.Aggs{
-				"UnreadCounts": estypes.Aggregations{
-					Filters: &estypes.FiltersAggregation{
-						Filters: subscriptionFilters,
-					},
-				},
-			},
+		search.WithAggregation(
+			"UnreadCounts",
+			search.FiltersAggregation(search.WithFiltersAggregationFilters(subscriptionFilters)),
 		),
-		elastic.WithSize[*search.Search](0),
-		elastic.WithDocSorting[*search.Search](),
+		search.WithSize(0),
+		search.WithSort(search.NewSortOptions(search.WithSortField("_doc"))),
+		search.WithTrackTotalHits(false),
+		search.WithTrackScores(false),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
 	}
 
-	// Extract the feed aggregation.
-	unreadCountsAggs, aggFound, err := elastic.ExtractAggregation[*estypes.FiltersAggregate](
-		resp.Aggregations,
-		"UnreadCounts",
-	)
-	if !aggFound || err != nil {
-		return nil, fmt.Errorf("extract feed aggregation: %w", err)
+	// Extract the feed aggregation. We need to use a custom type as we cannot access nested aggregations from the typed
+	// API at the moment.
+	type latestItemsAggs struct {
+		Aggregations struct {
+			Feed struct {
+				Buckets map[string]struct {
+					DocCount int64 `json:"doc_count"`
+				} `json:"buckets"`
+			} `json:"UnreadCounts"`
+		} `json:"aggregations"`
 	}
+	var latestItemsResults latestItemsAggs
+	if err := json.NewDecoder(resp.RawBody()).Decode(&latestItemsResults); err != nil {
+		return nil, fmt.Errorf("extract aggregation results: %w", err)
+	}
+
 	// Loop over the feed buckets.
 	stats := make(map[models.SubscriptionID]int64)
-	feedBuckets, err := elastic.ExtractBucketsAsMap[estypes.FiltersBucket](unreadCountsAggs.Buckets)
-	if err != nil {
-		return nil, fmt.Errorf("extract feed aggregation buckets: %w", err)
-	}
-	for feedID, bucket := range feedBuckets {
+	for feedID, bucket := range latestItemsResults.Aggregations.Feed.Buckets {
 		if feedID == "" {
 			continue
 		}
-		// Get the subscription with this feedID.
 		if !slices.Contains(feedIDs, feedID) {
 			slogctx.FromCtx(ctx).
 				Warn("Could not match feed in aggregation result to a subscription.",
@@ -1601,50 +1565,50 @@ func newBaseSubscription(
 	return subscription, nil
 }
 
-// SubscriptionSorting contains the sort options for sorting subscription results.
-type SubscriptionSorting struct {
-	MarkedReadAt   string `json:"marked_read_at"`
-	SubscriptionID string `json:"subscription_id"`
-}
-
-// SortCombinationsCaster is required to allow FeedSorting to be used as Elasticsearch sort values.
-func (s *SubscriptionSorting) SortCombinationsCaster() *estypes.SortCombinations {
-	c := estypes.SortCombinations(s)
-	return &c
-}
-
-func newSubscriptionSortOptions(sort *models.Sort) []estypes.SortCombinationsVariant {
+func subscriptionSortOptions(sort *models.Sort) *search.Sorting {
 	if sort == nil {
-		return []estypes.SortCombinationsVariant{&estypes.SortOptions{Doc_: estypes.NewScoreSort()}}
+		return search.NewSortOptions(search.WithSortField("_doc"))
 	}
-	var opts []estypes.SortCombinationsVariant
 	switch *sort {
 	case models.SortNewestFirst:
-		opts = append(opts, &SubscriptionSorting{
-			MarkedReadAt:   "asc",
-			SubscriptionID: "desc",
-		})
+		return search.NewSortOptions(
+			search.WithSortField("marked_read_at", search.WithFieldSortOrder(search.SortOrderAsc)),
+			search.WithSortField("subscription_id", search.WithFieldSortOrder(search.SortOrderDesc)),
+		)
 	case models.SortOldestFirst:
-		opts = append(opts, &SubscriptionSorting{
-			MarkedReadAt:   "desc",
-			SubscriptionID: "asc",
-		})
+		return search.NewSortOptions(
+			search.WithSortField("marked_read_at", search.WithFieldSortOrder(search.SortOrderDesc)),
+			search.WithSortField("subscription_id", search.WithFieldSortOrder(search.SortOrderDesc)),
+		)
 	case models.SortMostRelevant:
-		opts = append(opts, &estypes.SortOptions{
-			Score_: &estypes.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&SubscriptionSorting{
-				MarkedReadAt:   "asc",
-				SubscriptionID: "asc",
-			},
+		return search.NewSortOptions(
+			search.WithSortField("_score", search.WithFieldSortOrder(search.SortOrderDesc)),
+			search.WithSortField("marked_read_at", search.WithFieldSortOrder(search.SortOrderAsc)),
+			search.WithSortField("subscription_id", search.WithFieldSortOrder(search.SortOrderDesc)),
 		)
 	default:
-		opts = append(opts, &estypes.SortOptions{
-			Doc_: estypes.NewScoreSort(),
-		})
+		return search.NewSortOptions(
+			search.WithSortField("_doc"),
+		)
 	}
-	return opts
+}
+
+func getSubscriptionDocs(
+	ctx context.Context,
+	osc *opensearch.Client,
+	ids ...models.SubscriptionID,
+) (models.Subscriptions, error) {
+	var (
+		subscriptions models.Subscriptions
+		err           error
+	)
+	subscriptions, err = doc.GetDocs[models.SubscriptionID, *models.Subscription](
+		ctx,
+		osc.Doc,
+		osc.IndexReadAlias(schema.SubscriptionsIndex),
+		ids...)
+	if err != nil {
+		return nil, fmt.Errorf("get grouped subscriptions: %w", err)
+	}
+	return subscriptions, nil
 }

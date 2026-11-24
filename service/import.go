@@ -17,26 +17,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/bulk"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/opensearch"
-	osbulk "github.com/immanent-tech/foragd/providers/opensearch/bulk"
+	"github.com/immanent-tech/foragd/providers/opensearch/bulk"
 	"github.com/immanent-tech/foragd/providers/opensearch/doc"
+	"github.com/immanent-tech/foragd/providers/opensearch/search"
 	"github.com/immanent-tech/foragd/schema"
 )
 
 type ImportService struct {
-	esc     *ElasticService
 	osc     *opensearch.Client
-	indexer *osbulk.Indexer
+	indexer *bulk.Indexer
 
 	feedsSvc         *FeedService
 	subscriptionsSvc *SubscriptionService
@@ -48,18 +43,28 @@ type ImportService struct {
 func LoadImportsService(
 	ctx context.Context,
 	osc *opensearch.Client,
-	indexer *osbulk.Indexer,
+	indexer *bulk.Indexer,
 	feedsSvc *FeedService,
 	subscriptionsSvc *SubscriptionService,
 	usersSvc *UserService,
 ) (*ImportService, error) {
-	svc, err := LoadElasticService()
-	if err != nil {
-		return nil, fmt.Errorf("load elastic service: %w", err)
+	if osc == nil {
+		return nil, errors.New("no opensearch client")
+	}
+	if indexer == nil {
+		return nil, errors.New("no indexer")
+	}
+	if feedsSvc == nil {
+		return nil, errors.New("no feeds service")
+	}
+	if subscriptionsSvc == nil {
+		return nil, errors.New("no subscriptions service")
+	}
+	if usersSvc == nil {
+		return nil, errors.New("no users service")
 	}
 
 	return &ImportService{
-		esc:              svc,
 		osc:              osc,
 		indexer:          indexer,
 		feedsSvc:         feedsSvc,
@@ -149,14 +154,7 @@ func (i *ImportService) StartImport(
 	}
 
 	// Add to the store for the import job to find and process.
-	if i.osc != nil {
-		if err := doc.Create(ctx, i.osc.Doc, i.osc.IndexWriteAlias(schema.ImportsIndex), status); err != nil {
-			return "", models.NewAPIError(
-				http.StatusInternalServerError,
-				fmt.Errorf("get user details: %w", models.ErrCtxValueNotFound))
-		}
-	}
-	if err := elastic.CreateDoc(ctx, i.esc.GetIndexRW(ImportIndex), status.GetID(), status); err != nil {
+	if err := doc.Create(ctx, i.osc.Doc, i.osc.IndexWriteAlias(schema.ImportsIndex), status); err != nil {
 		return "", models.NewAPIError(
 			http.StatusInternalServerError,
 			fmt.Errorf("get user details: %w", models.ErrCtxValueNotFound))
@@ -290,96 +288,50 @@ func (i *ImportService) ProcessRequests(
 	for result := range resultsCh {
 		// Add new feed as needed.
 		if result.AddFeed {
-			if i.indexer != nil {
-				if err := i.indexer.Add(
-					ctx,
-					osbulk.NewAction(osbulk.ActionCreate,
-						osbulk.ToIndex(i.osc.IndexWriteAlias(schema.FeedsIndex)),
-						osbulk.WithDoc(result.Feed),
-					),
-				); err != nil {
-					slogctx.Error(ctx, "Failed to process new feed",
-						slog.Any("error", err))
-					errs = errors.Join(errs, err)
-					// continue
-				}
-			}
-			if err := bulk.AddAction(ctx,
-				bulk.NewAction(
-					result.Feed,
-					bulk.AsOperation[models.FeedID](bulk.OpCreate),
-					bulk.ToIndex[models.FeedID](i.esc.GetIndexRW(FeedsIndex)),
+			if err := i.indexer.Add(
+				ctx,
+				bulk.NewAction(bulk.ActionCreate,
+					bulk.ToIndex(i.osc.IndexWriteAlias(schema.FeedsIndex)),
+					bulk.WithID(result.Feed.GetID()),
+					bulk.WithDoc(result.Feed),
 				),
 			); err != nil {
 				slogctx.Error(ctx, "Failed to process new feed",
 					slog.Any("error", err))
 				errs = errors.Join(errs, err)
-				continue
+				// continue
 			}
 		}
 		// Add new subscription as needed.
 		if result.Subscription != nil {
-			if i.indexer != nil {
-				if err := i.indexer.Add(
-					ctx,
-					osbulk.NewAction(osbulk.ActionCreate,
-						osbulk.ToIndex(i.osc.IndexWriteAlias(schema.SubscriptionsIndex)),
-						osbulk.WithDoc(result.Subscription),
-					),
-				); err != nil {
-					slogctx.Error(ctx, "Failed to process new subscription",
-						slog.Any("error", err))
-					errs = errors.Join(errs, err)
-					// continue
-				}
-			}
-			if err := bulk.AddAction(ctx,
-				bulk.NewAction(
-					result.Subscription,
-					bulk.AsOperation[models.SubscriptionID](bulk.OpCreate),
-					bulk.ToIndex[models.SubscriptionID](i.esc.GetIndexRW(SubscriptionsIndex)),
+			if err := i.indexer.Add(
+				ctx,
+				bulk.NewAction(bulk.ActionCreate,
+					bulk.ToIndex(i.osc.IndexWriteAlias(schema.SubscriptionsIndex)),
+					bulk.WithID(result.Subscription.GetID()),
+					bulk.WithDoc(result.Subscription),
 				),
 			); err != nil {
 				slogctx.Error(ctx, "Failed to process new subscription",
 					slog.Any("error", err))
 				errs = errors.Join(errs, err)
-				continue
-			}
-		}
-		// Index the results.
-		if i.indexer != nil {
-			if err := i.indexer.Add(ctx, osbulk.NewAction(osbulk.ActionCreate,
-				osbulk.ToIndex(i.osc.IndexWriteAlias(schema.ImportsIndex)),
-				osbulk.WithDoc(result.Details),
-			)); err != nil {
-				slogctx.Error(ctx, "Failed to process import result",
-					slog.Any("error", err))
-				errs = errors.Join(errs, err)
 				// continue
 			}
 		}
-		if err := bulk.AddAction(ctx,
-			bulk.NewAction(
-				result.Details,
-				bulk.AsOperation[string](bulk.OpCreate),
-				bulk.ToIndex[string](i.esc.GetIndexRW(ImportIndex)),
-			),
-		); err != nil {
+		// Index the results.
+		if err := i.indexer.Add(ctx, bulk.NewAction(bulk.ActionCreate,
+			bulk.ToIndex(i.osc.IndexWriteAlias(schema.ImportsIndex)),
+			bulk.WithID(result.Details.JobID),
+			bulk.WithDoc(result.Details),
+		)); err != nil {
 			slogctx.Error(ctx, "Failed to process import result",
 				slog.Any("error", err))
 			errs = errors.Join(errs, err)
-			continue
+			// continue
 		}
 	}
 
-	if i.osc != nil {
-		if err := i.indexer.Flush(ctx); err != nil {
-			slogctx.Warn(ctx, "Could not flush bulk indexer after adding subscriptions.",
-				slog.Any("error", err),
-			)
-		}
-	}
-	if err := bulk.Flush(ctx); err != nil {
+	if err := i.indexer.Flush(ctx); err != nil {
 		slogctx.Warn(ctx, "Could not flush bulk indexer after adding subscriptions.",
 			slog.Any("error", err),
 		)
@@ -522,9 +474,14 @@ func (i *ImportService) GetImportStatus(
 		}
 	} else {
 		// Else, fetch the job status directly.
-		existing, err := elastic.GetDoc[string, *models.ImportStatus](ctx, i.esc.GetIndexRO(ImportIndex), jobID)
+		existing, err := doc.Get[string, *models.ImportStatus](
+			ctx,
+			i.osc.Doc,
+			i.osc.IndexReadAlias(schema.ImportsIndex),
+			jobID,
+		)
 		if err != nil {
-			if errors.Is(err, elastic.ErrNotFound) {
+			if apiErr, ok := errors.AsType[*models.APIError](err); ok && apiErr.HTTPStatus() == http.StatusNotFound {
 				return nil, nil, models.NewAPIError(
 					http.StatusNoContent,
 					errors.New("search import status: no recent status"),
@@ -552,15 +509,13 @@ func (i *ImportService) GetImportStatus(
 
 // GetPendingImports retrieves any imports in "pending" status (i.e., ready to be started).
 func (i *ImportService) GetPendingImports(ctx context.Context) ([]*models.ImportStatus, error) {
-	statuses, err := elastic.SearchAll[*models.ImportStatus](ctx,
-		i.esc.GetIndexRO(ImportIndex),
-		query.Bool(
-			query.Filter(
-				query.Term("doc_type", "import_status"),
-				query.Term("status", models.ImportStatusStatusPending),
+	statuses, err := i.searchAllImports[*models.ImportStatus](ctx,
+		search.BoolQuery(
+			search.WithBoolFilter(
+				search.TermQuery("doc_type", "import_status"),
+				search.TermQuery("status", models.ImportStatusStatusPending),
 			),
 		),
-		5000,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("get all pending imports: %w", err)
@@ -570,42 +525,41 @@ func (i *ImportService) GetPendingImports(ctx context.Context) ([]*models.Import
 }
 
 func (i *ImportService) GetAllImports(ctx context.Context, userID models.UserID) ([]*models.ImportStatus, error) {
-	activeImports, err := elastic.SearchAll[*models.ImportStatus](ctx,
-		i.esc.GetIndexRO(ImportIndex),
-		query.Bool(
-			// Is Import Status and owned by User.
-			query.Filter(
-				query.Term("doc_type", "import_status"),
-				query.Term("user_id", userID),
+	userImports, err := i.searchAllImports[*models.ImportStatus](ctx,
+		search.BoolQuery(
+			search.WithBoolFilter(
+				search.TermQuery("doc_type", "import_status"),
+				search.TermQuery("user_id", userID),
 			),
 		),
-		5000,
-		elastic.WithSort[*search.Search](&statusSorting{CreatedAt: "desc"}),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("get all pending imports: %w", err)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("find active imports: %w", err)
 	}
-	return activeImports, nil
+	return userImports, nil
 }
 
 func (i *ImportService) findActiveImports(ctx context.Context, userID models.UserID) ([]*models.ImportStatus, error) {
-	activeImports, err := elastic.SearchAll[*models.ImportStatus](ctx,
-		i.esc.GetIndexRO(ImportIndex),
-		query.Bool(
-			query.WithBoolShouldMinimumMatch(1),
-			// Is Import Status and owned by User.
-			query.Filter(
-				query.Term("doc_type", "import_status"),
-				query.Term("user_id", userID),
+	activeImports, err := i.searchAllImports[*models.ImportStatus](
+		ctx,
+		search.BoolQuery(
+			search.WithBoolFilter(
+				search.TermQuery("doc_type", "import_status"),
+				search.TermQuery("user_id", userID),
 			),
-			// Status is Pending or Running.
-			query.Should(
-				query.Term("status", models.ImportStatusStatusPending),
-				query.Term("status", models.ImportStatusStatusRunning),
+			search.WithBoolShould(
+				search.TermQuery("status", models.ImportStatusStatusPending),
+				search.TermQuery("status", models.ImportStatusStatusRunning),
 			),
 		),
-		5000,
-		elastic.WithSort[*search.Search](&statusSorting{CreatedAt: "desc"}),
+		search.WithSort(
+			search.NewSortOptions(
+				search.WithSortField("created_at", search.WithFieldSortOrder(search.SortOrderDesc)),
+			),
+		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("find active imports: %w", err)
@@ -614,18 +568,38 @@ func (i *ImportService) findActiveImports(ctx context.Context, userID models.Use
 }
 
 func (i *ImportService) getResultsForImport(ctx context.Context, id string) ([]*models.ImportResult, error) {
-	results, err := elastic.SearchAll[*models.ImportResult](ctx,
-		i.esc.GetIndexRO(ImportIndex),
-		query.Bool(
-			query.Filter(
-				query.Term("doc_type", "import_result"),
-				query.Term("job_id", id),
+	results, err := i.searchAllImports[*models.ImportResult](ctx,
+		search.BoolQuery(
+			search.WithBoolFilter(
+				search.TermQuery("doc_type", "import_result"),
+				search.TermQuery("job_id", id),
 			),
 		),
-		5000,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("get all results: %w", err)
+	}
+	return results, nil
+}
+
+func (i *ImportService) searchAllImports[I any](
+	ctx context.Context,
+	query search.QueryOption,
+	options ...search.SearchOption,
+) ([]I, error) {
+	resp, err := search.SearchAll(
+		ctx,
+		i.osc,
+		i.osc.IndexReadAlias(schema.ImportsIndex),
+		2500,
+		[]search.QueryOption{query},
+		options...)
+	if err != nil {
+		return nil, fmt.Errorf("search imports: %w", err)
+	}
+	results, err := resp.ExtractHits[I]()
+	if err != nil {
+		return nil, fmt.Errorf("extract imports: %w", err)
 	}
 	return results, nil
 }
@@ -653,23 +627,8 @@ func (i *ImportService) updateStatus(
 			"The server encountered a problem that stopped the import process completing",
 		)
 	}
-	if i.osc != nil {
-		if err := doc.Index(ctx, i.osc.Doc, i.osc.IndexWriteAlias(schema.ImportsIndex), status); err != nil {
-			return fmt.Errorf("update doc: %w", err)
-		}
-	}
-	if err := elastic.UpdateDoc(ctx, i.esc.GetIndexRW(ImportIndex), status.GetID(), status); err != nil {
+	if err := doc.Index(ctx, i.osc.Doc, i.osc.IndexWriteAlias(schema.ImportsIndex), status); err != nil {
 		return fmt.Errorf("update doc: %w", err)
 	}
 	return nil
-}
-
-type statusSorting struct {
-	CreatedAt string `json:"created_at"`
-}
-
-// SortCombinationsCaster is required to allow ItemSorting to be used as Elasticsearch sort values.
-func (s *statusSorting) SortCombinationsCaster() *types.SortCombinations {
-	c := types.SortCombinations(s)
-	return &c
 }

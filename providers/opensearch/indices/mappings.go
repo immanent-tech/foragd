@@ -39,6 +39,8 @@ func WithMapping[O any](name string, options ...func(*O)) MappingOption {
 		switch value := any(settings).(type) {
 		case *opensearchapi.CommonMappingTextProperty:
 			m[name] = opensearchapi.NewCommonMappingPropertyFromTextProperty(*value)
+		case *opensearchapi.CommonMappingSemanticProperty:
+			m[name] = opensearchapi.NewCommonMappingPropertyFromSemanticProperty(*value)
 		case *opensearchapi.CommonMappingKeywordProperty:
 			m[name] = opensearchapi.NewCommonMappingPropertyFromKeywordProperty(*value)
 		case *opensearchapi.CommonMappingSearchAsYouTypeProperty:
@@ -110,6 +112,17 @@ func WithTextIndex(value bool) TextMappingOption {
 	}
 }
 
+// SemanticMappingOption is a functional option applied to a semantic text mapping.
+type SemanticMappingOption func(*opensearchapi.CommonMappingSemanticProperty)
+
+// WithSemanticMappingModelID option specifies the model id to use with this semantic property mapping.
+func WithSemanticMappingModelID(id string) SemanticMappingOption {
+	return func(p *opensearchapi.CommonMappingSemanticProperty) {
+		p.ModelID = id
+	}
+}
+
+// ObjectMappingOption is a functional option applied to an object mapping.
 type ObjectMappingOption func(*opensearchapi.CommonMappingObjectProperty)
 
 func WithObjectMappingProperties(props ...MappingOption) ObjectMappingOption {
