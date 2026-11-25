@@ -23,7 +23,12 @@ func NewClient(osc *opensearch.Client) *ism.Client {
 	return ism.NewClient(osc.Client.Client)
 }
 
-func ConfigurePolicy(ctx context.Context, osc *opensearch.Client, policy opensearchapi.ISMPolicy) error {
+func ConfigurePolicy(
+	ctx context.Context,
+	osc *opensearch.Client,
+	index opensearch.Index,
+	policy opensearchapi.ISMPolicy,
+) error {
 	currentPolicy, err := GetPolicy(ctx, osc, *policy.PolicyID)
 	if err != nil {
 		return fmt.Errorf("get current policy: %w", err)
@@ -43,6 +48,9 @@ func ConfigurePolicy(ctx context.Context, osc *opensearch.Client, policy opensea
 			return fmt.Errorf("update ism policy: %w", err)
 		}
 	}
+	if err := AddPolicyToIndices(ctx, osc, index, *policy.PolicyID); err != nil {
+		return fmt.Errorf("add policy to existing indices: %w", err)
+	}
 	return nil
 }
 
@@ -54,7 +62,7 @@ func GetPolicy(ctx context.Context, osc *opensearch.Client, id string) (*ism.Get
 		Header:   opensearch.NewRequestHeaders(ctx),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("get ism policy %s: %w", id, err)
+		return nil, opensearch.HandleError("get ism policy", resp, err)
 	}
 	return resp, nil
 }
@@ -75,7 +83,7 @@ func PutPolicy(
 
 	resp, err := client.Policy.PutPolicy(ctx, *req)
 	if err != nil {
-		return opensearch.GenerateAPIError("put ism policy", resp)
+		return opensearch.HandleError("put ism policy", resp, err)
 	}
 	return nil
 }
@@ -113,4 +121,19 @@ func WithPrimaryTerm(term float64) PutPolicyOption {
 		}
 		req.Params.IfPrimaryTerm = &term
 	}
+}
+
+func AddPolicyToIndices(ctx context.Context, osc *opensearch.Client, index opensearch.Index, id string) error {
+	client := NewClient(osc)
+	resp, err := client.Policy.AddPolicy(ctx, &ism.AddPolicyReq{
+		Indices: []string{index.String() + "*"},
+		Body: &opensearchapi.ISMAddPolicyRequest{
+			PolicyID: id,
+		},
+		Header: opensearch.NewRequestHeaders(ctx),
+	})
+	if err != nil {
+		return opensearch.HandleError("add ism policy to indices", resp, err)
+	}
+	return nil
 }

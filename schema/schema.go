@@ -15,6 +15,7 @@ import (
 
 	"github.com/immanent-tech/foragd/providers/opensearch"
 	"github.com/immanent-tech/foragd/providers/opensearch/indices"
+	"github.com/immanent-tech/foragd/providers/opensearch/indices/ism"
 	"github.com/immanent-tech/foragd/providers/opensearch/ingest"
 	"github.com/immanent-tech/foragd/providers/opensearch/ml"
 )
@@ -130,6 +131,7 @@ func NewIndexConfig(osc *opensearch.Client, index opensearch.Index) (IndexConfig
 		return IndexConfig{}, fmt.Errorf("unknown index: %s", index)
 	}
 	return IndexConfig{
+		index:             index,
 		Name:              indexName,
 		IndexTemplate:     indexTemplate,
 		ComponentTemplate: componentTemplate,
@@ -184,6 +186,7 @@ func (c *IndexConfig) UpdateTemplates(ctx context.Context, osc *opensearch.Clien
 		if err != nil {
 			return fmt.Errorf("new ml client: %w", err)
 		}
+		// Items ingest pipeline.
 		if err := ingest.NewIngestPipeline(
 			ctx,
 			&osc.Ingest,
@@ -191,6 +194,17 @@ func (c *IndexConfig) UpdateTemplates(ctx context.Context, osc *opensearch.Clien
 		); err != nil {
 			return fmt.Errorf("configure items ingest pipeline: %w", err)
 		}
+		slogctx.Info(
+			ctx,
+			"Configured items ingest pipeline",
+			slog.String("name", ItemsIngestPipeline(mlc.GetModelID()).ID),
+		)
+		// Items ISM policy.
+		if err := ism.ConfigurePolicy(ctx, osc, ItemsIndex, ItemsISM); err != nil {
+			return fmt.Errorf("configure items ism policy: %w", err)
+		}
+		slogctx.Info(ctx, "Configured items ism policy",
+			slog.String("name", *ItemsISM.PolicyID))
 	}
 
 	// Create/update component template.

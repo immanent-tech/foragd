@@ -88,6 +88,9 @@ func ItemsIngestPipeline(modelID string) opensearchapi.IngestPutPipelineReq {
 }
 
 var ItemsISM = opensearchapi.ISMPolicy{
+	PolicyID:     new(ItemsIndex.String() + "-ism-policy"),
+	Description:  new("ISM Policy to maintain reasonable sizing and history of items indices"),
+	DefaultState: new("hot"),
 	ISMTemplate: new(opensearchapi.NewISMPolicyTemplateFromISMTemplate(
 		opensearchapi.ISMTemplate{
 			IndexPatterns: []string{ItemsIndex.String() + "-*"},
@@ -112,7 +115,7 @@ var ItemsISM = opensearchapi.ISMPolicy{
 			Transitions: []opensearchapi.ISMTransition{
 				{
 					StateName:  new("delete"),
-					Conditions: map[string]json.RawMessage{"min_index_age": json.RawMessage(`"1y"`)},
+					Conditions: map[string]json.RawMessage{"min_index_age": json.RawMessage(`"365d"`)},
 				},
 			},
 		},
