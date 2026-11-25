@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"slices"
 
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
@@ -62,6 +63,9 @@ func GetPolicy(ctx context.Context, osc *opensearch.Client, id string) (*ism.Get
 		Header:   opensearch.NewRequestHeaders(ctx),
 	})
 	if err != nil {
+		if resp != nil && resp.Inspect().Response.StatusCode == http.StatusNotFound {
+			return nil, nil
+		}
 		return nil, opensearch.HandleError("get ism policy", resp, err)
 	}
 	return resp, nil
