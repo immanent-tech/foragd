@@ -24,6 +24,8 @@ func NewClient(osc *opensearch.Client) *ism.Client {
 	return ism.NewClient(osc.Client.Client)
 }
 
+// ConfigurePolicy performs all steps required to set up and configure an ISM policy. It will add or update a policy,
+// then ensure the policy applies to any existing indices.
 func ConfigurePolicy(
 	ctx context.Context,
 	osc *opensearch.Client,
@@ -55,6 +57,7 @@ func ConfigurePolicy(
 	return nil
 }
 
+// GetPolicy retrieves an existing ISM policy.
 func GetPolicy(ctx context.Context, osc *opensearch.Client, id string) (*ism.GetPolicyResp, error) {
 	client := NewClient(osc)
 
@@ -107,8 +110,11 @@ func NewPutPolicyReq(policy opensearchapi.ISMPolicy, options ...PutPolicyOption)
 	return req, nil
 }
 
+// PutPolicyOption is a functional option applied to a [ism.PutPolicyReq].
 type PutPolicyOption func(*ism.PutPolicyReq)
 
+// WithSeqNo option defines the seq_no value to reference when updating an ISM policy. If the actual value is different
+// to the one specified, the update will fail.
 func WithSeqNo(seqno int) PutPolicyOption {
 	return func(req *ism.PutPolicyReq) {
 		if req.Params == nil {
@@ -118,6 +124,8 @@ func WithSeqNo(seqno int) PutPolicyOption {
 	}
 }
 
+// WithPrimaryTerm option defines a primary_term value to reference when updating an ISM policy. If the actual value is
+// different to the one specified, the update will fail.
 func WithPrimaryTerm(term float64) PutPolicyOption {
 	return func(req *ism.PutPolicyReq) {
 		if req.Params == nil {
@@ -127,6 +135,7 @@ func WithPrimaryTerm(term float64) PutPolicyOption {
 	}
 }
 
+// AddPolicyToIndices applies an ISM policy with the given ID to existing indices.
 func AddPolicyToIndices(ctx context.Context, osc *opensearch.Client, index opensearch.Index, id string) error {
 	client := NewClient(osc)
 	resp, err := client.Policy.AddPolicy(ctx, &ism.AddPolicyReq{
