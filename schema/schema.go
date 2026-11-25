@@ -88,7 +88,7 @@ func NewIndexConfig(osc *opensearch.Client, index opensearch.Index) (IndexConfig
 	case ItemsIndex:
 		indexName = osc.IndexCanonicalName(index)
 		indexTemplate = ItemsIndexTemplate
-		componentTemplate = ItemsComponentTemplate(mlc.GetModelID())
+		componentTemplate = ItemsComponentTemplate(mlc.GetModelID(), osc.IndexReadAlias(ItemsIndex))
 		readAlias = osc.IndexReadAlias(index)
 		writeAlias = osc.IndexWriteAlias(index)
 	case UsersIndex:
@@ -199,6 +199,10 @@ func (c *IndexConfig) UpdateTemplates(ctx context.Context, osc *opensearch.Clien
 			"Configured items ingest pipeline",
 			slog.String("name", ItemsIngestPipeline(mlc.GetModelID()).ID),
 		)
+		// Items ISM index template.
+		if err := indices.CreateIndexTemplate(ctx, osc.Index, ItemsISMIndexTemplate(c.WriteAlias)); err != nil {
+			return fmt.Errorf("create %s items ism index template: %w", c.index, err)
+		}
 		// Items ISM policy.
 		if err := ism.ConfigurePolicy(ctx, osc, ItemsIndex, ItemsISM); err != nil {
 			return fmt.Errorf("configure items ism policy: %w", err)

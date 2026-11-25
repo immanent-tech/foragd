@@ -6,6 +6,7 @@
 package schema
 
 import (
+	"bytes"
 	"encoding/json"
 
 	"github.com/opensearch-project/opensearch-go/v5/opensearchapi"
@@ -13,6 +14,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/opensearch/indices"
 )
 
+// ItemsMappings defines the field mappings for [models.Item] indices.
 var ItemsMappings = func(modelID string) indices.Mappings {
 	return indices.NewMappings(
 		indices.WithMapping[opensearchapi.CommonMappingDateNanosProperty]("@timestamp"),
@@ -46,7 +48,7 @@ var ItemsMappings = func(modelID string) indices.Mappings {
 }
 
 // ItemsComponentTemplate is a component template containing [ItemMappings].
-var ItemsComponentTemplate = func(modelID string) opensearchapi.ClusterPutComponentTemplateReq {
+var ItemsComponentTemplate = func(modelID, readAlias string) opensearchapi.ClusterPutComponentTemplateReq {
 	return indices.NewComponentTemplateRequest(ItemsIndex.String(),
 		indices.WithIndexSettings(
 			indices.WithMappings(ItemsMappings(modelID)),
@@ -56,6 +58,7 @@ var ItemsComponentTemplate = func(modelID string) opensearchapi.ClusterPutCompon
 			indices.WithReplicas("2"),
 			indices.WithKNN(),
 			indices.WithDefaultPipeline(ItemsIndex.String()+"-pipeline"),
+			indices.WithAlias(readAlias, nil),
 		),
 	)
 }
@@ -87,6 +90,36 @@ func ItemsIngestPipeline(modelID string) opensearchapi.IngestPutPipelineReq {
 	}
 }
 
+// ItemsISMIndexTemplate is an index template to define the rollover alias required for the associated items [ItemsISM]
+// ISM policy.
+var ItemsISMIndexTemplate = func(writeAlias string) opensearchapi.IndicesPutIndexTemplateReq {
+	type body struct {
+		IndexPatterns []string `json:"index_patterns"`
+		Template      struct {
+			Settings struct {
+				Plugins struct {
+					IndexStateManagement struct {
+						RolloverAlias string `json:"rollover_alias"`
+					} `json:"index_state_management"`
+				} `json:"plugins"`
+			} `json:"settings"`
+		} `json:"template"`
+		Prority int `json:"priority"`
+	}
+
+	var settings body
+	settings.IndexPatterns = []string{ItemsIndex.String() + "-*"}
+	settings.Template.Settings.Plugins.IndexStateManagement.RolloverAlias = writeAlias
+	settings.Prority = 1000
+
+	data, _ := json.Marshal(&settings)
+	return opensearchapi.IndicesPutIndexTemplateReq{
+		Name:       ItemsIndex.String() + "-ism",
+		BodyReader: bytes.NewReader(data),
+	}
+}
+
+// ItemsISM is an Index State Management policy to maintain reasonable sizing and history of items indices.
 var ItemsISM = opensearchapi.ISMPolicy{
 	PolicyID:     new(ItemsIndex.String() + "-ism-policy"),
 	Description:  new("ISM Policy to maintain reasonable sizing and history of items indices"),
