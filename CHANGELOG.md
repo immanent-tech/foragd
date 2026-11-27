@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.0.0](https://github.com/immanent-tech/foragd/compare/v0.263.0...v1.0.0) (2026-11-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* ✨ complete migration from elasticsearch to opensearch
+
+### Features
+
+* ✨ complete migration from elasticsearch to opensearch ([fbed26d](https://github.com/immanent-tech/foragd/commit/fbed26de8d2db927875904959d37f23eacb1a26e))
+* **providers/opensearch:** ➕ add ism management ([bb778fe](https://github.com/immanent-tech/foragd/commit/bb778feaf457caf0e83dc3de4d89ad4fee274e1b))
+* **providers/opensearch:** ➕ add method for retrieving all indices ([4487a45](https://github.com/immanent-tech/foragd/commit/4487a45e002ecd5c73c50514bb5934b678193622))
+* **schema:** ➕ use an ism policy for items indices ([fd76e73](https://github.com/immanent-tech/foragd/commit/fd76e738f081ceadf80eae9922f51e70361e6103))
+
+
+### Bug Fixes
+
+* **providers/opensearch:** 🔧 bulk indexing fixes ([3c9964c](https://github.com/immanent-tech/foragd/commit/3c9964c382f9513ac7b1938dfc15382233b0d468))
+* **providers/opensearch:** 🔧 fix checking for ism policy ([ead868c](https://github.com/immanent-tech/foragd/commit/ead868c2c4d8463628fe2d16468b26703e0b6331))
+* **providers/opensearch:** 🔧 handle nil error ([f690196](https://github.com/immanent-tech/foragd/commit/f690196dcba85a3a2161cf5108653ae1643b57df))
+* **providers/opensearch:** 🔧 wrap error handling ([7b17a4b](https://github.com/immanent-tech/foragd/commit/7b17a4b49c1307afed1ff414941875f8619b4e4b))
+* **scheduler:** 🔧 pass client to bulk indexer ([b5e91a9](https://github.com/immanent-tech/foragd/commit/b5e91a97c03b4079f4bcacd4f15539f17e67beb4))
+* **schema:** 🔧 fix items ism integration ([07d085a](https://github.com/immanent-tech/foragd/commit/07d085a1c3451fdec4ae67cf1a986bcc16ee25fa))
+
+
+### Performance Improvements
+
+* **scheduler:** ⚡ tweak performance of head search request ([d7e2586](https://github.com/immanent-tech/foragd/commit/d7e2586713f5795a82ba440586a72372a9ed4408))
+
 ## [0.263.0](https://github.com/immanent-tech/foragd/compare/v0.262.0...v0.263.0) (2026-11-20)
 
 
